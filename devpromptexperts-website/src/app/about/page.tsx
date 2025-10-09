@@ -75,7 +75,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-5xl font-bold mb-6">About DevPromptExperts</h2>
           <p className="text-xl text-blue-100 leading-relaxed">
-            We're on a mission to democratize access to world-class AI expertise, connecting innovative businesses with the brightest minds in artificial intelligence and prompt engineering.
+            We&#39;re on a mission to democratize access to world-class AI expertise, connecting innovative businesses with the brightest minds in artificial intelligence and prompt engineering.
           </p>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function AboutPage() {
             Founded in 2020 by a team of AI practitioners and business leaders, we set out to create a platform that would solve this challenge. We carefully vet each consultant in our network, ensuring they possess not just technical expertise, but also the communication skills and business acumen needed to deliver real results.
           </p>
           <p className="text-gray-700 leading-relaxed text-lg">
-            Today, we're proud to have facilitated over 1,200 successful projects, connecting businesses with the perfect AI experts for their unique challenges. Our community continues to grow, bringing together the brightest minds in AI to drive innovation forward.
+            Today, we&#39;re proud to have facilitated over 1,200 successful projects, connecting businesses with the perfect AI experts for their unique challenges. Our community continues to grow, bringing together the brightest minds in AI to drive innovation forward.
           </p>
         </div>
       </div>
