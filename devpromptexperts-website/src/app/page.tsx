@@ -31,13 +31,14 @@ export default function HomePage() {
                 <div className="text-2xl mt-4">→</div>
               </button>
             </Link>
-            
-            <button className="bg-gradient-to-br from-purple-600 to-pink-600 text-white p-8 rounded-2xl shadow-2xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all group">
-              <div className="text-6xl mb-4">👤</div>
-              <h3 className="text-2xl font-bold mb-3">Become a Consultant</h3>
-              <p className="text-blue-50">Join our elite network and connect with clients seeking your expertise</p>
-              <div className="text-2xl mt-4">→</div>
-            </button>
+            <Link href="/onboarding">
+              <button className="bg-gradient-to-br from-purple-600 to-pink-600 text-white p-8 rounded-2xl shadow-2xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all group">
+                <div className="text-6xl mb-4">👤</div>
+                <h3 className="text-2xl font-bold mb-3">Become a Consultant</h3>
+                <p className="text-blue-50">Join our elite network and connect with clients seeking your expertise</p>
+                <div className="text-2xl mt-4">→</div>
+              </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -9,3 +9,18 @@ export interface Consultant {
   projectsCompleted: number;
   featured?: boolean;
 }
+
+export interface BioData {
+  name: string;
+  email: string;
+  title: string;
+  bio: string;
+  expertise: string[];
+  image:string;
+  availability: string;
+}
+
+export interface InterviewSlot {
+  id: number;
+  time: string;
+}
