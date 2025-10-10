@@ -14,12 +14,12 @@ export default function Navbar() {
           <Link href="/" className="hover:text-blue-300 transition">
             Home
           </Link>
-          <button className="hover:text-blue-300 transition">
+          <Link href="/consumer" className="hover:text-blue-300 transition">
             Find Consultants
-          </button>
-          <button className="hover:text-blue-300 transition">
+          </Link>
+          <Link href="/onboarding" className="hover:text-blue-300 transition">
             Become a Consultant
-          </button>
+          </Link>
           <Link href="/about" className="hover:text-blue-300 transition">
             About
           </Link>
