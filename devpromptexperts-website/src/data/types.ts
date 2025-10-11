@@ -24,3 +24,4 @@ export interface InterviewSlot {
   id: number;
   time: string;
 }
+

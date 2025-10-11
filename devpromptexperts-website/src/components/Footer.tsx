@@ -17,7 +17,9 @@ export default function Footer() {
         <div>
         <h4 className="font-bold mb-4">For Clients</h4>
         <div className="space-y-2">
-            <div className="text-gray-400 hover:text-white cursor-pointer">Find Consultants</div>
+            <Link href="/consumer">
+                <div className="text-gray-400 hover:text-white cursor-pointer">Find Consultants</div>
+            </Link>
             <div className="text-gray-400 hover:text-white cursor-pointer">How It Works</div>
             <div className="text-gray-400 hover:text-white cursor-pointer">Pricing</div>
         </div>
@@ -26,7 +28,9 @@ export default function Footer() {
         <div>
         <h4 className="font-bold mb-4">For Consultants</h4>
         <div className="space-y-2">
-            <div className="text-gray-400 hover:text-white cursor-pointer">Join Network</div>
+            <Link href="/onboarding">
+                <div className="text-gray-400 hover:text-white cursor-pointer">Join Network</div>
+            </Link>
             <div className="text-gray-400 hover:text-white cursor-pointer">Benefits</div>
             <div className="text-gray-400 hover:text-white cursor-pointer">Resources</div>
         </div>
@@ -35,8 +39,12 @@ export default function Footer() {
         <div>
         <h4 className="font-bold mb-4">Company</h4>
         <div className="space-y-2">
-            <div className="text-gray-400 hover:text-white cursor-pointer">About Us</div>
-            <div className="text-gray-400 hover:text-white cursor-pointer">Blog</div>
+            <Link href="/about">
+                <div className="text-gray-400 hover:text-white cursor-pointer">About Us</div>
+            </Link>
+            <Link href="/blog">
+                <div className="text-gray-400 hover:text-white cursor-pointer">Blog</div>
+            </Link>
             <div className="text-gray-400 hover:text-white cursor-pointer">Contact</div>
         </div>
         </div>

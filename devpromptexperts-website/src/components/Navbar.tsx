@@ -1,13 +1,16 @@
 "use client";
+import favicon from '@/app/favicon.ico';
+import Image from 'next/image';
 
 import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-4 shadow-lg">
+    <nav className="bg-gradient-to-r from-blue-950 to-black text-white p-4 shadow-lg">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <span className="text-3xl">🎯</span>
+          <span className="text-3xl">🎯
+          </span>
           <h1 className="text-2xl font-bold">DevPromptExperts</h1>
         </div>
         <div className="flex space-x-6">
@@ -23,9 +26,9 @@ export default function Navbar() {
           <Link href="/about" className="hover:text-blue-300 transition">
             About
           </Link>
-          <button className="hover:text-blue-300 transition">
+          <Link href="/blog" className="hover:text-blue-300 transition">
             Blog
-          </button>
+          </Link>
         </div>
       </div>
     </nav>
