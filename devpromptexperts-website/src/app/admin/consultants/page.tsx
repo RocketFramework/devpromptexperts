@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getConsultants, updateConsultantStage } from "@/lib/consultants";
 import { Consultant } from "@/types/consultant";
 import { useSession } from "next-auth/react";
+import type { OnboardingStage } from "@/types/consultant";
 
 import ConsultantOnboardingTable from "@/components/ConsultantOnboardingTable";
 
@@ -52,10 +53,10 @@ export default function AdminConsultantsPage() {
     }
   };
 
-  const handleStageUpdate = async (id: string, newStage: string) => {
+  const handleStageUpdate = async (id: string, newStage: OnboardingStage) => {
     await updateConsultantStage(id, newStage);
     setConsultants((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, stage: newStage as any } : c))
+      prev.map((c) => (c.id === id ? { ...c, stage: newStage} : c))
     );
   };
 

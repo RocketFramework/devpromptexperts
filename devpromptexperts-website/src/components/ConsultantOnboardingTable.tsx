@@ -2,13 +2,14 @@
 
 import { Consultant } from "@/types/consultant";
 import Image from "next/image";
+import type { OnboardingStage } from "@/types/consultant";
 
 interface Props {
   consultants: Consultant[];
   sortKey: keyof Consultant;
   sortOrder: "asc" | "desc";
   onSort: (key: keyof Consultant) => void;
-  onStageUpdate: (id: string, stage: string) => void;
+  onStageUpdate: (id: string, stage: OnboardingStage) => void;
 }
 
 export default function ConsultantOnboardingTable({
@@ -60,7 +61,7 @@ export default function ConsultantOnboardingTable({
               <td className="px-4 py-2">
                 <select
                   value={c.stage || ""}
-                  onChange={(e) => onStageUpdate(c.id, e.target.value)}
+                  onChange={(e) => onStageUpdate(c.id, e.target.value as OnboardingStage)}
                   className={`px-2 py-1 rounded text-white ${
                     c.stage === "bio"
                       ? "bg-blue-500"

@@ -1,6 +1,7 @@
 // src/lib/consultants.ts
 import { supabase } from './supabaseClient';
-import { Consultant } from '@/types/consultant';
+import { Consultant, ConsultantRow, OnboardingStage } from '@/types/consultant';
+import { toOnboardingStage } from '@/utils/normalizers';
 
 export async function getConsultants(): Promise<Consultant[]> {
   const { data, error } = await supabase
@@ -12,22 +13,22 @@ export async function getConsultants(): Promise<Consultant[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map((c: any) => ({
+  return (data as ConsultantRow[]).map((c) => ({
     id: c.user.id,
     email: c.user.email,
     name: c.user.full_name,
     role: c.user.role,
     image: c.user.profile_image_url,
-    country: c.user.country,
+    country: c.user.country ?? "",
     title: c.title,
     bio_summary: c.bio_summary,
-    expertise: c.expertise,
+    expertise: c.expertise ?? [],
     availability: c.availability,
     work_experience: c.work_experience,
-    skills: c.skills,
-    publications: c.publications,
+    skills: c.skills ?? [],
+    publications: c.publications ?? [],
     projects_completed: c.projects_completed,
-    stage: c.stage,
+    stage: toOnboardingStage(c.stage),
     rating: c.rating,
     featured: c.featured,
   }));

@@ -25,4 +25,24 @@ export interface InterviewSlot {
   time: string;
 }
   
-  
+export interface ConsultantRow {
+  user: {
+    id: string;
+    email: string;
+    full_name: string;
+    role: string;
+    profile_image_url: string;
+    country: string | null;
+  };
+  title: string;
+  bio_summary: string | null;
+  expertise: string[] | null;
+  availability: string;
+  work_experience: number | null;
+  skills: string[] | null;
+  publications: string[] | null;
+  projects_completed: number | null;
+  stage: string;
+  rating: number;
+  featured: boolean;
+}
