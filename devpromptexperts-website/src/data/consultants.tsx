@@ -108,6 +108,14 @@ export const consultants = Array.from({ length: 100 }, (_, i) => {
     ...base,
     id: (i + 1).toString(),
     name: `${base.name} ${i + 1}`,
+    email: `consultant${i + 2}',@example.com`,
+    bioSummary: `Experienced ${base.title} with expertise in ${base.expertise.join(", ")}.`,
+    expertise: base.expertise,
+    availability: base.availability,
+    country: ["USA", "Canada", "UK", "Germany", "Australia"][i % 5],
+    workExperience: 3 + (i % 10), // 3 to 12 years
+    skills: base.expertise,
+    publications: [`Publication ${i + 1}`, `Publication ${i + 2}`], // Dummy publications 
     rating: Math.round((base.rating + (Math.random() - 0.5) * 0.4) * 10) / 10,
     projectsCompleted: base.projectsCompleted + Math.floor(Math.random() * 50),
     featured: i < 10 ? true : false // First 10 are featured

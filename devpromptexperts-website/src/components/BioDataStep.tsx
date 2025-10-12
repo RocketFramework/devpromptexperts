@@ -1,7 +1,8 @@
 import React from "react";
-import { BioData } from "@/data/types";
+import { BioData } from "@/types/types";
 import { daysOptions } from "@/data/daysOptions";
 import { hoursOptions } from "@/data/hoursOptions";
+import { Consultant } from "@/types/consultant";
 
 const expertiseOptions = [
   "GPT-4",
@@ -36,26 +37,26 @@ const expertiseOptions = [
 ];
 
 export default function BioDataStep({
-  bioData,
-  setBioData
+  consultant,
+  setConsultant
 }: {
-  bioData: BioData;
-  setBioData: (data: BioData) => void;
+  consultant: Consultant;
+  setConsultant: (data: Consultant) => void;
 }) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setBioData({ ...bioData, [e.target.name]: e.target.value });
+        setConsultant({ ...consultant, [e.target.name]: e.target.value });
     };
 
     const handleExpertiseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selected = Array.from(e.target.selectedOptions, option => option.value);
-        setBioData({ ...bioData, expertise: selected });
+        setConsultant({ ...consultant, expertise: selected });
     };
 
     const handleAvailabilityChange = (field: "days" | "hours", value: string) => {
     const availability = field === "days"
-      ? `${value} - ${bioData.availability.split(" - ")[1] || ""}`
-      : `${bioData.availability.split(" - ")[0] || ""} - ${value}`;
-    setBioData({ ...bioData, availability });
+      ? `${value} - ${consultant.availability.split(" - ")[1] || ""}`
+      : `${consultant.availability.split(" - ")[0] || ""} - ${value}`;
+    setConsultant({ ...consultant, availability });
   };
 
   return (
@@ -65,7 +66,7 @@ export default function BioDataStep({
         type="text"
         name="name"
         placeholder="Full Name"
-        value={bioData.name}
+        value={consultant.name}
         onChange={handleChange}
         className="border rounded px-4 py-2 mb-4 w-full"
         required
@@ -74,7 +75,7 @@ export default function BioDataStep({
         type="email"
         name="email"
         placeholder="Email"
-        value={bioData.email}
+        value={consultant.email}
         onChange={handleChange}
         className="border rounded px-4 py-2 mb-4 w-full"
         required
@@ -83,7 +84,7 @@ export default function BioDataStep({
         type="text"
         name="title"
         placeholder="Professional Title"
-        value={bioData.title}
+        value={consultant.title}
         onChange={handleChange}
         className="border rounded px-4 py-2 mb-4 w-full"
         required
@@ -91,7 +92,7 @@ export default function BioDataStep({
       <textarea
         name="bio"
         placeholder="Short Bio"
-        value={bioData.bio}
+        value={consultant.workExperience}
         onChange={handleChange}
         className="border rounded px-4 py-2 mb-4 w-full"
         required
@@ -100,7 +101,7 @@ export default function BioDataStep({
         type="url"
         name="image"
         placeholder="Profile Image URL"
-        value={bioData.image || ""}
+        value={consultant.image || ""}
         onChange={handleChange}
         className="border rounded px-4 py-2 mb-4 w-full"
         required
@@ -109,7 +110,7 @@ export default function BioDataStep({
         <label className="block font-semibold mb-2">Availability</label>
         <div className="flex gap-4">
           <select
-            value={bioData.availability.split(" - ")[0] || ""}
+            value={consultant.availability.split(" - ")[0] || ""}
             onChange={e => handleAvailabilityChange("days", e.target.value)}
             className="border rounded px-4 py-2 w-1/2"
             required
@@ -120,7 +121,7 @@ export default function BioDataStep({
             ))}
           </select>
           <select
-            value={bioData.availability.split(" - ")[1] || ""}
+            value={consultant.availability.split(" - ")[1] || ""}
             onChange={e => handleAvailabilityChange("hours", e.target.value)}
             className="border rounded px-4 py-2 w-1/2"
             required
@@ -132,14 +133,14 @@ export default function BioDataStep({
           </select>
         </div>
         <div className="text-gray-500 text-xs mt-2">
-          Selected: {bioData.availability || "None"}
+          Selected: {consultant.availability || "None"}
         </div>
       </div>
       <label className="block mb-2 font-semibold">Expertise (hold Ctrl/Cmd to select multiple):</label>
       <select
         name="expertise"
         multiple
-        value={bioData.expertise}
+        value={consultant.expertise}
         onChange={handleExpertiseChange}
         className="border rounded px-4 py-2 mb-4 w-full"
         required

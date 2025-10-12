@@ -1,7 +1,7 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -9,43 +9,39 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await signIn("credentials", {
-      redirect: false,
       email,
       password,
+      redirect: false,
     });
 
-    if (!res?.error) {
-      router.push("/admin");
-    } else {
-      alert("Invalid credentials");
-    }
+    if (res?.ok) router.push("/admin/dashboard");
+    else alert("Invalid credentials");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleLogin} className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h1 className="text-2xl font-bold mb-4 text-center">Admin Login</h1>
+    <div className="min-h-screen flex items-center justify-center">
+      <form onSubmit={handleSubmit} className="p-6 border rounded">
+        <h1 className="mb-4 text-xl font-bold">Admin Login</h1>
         <input
           type="email"
           placeholder="Email"
-          className="w-full border p-2 mb-3 rounded"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="mb-2 border p-2 w-full"
+          required
         />
         <input
           type="password"
           placeholder="Password"
-          className="w-full border p-2 mb-3 rounded"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="mb-4 border p-2 w-full"
+          required
         />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          Login
-        </button>
+        <button type="submit" className="w-full p-2 bg-blue-600 text-white">Login</button>
       </form>
     </div>
   );

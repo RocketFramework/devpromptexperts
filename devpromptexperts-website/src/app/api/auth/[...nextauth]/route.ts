@@ -1,14 +1,13 @@
-// src/app/api/[...nextauth]/route.ts
-import NextAuth, { AuthOptions, User } from "next-auth";
+import NextAuth, { NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-// 1️⃣ Extend the User type to include role
+// Admin user type
 interface AdminUser extends User {
   role: "admin";
 }
 
-// 2️⃣ Define NextAuth options
-export const authOptions: AuthOptions = {
+// NextAuth options
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -16,8 +15,7 @@ export const authOptions: AuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      // 3️⃣ Properly typed authorize function
-      async authorize(credentials): Promise<AdminUser | null> {
+      async authorize(credentials) {
         const adminEmail = "admin@example.com";
         const adminPassword = "123456";
 
@@ -31,36 +29,21 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
-
-  pages: {
-    signIn: "/auth/login",
-  },
-
-  session: {
-    strategy: "jwt",
-  },
-
+  pages: { signIn: "/auth/login" },
   callbacks: {
-    // 4️⃣ JWT callback
     async jwt({ token, user }) {
-      if (user) {
-        // user is AdminUser here
-        token.role = (user as AdminUser).role;
-      }
+      if (user) token.role = (user as AdminUser).role;
       return token;
     },
-
-    // 5️⃣ Session callback
     async session({ session, token }) {
-      if (session.user) {
-        // session.user is the normal User type; cast to AdminUser
-        (session.user as AdminUser).role = token.role as "admin";
-      }
+      if (session.user) (session.user as AdminUser).role = token.role as "admin";
       return session;
     },
   },
+  session: { strategy: "jwt" },
 };
 
+// Export handler for App Router
 const handler = NextAuth(authOptions);
 
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST }; // ✅ Only export handler here

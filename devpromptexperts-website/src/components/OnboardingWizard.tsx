@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { BioData, InterviewSlot } from "@/data/types";
+import { Consultant, InterviewSlot } from "@/types/consultant";
 import BioDataStep from "./BioDataStep";
 import InterviewStep from "./InterviewStep";
 import ProbationStep from "./ProbationStep";
@@ -8,19 +8,21 @@ import { interviewSlots } from "@/data/interviewSlots";
 
 export default function ConsultantOnboardingWizard() {
   const [step, setStep] = useState(1);
-  const [bioData, setBioData] = useState<BioData>({
+  const [consultant, setConsultant] = useState<Consultant>({
+    id: "",
     name: "",
     email: "",
     title: "",
-    bio: "",
+    bioSummary: "",
     expertise: [],
     image: "",
     availability: "",
+    stage: "bio",
   });
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
   const steps = [
-    { label: "Bio Data", component: <BioDataStep bioData={bioData} setBioData={setBioData} /> },
+    { label: "Bio Data", component: <BioDataStep consultant={consultant} setConsultant={setConsultant} /> },
     { label: "Interview", component: <InterviewStep interviewSlots={interviewSlots} selectedSlot={selectedSlot} setSelectedSlot={setSelectedSlot} onNext={() => setStep(step + 1)} /> },
     { label: "Probation", component: <ProbationStep /> },
   ];

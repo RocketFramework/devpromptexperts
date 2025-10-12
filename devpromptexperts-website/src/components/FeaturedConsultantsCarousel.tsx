@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { featuredConsultants } from "@/data/consultants";
 import ConsultantCard from "@/components/ConsultantCard";
-
+import { Consultant } from "@/types/consultant";
 
 export default function FeaturedConsultantsCarousel() {
   const [carouselIndex, setCarouselIndex] = useState(0);
