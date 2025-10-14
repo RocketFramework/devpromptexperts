@@ -1,5 +1,5 @@
 // Helper function to validate URLs
-export const isValidUrl = (string : any) => {
+export const isValidUrl = (string : string) => {
   try {
     new URL(string);
     return true;
@@ -8,13 +8,20 @@ export const isValidUrl = (string : any) => {
   }
 };
 
-// LinkedIn URL validation
-export const isValidLinkedInUrl = (url : any) => {
+export const isValidLinkedInUrl = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
-    const linkedinRegex = /^(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+/;
-    return linkedinRegex.test(urlObj.hostname + urlObj.pathname);
-  } catch (_) {
+    const hostname = urlObj.hostname.toLowerCase();
+
+    // Check if domain is linkedin.com or www.linkedin.com
+    if (hostname !== "linkedin.com" && hostname !== "www.linkedin.com") {
+      return false;
+    }
+
+    // Match /in/username with optional trailing slash or query
+    const linkedinPathRegex = /^\/in\/[a-zA-Z0-9-_%]+\/?$/;
+    return linkedinPathRegex.test(urlObj.pathname);
+  } catch {
     return false;
   }
 };
