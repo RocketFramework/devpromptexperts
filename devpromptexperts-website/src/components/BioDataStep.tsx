@@ -1,9 +1,11 @@
+"use client";
+
 import React from "react";
-import { BioData } from "@/types/types";
+import { Consultant } from "@/types/consultant";
 import { daysOptions } from "@/data/daysOptions";
 import { hoursOptions } from "@/data/hoursOptions";
-import { Consultant } from "@/types/consultant";
-
+import TagInput from "@/components/TagInput";
+import { isValidUrl, isValidLinkedInUrl } from "@/utils/validations";
 const expertiseOptions = [
   "GPT-4",
   "Claude AI",
@@ -33,122 +35,275 @@ const expertiseOptions = [
   "Predictive Analytics",
   "Big Data",
   "DevOps",
-  "Automation"
+  "Automation",
 ];
 
 export default function BioDataStep({
   consultant,
-  setConsultant
+  setConsultant,
 }: {
   consultant: Consultant;
   setConsultant: (data: Consultant) => void;
 }) {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setConsultant({ ...consultant, [e.target.name]: e.target.value });
-    };
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setConsultant({ ...consultant, [e.target.name]: e.target.value });
+  };
 
-    const handleExpertiseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selected = Array.from(e.target.selectedOptions, option => option.value);
-        setConsultant({ ...consultant, expertise: selected });
-    };
-
-    const handleAvailabilityChange = (field: "days" | "hours", value: string) => {
-    const availability = field === "days"
-      ? `${value} - ${consultant.availability.split(" - ")[1] || ""}`
-      : `${consultant.availability.split(" - ")[0] || ""} - ${value}`;
+  const handleAvailabilityChange = (field: "days" | "hours", value: string) => {
+    const availability =
+      field === "days"
+        ? `${value} - ${consultant.availability.split(" - ")[1] || ""}`
+        : `${consultant.availability.split(" - ")[0] || ""} - ${value}`;
     setConsultant({ ...consultant, availability });
   };
 
   return (
-    <form>
-      <h3 className="text-xl font-semibold mb-4">Step 1: Enter Your Bio Data</h3>
-      <input
-        type="text"
-        name="name"
-        placeholder="Full Name"
-        value={consultant.name}
-        onChange={handleChange}
-        className="border rounded px-4 py-2 mb-4 w-full"
-        required
-      />
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={consultant.email}
-        onChange={handleChange}
-        className="border rounded px-4 py-2 mb-4 w-full"
-        required
-      />
-      <input
-        type="text"
-        name="title"
-        placeholder="Professional Title"
-        value={consultant.title}
-        onChange={handleChange}
-        className="border rounded px-4 py-2 mb-4 w-full"
-        required
-      />
-      <textarea
-        name="bio"
-        placeholder="Short Bio"
-        value={consultant.workExperience}
-        onChange={handleChange}
-        className="border rounded px-4 py-2 mb-4 w-full"
-        required
-      />
-      <input
-        type="url"
-        name="image"
-        placeholder="Profile Image URL"
-        value={consultant.image || ""}
-        onChange={handleChange}
-        className="border rounded px-4 py-2 mb-4 w-full"
-        required
-      />
-      <div className="mb-6">
-        <label className="block font-semibold mb-2">Availability</label>
-        <div className="flex gap-4">
-          <select
-            value={consultant.availability.split(" - ")[0] || ""}
-            onChange={e => handleAvailabilityChange("days", e.target.value)}
-            className="border rounded px-4 py-2 w-1/2"
+    <div className="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-xl h-[90vh] overflow-y-auto">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        Step 1: <span className="text-indigo-600">Enter Your Bio Data</span>
+      </h2>
+
+      <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Full Name */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Full Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={consultant.name}
+            onChange={handleChange}
             required
-          >
-            <option value="">Select Days</option>
-            {daysOptions.map(day => (
-              <option key={day} value={day}>{day}</option>
-            ))}
-          </select>
-          <select
-            value={consultant.availability.split(" - ")[1] || ""}
-            onChange={e => handleAvailabilityChange("hours", e.target.value)}
-            className="border rounded px-4 py-2 w-1/2"
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          />
+        </div>
+
+        {/* Email */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={consultant.email}
+            onChange={handleChange}
             required
-          >
-            <option value="">Select Hours</option>
-            {hoursOptions.map(hours => (
-              <option key={hours} value={hours}>{hours}</option>
-            ))}
-          </select>
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          />
         </div>
-        <div className="text-gray-500 text-xs mt-2">
-          Selected: {consultant.availability || "None"}
+
+        {/* Title */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Professional Title <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="title"
+            value={consultant.title}
+            onChange={handleChange}
+            required
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          />
         </div>
-      </div>
-      <label className="block mb-2 font-semibold">Expertise (hold Ctrl/Cmd to select multiple):</label>
-      <select
-        name="expertise"
-        multiple
-        value={consultant.expertise}
-        onChange={handleExpertiseChange}
-        className="border rounded px-4 py-2 mb-4 w-full"
-        required
-      >
-        {expertiseOptions.map(opt => (
-          <option key={opt} value={opt}>{opt}</option>
-        ))}
-      </select>
-    </form>
+
+        {/* Profile Image */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Profile Image URL <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="url"
+            name="image"
+            value={consultant.image}
+            onChange={handleChange}
+            required
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          />
+        </div>
+
+        {/* Bio */}
+        <div className="flex flex-col md:col-span-2">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Short Bio <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            name="bio_summary"
+            value={consultant.bio_summary || ""}
+            onChange={handleChange}
+            rows={4}
+            required
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none resize-none"
+          />
+        </div>
+
+        {/* Work Experience */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Work Experience (Years) <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            name="work_experience"
+            value={consultant.work_experience ?? ""}
+            onChange={handleChange}
+            required
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          />
+        </div>
+
+        {/* Projects Completed */}
+        <div className="flex flex-col">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Projects Completed <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            name="projects_completed"
+            value={consultant.projects_completed ?? ""}
+            onChange={handleChange}
+            required
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          />
+        </div>
+
+        {/* Availability */}
+        <div className="md:col-span-2">
+          <label className="text-sm font-semibold mb-2 text-gray-700">
+            Availability <span className="text-red-500">*</span>
+          </label>
+          <div className="flex flex-col md:flex-row gap-4">
+            <select
+              value={consultant.availability.split(" - ")[0] || ""}
+              onChange={(e) => handleAvailabilityChange("days", e.target.value)}
+              required
+              className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+            >
+              <option value="">Select Days</option>
+              {daysOptions.map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
+            </select>
+            <select
+              value={consultant.availability.split(" - ")[1] || ""}
+              onChange={(e) =>
+                handleAvailabilityChange("hours", e.target.value)
+              }
+              required
+              className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+            >
+              <option value="">Select Hours</option>
+              {hoursOptions.map((hours) => (
+                <option key={hours} value={hours}>
+                  {hours}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Selected: {consultant.availability || "None"}
+          </p>
+        </div>
+
+        {/* Expertise */}
+        <div className="md:col-span-2">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Expertise <span className="text-red-500">*</span>
+          </label>
+          <TagInput
+            tags={consultant.expertise ?? []}
+            setTags={(tags) =>
+              setConsultant({ ...consultant, expertise: tags })
+            }
+            placeholder="Add expertise..."
+          />
+        </div>
+
+        {/* Skills */}
+        <div className="md:col-span-2">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Skills <span className="text-red-500">*</span>
+          </label>
+          <TagInput
+            tags={consultant.skills ?? []}
+            setTags={(tags) => setConsultant({ ...consultant, skills: tags })}
+            placeholder="Add skills..."
+          />
+        </div>
+
+        {/* LinkedIn */}
+        <div className="md:col-span-2">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            LinkedIn Profile
+          </label>
+          <div className="space-y-2">
+            <TagInput
+              tags={consultant.linkedinUrl ?? []}
+              setTags={(tags) =>
+                setConsultant({ ...consultant, linkedinUrl: tags })
+              }
+              placeholder="Add LinkedIn URLs (https://...)"
+            />
+            <div className="flex flex-wrap gap-2">
+              {consultant.linkedinUrl?.map((linkedinUrl, index) => (
+                <div key={index} className="text-xs">
+                  {isValidUrl(linkedinUrl) ? (
+                    <a
+                      href={linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      📎 Link {index + 1}
+                    </a>
+                  ) : (
+                    <span>{linkedinUrl}</span>
+                  )}
+                </div>
+              ))}
+            </div>{" "}
+          </div>
+        </div>
+        {/* Publications */}
+        <div className="md:col-span-2">
+          <label className="text-sm font-semibold mb-1 text-gray-700">
+            Publications/External Links
+          </label>
+          <div className="space-y-2">
+            <TagInput
+              tags={consultant.publications ?? []}
+              setTags={(tags) =>
+                setConsultant({ ...consultant, publications: tags })
+              }
+              placeholder="Add publication URLs (https://...)"
+            />
+            <div className="flex flex-wrap gap-2">
+              {consultant.publications?.map((publication, index) => (
+                <div key={index} className="text-xs">
+                  {isValidUrl(publication) ? (
+                    <a
+                      href={publication}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      📎 Link {index + 1}
+                    </a>
+                  ) : (
+                    <span>{publication}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }

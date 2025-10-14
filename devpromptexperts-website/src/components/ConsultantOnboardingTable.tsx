@@ -1,7 +1,6 @@
 "use client";
 
 import { Consultant } from "@/types/consultant";
-import Image from "next/image";
 import type { OnboardingStage } from "@/types/consultant";
 
 interface Props {
@@ -21,58 +20,110 @@ export default function ConsultantOnboardingTable({
 }: Props) {
   const stageOptions = ["bio", "interview", "probation", "active"];
 
+  const stageColors: Record<string, string> = {
+    bio: "bg-blue-500 text-white",
+    interview: "bg-yellow-400 text-black",
+    probation: "bg-orange-400 text-white",
+    active: "bg-green-500 text-white",
+    default: "bg-gray-300 text-black",
+  };
+
+  const renderSortArrow = (key: keyof Consultant) => {
+    if (sortKey !== key) return null;
+    return sortOrder === "asc" ? " ▲" : " ▼";
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border border-gray-200 rounded-lg shadow-md">
+    <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
+      <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-100">
           <tr>
-            <th className="px-4 py-2 cursor-pointer" onClick={() => onSort("name")}>
-              Name {sortKey === "name" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Title
             </th>
-            <th className="px-4 py-2">Profile</th>
-            <th className="px-4 py-2">Availability</th>
-            <th className="px-4 py-2">Country</th>
-            <th className="px-4 py-2">Experience</th>
-            <th className="px-4 py-2">Skills</th>
-            <th className="px-4 py-2">Publications</th>
-            <th className="px-4 py-2">Stage</th>
+            <th
+              className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer select-none"
+              onClick={() => onSort("name")}
+            >
+              Name{renderSortArrow("name")}
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Availability
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Country
+            </th>
+            <th
+              className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer select-none"
+              onClick={() => onSort("work_experience")}
+            >
+              Experience{renderSortArrow("work_experience")}
+            </th>
+            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Assignments Finished
+            </th>
+            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Featured
+            </th>
+            <th
+              className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer select-none"
+              onClick={() => onSort("rating")}
+            >
+              Rating{renderSortArrow("rating")}
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Stage
+            </th>
           </tr>
         </thead>
-        <tbody>
-          {consultants.map((c) => (
-            <tr key={c.id} className="border-t hover:bg-gray-50">
-              <td className="px-4 py-2">{c.name}</td>
-              <td className="px-4 py-2">
-                {c.image && (
-                  <Image
-                    src={c.image}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                    alt={c.name}
-                  />
+
+        <tbody className="bg-white divide-y divide-gray-200">
+          {consultants.map((c, idx) => (
+            <tr
+              key={c.id}
+              className={`${
+                idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+              } hover:bg-gray-100 transition`}
+            >
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                {c.title}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                {c.name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {c.availability || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {c.country || "N/A"}
+              </td>
+              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800 font-semibold">
+                {c.work_experience ?? 0} yrs
+              </td>
+              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
+                {c.projects_completed}
+              </td>
+              <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
+                {c.featured ? (
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-200 text-indigo-800">
+                    Yes
+                  </span>
+                ) : (
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-800">
+                    No
+                  </span>
                 )}
               </td>
-              <td className="px-4 py-2">{c.availability || "N/A"}</td>
-              <td className="px-4 py-2">{c.country || "N/A"}</td>
-              <td className="px-4 py-2">{c.workExperience ?? 0}</td>
-              <td className="px-4 py-2">{c.skills?.join(", ") || "No skills"}</td>
-              <td className="px-4 py-2">{c.publications?.join(", ") || "No publications"}</td>
-              <td className="px-4 py-2">
+              <td className="px-6 py-4 text-center whitespace-nowrap text-sm font-bold text-gray-800">
+                {(c.rating ?? 0).toFixed(1)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
                 <select
                   value={c.stage || ""}
-                  onChange={(e) => onStageUpdate(c.id, e.target.value as OnboardingStage)}
-                  className={`px-2 py-1 rounded text-white ${
-                    c.stage === "bio"
-                      ? "bg-blue-500"
-                      : c.stage === "interview"
-                      ? "bg-yellow-500"
-                      : c.stage === "probation"
-                      ? "bg-orange-500"
-                      : c.stage === "active"
-                      ? "bg-green-500"
-                      : "bg-gray-400"
-                  }`}
+                  onChange={(e) =>
+                    onStageUpdate(c.id, e.target.value as OnboardingStage)
+                  }
+                  className={`px-2 py-1 rounded-md ${stageColors[c.stage || "default"]} font-semibold focus:outline-none`}
                 >
                   <option value="">N/A</option>
                   {stageOptions.map((s) => (

@@ -8,14 +8,15 @@ export interface Consultant {
   title: string;
   image: string;
   rating?: number;
-  bioSummary?: string;
+  bio_summary?: string;
   expertise?: string[];
   availability: string; // e.g., "Mon-Fri 9am-5pm"
   country?: string;
-  workExperience?: number; // in years
+  work_experience?: number; // in years
   skills?: string[];
+  linkedinUrl?: string[];
   publications?: string[];
-  projectsCompleted?: number;
+  projects_completed?: number;
   stage?: OnboardingStage;
   featured?: boolean;
 }
@@ -40,6 +41,7 @@ export interface ConsultantRow {
   availability: string;
   work_experience: number | null;
   skills: string[] | null;
+  linkedinUrl: string[] | null;
   publications: string[] | null;
   projects_completed: number | null;
   stage: string;

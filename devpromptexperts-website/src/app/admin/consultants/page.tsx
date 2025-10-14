@@ -53,19 +53,35 @@ export default function AdminConsultantsPage() {
     }
   };
 
+  const sortedConsultants = [...consultants].sort((a, b) => {
+    const aVal = a[sortKey] ?? "";
+    const bVal = b[sortKey] ?? "";
+
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+    }
+
+    return sortOrder === "asc"
+      ? String(aVal).localeCompare(String(bVal))
+      : String(bVal).localeCompare(String(aVal));
+  });
+
   const handleStageUpdate = async (id: string, newStage: OnboardingStage) => {
     await updateConsultantStage(id, newStage);
     setConsultants((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, stage: newStage} : c))
+      prev.map((c) => (c.id === id ? { ...c, stage: newStage } : c))
     );
   };
 
   if (status === "loading") return <p>Loading session...</p>;
-  if (!session) return <p>You must be signed in as an admin to view this page.</p>;
+  if (!session)
+    return <p>You must be signed in as an admin to view this page.</p>;
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Consultant Onboarding Requests</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Consultant Onboarding Requests
+      </h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-4">
@@ -98,15 +114,7 @@ export default function AdminConsultantsPage() {
 
       {/* Table */}
       <ConsultantOnboardingTable
-        consultants={consultants
-          .filter((c) =>
-            c.name.toLowerCase().includes(search.toLowerCase())
-          )
-          .filter((c) => (!stageFilter ? true : c.stage === stageFilter))
-          .filter((c) =>
-            !countryFilter ? true : c.country?.toLowerCase().includes(countryFilter.toLowerCase())
-          )
-          .slice((page - 1) * pageSize, page * pageSize)}
+        consultants={sortedConsultants}
         sortKey={sortKey}
         sortOrder={sortOrder}
         onSort={handleSort}
@@ -115,17 +123,20 @@ export default function AdminConsultantsPage() {
 
       {/* Pagination */}
       <div className="flex justify-center gap-2 mt-4">
-        {Array.from({ length: Math.ceil(consultants.length / pageSize) }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setPage(i + 1)}
-            className={`px-3 py-1 rounded ${
-              page === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
+        {Array.from(
+          { length: Math.ceil(consultants.length / pageSize) },
+          (_, i) => (
+            <button
+              key={i}
+              onClick={() => setPage(i + 1)}
+              className={`px-3 py-1 rounded ${
+                page === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
+              }`}
+            >
+              {i + 1}
+            </button>
+          )
+        )}
       </div>
     </div>
   );
