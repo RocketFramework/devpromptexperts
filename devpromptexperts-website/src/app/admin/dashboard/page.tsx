@@ -1,5 +1,5 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+"use client";
+
 import ConsultantGraph from "@/components/ConsultantGraph";
 
 const consultantData = [
@@ -11,12 +11,7 @@ const consultantData = [
   { month: "Jun", total: 120 },
 ];
 
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session || session.user.role !== "admin") {
-    return <p className="p-6 text-red-600">Access denied. Please login as admin.</p>;
-  }
+export default function DashboardPage() {
 
   return (
     <div className="mb-6">

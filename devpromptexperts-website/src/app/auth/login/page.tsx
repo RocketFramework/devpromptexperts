@@ -24,6 +24,28 @@ export default function LoginPage() {
           Welcome Back 👋
         </h2>
 
+        {/* OAuth Buttons */}
+        <div className="flex flex-col gap-3 mb-6">
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/customer" })}
+            className="flex items-center justify-center gap-2 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
+          >
+            <FaGoogle /> Continue with Google
+          </button>
+          <button
+            onClick={() => signIn("facebook", { callbackUrl: "/customer" })}
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+          >
+            <FaFacebook /> Continue with Facebook
+          </button>
+          <button
+            onClick={() => signIn("linkedin", { callbackUrl: "/consultant" })}
+            className="flex items-center justify-center gap-2 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+          >
+            <FaLinkedin /> Continue with LinkedIn
+          </button>
+        </div>
+
         <div className="border-t border-gray-300 my-4"></div>
 
         {/* Admin Credentials */}
