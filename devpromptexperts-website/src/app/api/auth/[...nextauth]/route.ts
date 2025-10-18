@@ -1,11 +1,6 @@
 import NextAuth, { NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-// Admin user type
-interface AdminUser extends User {
-  role: "admin";
-}
-
 // NextAuth options
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -29,14 +24,14 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  pages: { signIn: "/auth/login" },
+  pages: { signIn: "/auth/admin/login" },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = (user as AdminUser).role;
+      if (user) token.role = (user as any).role;
       return token;
     },
     async session({ session, token }) {
-      if (session.user) (session.user as AdminUser).role = token.role as "admin";
+      if (session.user) (session.user as any).role = token.role;
       return session;
     },
   },

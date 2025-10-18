@@ -1,4 +1,7 @@
 # devpromptexperts
-surbase DB 
+surbase DB i sused for the database
 prtoject name : devpromptexperts-website
 q4Ym4GR2BasiluWLmlxuOM
+cloud flare is used for emial forwarding and I am using my gmail to login
+Go daddy is used for the DNS and I am using my fb to login to that
+Vercel is used for the hosting and git account is used for the login

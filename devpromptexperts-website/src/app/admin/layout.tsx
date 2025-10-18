@@ -1,30 +1,22 @@
-"use client";
 
-import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { ReactNode } from "react";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { signOut } from "next-auth/react";
 
-interface AdminUser {
-  name?: string | null;
-  email?: string | null;
-  role: "admin";
-}
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const session = await getServerSession(authOptions);
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  // ✅ Redirect if not logged in
+  if (!session) {
+    redirect(`/auth/admin/login?callbackUrl=/admin/dashboard`);
+  }
 
-  useEffect(() => {
-    if (status === "loading") return;
-    const user = session?.user as AdminUser | undefined;
-    if (!user || user.role !== "admin") {
-      router.push("/auth/login");
-    }
-  }, [session, status, router]);
-
-  if (status === "loading") return <p>Loading...</p>;
-  const user = session?.user as AdminUser | undefined;
-  if (!user || user.role !== "admin") return null;
+  // 🛡️ Role check
+  if ((session.user as any).role !== "admin") {
+    redirect("/unauthorized"); // Optional: create a proper Unauthorized page
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -64,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </nav>
 
             <button
-            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            onClick={() => signOut({ callbackUrl: "/auth/admin/login" })}
             className="mt-4 bg-red-600 text-white p-2 rounded w-full hover:bg-red-700 transition"
             >
             Logout

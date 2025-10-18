@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { authOptions } from "../../api/auth/admin/[...nextauth]/route";
 import AdminLayout from "../layout";
 
 export default async function UsersPage() {
