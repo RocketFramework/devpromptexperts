@@ -8,14 +8,14 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const adminLogin = async (e: any) => {
-    e.preventDefault();
-    await signIn("credentials", {
-      username,
-      password,
-      callbackUrl: "/admin",
-    });
-  };
+  const adminLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault()
+  await signIn("credentials", {
+    username,
+    password,
+    callbackUrl: "/admin",
+  })
+}
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-800">

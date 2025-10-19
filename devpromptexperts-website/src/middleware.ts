@@ -6,24 +6,28 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
-  // ✅ If no token and trying to access protected routes
-  if (!token && (pathname.startsWith("/admin") || pathname.startsWith("/consultant") || pathname.startsWith("/customer"))) {
-    const loginUrl = new URL("/auth/login", req.url);
-    return NextResponse.redirect(loginUrl);
+  // Map protected routes to login paths
+  const routeMap: Record<string, string> = {
+    admin: "/auth/login/admin",
+    consultant: "/auth/login/consultant",
+    customer: "/auth/login/customer",
+  };
+
+  // Extract the base route (admin/consultant/customer)
+  const baseRoute = pathname.split("/")[1];
+
+  // ✅ If no token, redirect to login page for that route
+  if (!token) {
+    if (routeMap[baseRoute]) {
+      return NextResponse.redirect(new URL(routeMap[baseRoute], req.url));
+    }
   }
 
-  // ✅ If logged in but role is not allowed
-  if (token) {
-    if (pathname.startsWith("/admin") && token.role !== "admin") {
-      return NextResponse.redirect(new URL("/admin", req.url));
-    }
-
-    if (pathname.startsWith("/consultant") && token.role !== "linkedin") {
-      return NextResponse.redirect(new URL("/consultant", req.url));
-    }
-
-    if (pathname.startsWith("/customer") && !(["google", "facebook", "linkedin"].includes(token.role as string))) {
-      return NextResponse.redirect(new URL("/customer/", req.url));
+  // ✅ If logged in, check if their loginContext matches the route
+  if (token?.loginContext) {
+    if (baseRoute && baseRoute !== token.loginContext) {
+      // Redirect to their dashboard based on loginContext
+      return NextResponse.redirect(new URL(`/${token.loginContext}`, req.url));
     }
   }
 
