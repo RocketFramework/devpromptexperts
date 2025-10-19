@@ -1,7 +1,42 @@
-// In your types file (e.g., @/types/types.ts)
-import { Profile } from "next-auth";
+// src/types/types.ts
+import { JWT as DefaultJWT, DefaultSession, Profile } from "next-auth";
+import { Account } from "next-auth";
 
-// In your types file (e.g., @/types/types.ts)
+// Extend next-auth types to include our custom fields
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      role?: string;
+      loginContext?: string;
+      providerData?: Record<string, Profile>;
+    } & DefaultSession["user"];
+  }
+
+  interface User {
+    id?: string;
+    name?: string;
+    email?: string;
+    image?: string;
+    role?: string;
+  }
+
+  interface JWT {
+    role?: string;
+    loginContext?: string;
+    providerData?: Record<string, Profile>;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT extends DefaultJWT {
+    sub?: string;
+    role?: string;
+    loginContext?: string;
+    providerData?: Record<string, Profile>;
+  }
+}
+
 export interface LinkedInProfile {
   id?: string;
   localizedFirstName?: string;
@@ -21,10 +56,8 @@ export interface LinkedInProfile {
 }
 
 export interface SocialProfile extends LinkedInProfile {
-  // This now includes all provider profiles
   name?: string;
   sub?: string;
-  // Add other provider-specific fields as needed
 }
 
 export interface UpsertPayload {
@@ -43,12 +76,12 @@ export interface BioData {
   title: string;
   bio: string;
   expertise: string[];
-  image:string;
+  image: string;
   availability: string;
 }
 
 export interface ExtendedUser {
-  id: string;
+  id?: string;
   role?: string | null;
   name?: string | null;
   email?: string | null;

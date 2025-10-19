@@ -1,6 +1,7 @@
 // src/services/ProviderAccountService.ts
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { encryptText } from "@/lib/crypto";
+import { SocialProfile } from "@/types/types";
 
 export interface ProviderAccountData {
   user_id: string;
@@ -10,7 +11,7 @@ export interface ProviderAccountData {
   refresh_token?: string | null;
   expires_at?: number | null;
   scope?: string | null;
-  raw_profile?: any;
+  raw_profile?: SocialProfile | null ;
 }
 
 export class ProviderAccountService {
