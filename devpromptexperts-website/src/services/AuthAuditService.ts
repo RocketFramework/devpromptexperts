@@ -1,5 +1,5 @@
 // src/services/AuthAuditService.ts
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export interface AuthAuditData {
   user_id?: string | null;

@@ -1,5 +1,5 @@
 // src/lib/consultants.ts
-import { supabase } from './supabaseClient';
+import { supabase } from './supabase';
 import { Consultant, ConsultantRow, OnboardingStage } from '@/types/consultant';
 import { toOnboardingStage } from '@/utils/normalizers';
 

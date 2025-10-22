@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function AboutPage() {
   const values = [
@@ -60,12 +61,12 @@ export default function AboutPage() {
   ];
 
   const stats = [
-    { number: '150+', label: 'Expert Consultants', icon: '👥' },
-    { number: '500+', label: 'Happy Clients', icon: '😊' },
-    { number: '1,200+', label: 'Projects Delivered', icon: '✅' },
-    { number: '4.8/5', label: 'Average Rating', icon: '⭐' },
-    { number: '95%', label: 'Client Retention', icon: '🔄' },
-    { number: '25+', label: 'Countries Served', icon: '🌍' }
+    { number: '150+', label: 'Expert Consultants', icon: '👥', page: '/sales' },
+    { number: '500+', label: 'Happy Clients', icon: '😊', page: '/client' },
+    { number: '1,200+', label: 'Projects Delivered', icon: '✅', page: '/projects'  },
+    { number: '4.8/5', label: 'Average Rating', icon: '⭐', page: '/rating'  },
+    { number: '95%', label: 'Client Retention', icon: '🔄', page: '/retention'  },
+    { number: '25+', label: 'Countries Served', icon: '🌍', page: '/servings'  }
   ];
 
   return (
@@ -107,11 +108,15 @@ export default function AboutPage() {
           <h3 className="text-3xl font-bold text-center mb-12 text-gray-800">Our Impact in Numbers</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {stats.map((stat, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-md text-center hover:shadow-xl transition transform hover:scale-105">
+              <Link
+                key={index}
+                href={stat.page || "#"} // <-- use stat.page, not stats.page
+                className="block bg-white p-6 rounded-xl shadow-md text-center hover:shadow-xl transition transform hover:scale-105"
+              >
                 <div className="text-4xl mb-3">{stat.icon}</div>
                 <div className="text-3xl font-bold text-blue-600 mb-2">{stat.number}</div>
                 <div className="text-sm text-gray-600">{stat.label}</div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

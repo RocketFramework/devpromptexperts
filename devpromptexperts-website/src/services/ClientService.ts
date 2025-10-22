@@ -1,5 +1,5 @@
 // src/services/ClientService.ts
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export class ClientService {
   static async upsertClient(userId: string) {

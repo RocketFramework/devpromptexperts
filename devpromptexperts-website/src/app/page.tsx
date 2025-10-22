@@ -65,7 +65,7 @@ export default function HomePage() {
           
           <h3 className="text-3xl font-bold text-center mb-12 text-gray-800">Our Impact</h3>
           <div className="grid md:grid-cols-4 gap-8">
-            <Link href='/consumer'>
+            <Link href='/sales'>
               <div className="bg-white p-8 rounded-xl shadow-lg text-center hover:shadow-xl transition">
                 <div className="text-5xl mb-4">👥</div>
                 <div className="text-4xl font-bold text-gray-800 mb-2">{keyMetrics.totalConsultants}+</div>
@@ -117,7 +117,7 @@ export default function HomePage() {
                 className="block w-full"
               >
                 <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center justify-center hover:shadow-xl transition text-center">
-                  <div className="mb-3">
+                  <div className="mb-3 w-16 h-16 flex items-center justify-center">
                     <Image
                       src={customer.logo}
                       alt={customer.name}
@@ -126,6 +126,7 @@ export default function HomePage() {
                       className="object-contain"
                     />
                   </div>
+
                   <div className="text-sm font-semibold text-gray-700">
                     {customer.name}
                   </div>

@@ -17,7 +17,7 @@ export default function Footer() {
         <div>
         <h4 className="font-bold mb-4">For Clients</h4>
         <div className="space-y-2">
-            <Link href="/consumer">
+            <Link href="/sales">
                 <div className="text-gray-400 hover:text-white cursor-pointer">Find Consultants</div>
             </Link>
             <div className="text-gray-400 hover:text-white cursor-pointer">How It Works</div>

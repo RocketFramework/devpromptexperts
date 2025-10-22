@@ -1,5 +1,5 @@
 // src/services/ProviderAccountService.ts
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabase";
 import { encryptText } from "@/lib/crypto";
 import { SocialProfile } from "@/types/types";
 

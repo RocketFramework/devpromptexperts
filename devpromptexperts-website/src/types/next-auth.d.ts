@@ -36,3 +36,12 @@ declare module "next-auth/jwt" {
     role?: string | null
   }
 }
+
+declare module "next-auth" {
+  interface Profile {
+    locale?: string | {
+      country?: string;
+      language?: string;
+    };
+  }
+}

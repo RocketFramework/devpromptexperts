@@ -26,7 +26,7 @@ export default function ConsultantLoginPage() {
           <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <FaLinkedin className="text-white text-2xl" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Dev Prompt Experts</h1>
           <p className="text-gray-600 text-sm">Sign in to access your consultant dashboard</p>
         </div>
 
@@ -41,7 +41,7 @@ export default function ConsultantLoginPage() {
             ) : (
               <>
                 <FaLinkedin className="text-xl" />
-                <span className="font-semibold text-base">Continue with LinkedIn</span>
+                <span className="font-semibold text-base">Login with LinkedIn</span>
                 <FaArrowRight className="ml-auto text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </>
             )}

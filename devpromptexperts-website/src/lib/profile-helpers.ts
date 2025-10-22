@@ -1,44 +1,103 @@
 // src/lib/profile-helpers.ts
-import { SocialProfile, LinkedInProfile, ExtendedUser } from "@/types/types";
+import {
+  ExtendedUser,
+  SocialProfile,
+  AuthProvider,
+  LinkedInProfile,
+  GoogleProfile,
+  FacebookProfile,
+} from "@/types/types";
 
-export interface ProfileData {
+export interface ExtractedProfileData {
   fullName: string;
   profileImageUrl: string | null;
-  email: string | null;
+  email: string;
+  country: string;
 }
 
-export const extractProfileData = (
-  user: ExtendedUser | null,
-  profile?: SocialProfile | null,
+export function extractProfileData(
+  user: ExtendedUser,
+  profile: SocialProfile | null | undefined,
   provider?: string
-): ProfileData => {
-  let fullName = user?.name || profile?.name || "";
-  const email = user?.email || profile?.email || null;
+): ExtractedProfileData {
+  const authProvider = provider as AuthProvider;
 
-  // Handle LinkedIn-specific name structure
-  if (provider === "linkedin" && profile) {
-    const linkedInProfile = profile as LinkedInProfile;
-    if (linkedInProfile.localizedFirstName || linkedInProfile.localizedLastName) {
-      fullName = `${linkedInProfile.localizedFirstName || ""} ${
-        linkedInProfile.localizedLastName || ""
-      }`.trim();
-    }
+  switch (authProvider) {
+    case "linkedin":
+      return extractLinkedInData(user, profile as LinkedInProfile);
+    case "google":
+      return extractGoogleData(user, profile as GoogleProfile);
+    case "facebook":
+      return extractFacebookData(user, profile as FacebookProfile);
+    case "credentials":
+    default:
+      return extractCredentialsData(user);
   }
+}
 
-  const profileImageUrl =
-    user?.image ||
-    profile?.picture ||
-    profile?.profilePicture?.["displayImage~"]?.elements?.[0]?.identifiers?.[0]?.identifier ||
-    null;
+function extractLinkedInData(
+  user: ExtendedUser,
+  profile?: LinkedInProfile
+): ExtractedProfileData {
+  const fullName = profile?.name || user.name || "Unknown User";
+  const profileImageUrl = profile?.picture || user?.image || null;
+  const email = profile?.email || user.email || "unknown@example.com";
+  const country = profile?.locale?.toString() ?? 'Unknown';
+  return { fullName, profileImageUrl, email, country };
+}
 
-  return { fullName, profileImageUrl, email };
-};
+function extractGoogleData(
+  user: ExtendedUser,
+  profile?: GoogleProfile
+): ExtractedProfileData {
+  const fullName =
+    profile?.name ||
+    `${profile?.given_name || ""} ${profile?.family_name || ""}`.trim() ||
+    user.name ||
+    "Unknown User";
 
-export const determineUserRole = (provider: string): string => {
-  const roleMap: Record<string, string> = {
-    linkedin: "consultant",
-    credentials: "admin",
+  const profileImageUrl = profile?.picture ?? user?.image ?? null;
+  const email = profile?.email || user.email || "unknown@example.com";
+  const country = profile?.locale as string;
+  return { fullName, profileImageUrl, email, country };
+}
+
+function extractFacebookData(
+  user: ExtendedUser,
+  profile?: FacebookProfile
+): ExtractedProfileData {
+  const fullName =
+    profile?.name ||
+    `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
+    user.name ||
+    "Unknown User";
+
+  const profileImageUrl = profile?.picture?.data?.url ?? user?.image ?? null;
+  const email = profile?.email || user.email || "unknown@example.com";
+  const country = profile?.locale as string;
+  return { fullName, profileImageUrl, email, country };
+}
+
+function extractCredentialsData(user: ExtendedUser): ExtractedProfileData {
+  return {
+    fullName: user.name || "Unknown User",
+    profileImageUrl: user.image ?? null,
+    email: user.email || "unknown@example.com",
+    country: "Sri Lanka",
   };
-  
-  return roleMap[provider] || "client";
-};
+}
+
+export function determineUserRole(provider?: string): string {
+  const authProvider = provider as AuthProvider;
+
+  switch (authProvider) {
+    case "linkedin":
+      return "consultant";
+    case "google":
+    case "facebook":
+      return "client";
+    case "credentials":
+    default:
+      return "user"; // or whatever default role you want
+  }
+}

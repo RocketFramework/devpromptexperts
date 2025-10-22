@@ -1,5 +1,5 @@
 // src/services/UserService.ts
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export interface UserUpsertData {
   email: string | null;

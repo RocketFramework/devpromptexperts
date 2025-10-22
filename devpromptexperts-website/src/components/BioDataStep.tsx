@@ -77,9 +77,11 @@ export default function BioDataStep({
             value={consultant.name}
             onChange={handleChange}
             required
+            placeholder="ex: John Doe"
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
           />
         </div>
+
 
         {/* Email */}
         <div className="flex flex-col">
@@ -92,6 +94,7 @@ export default function BioDataStep({
             value={consultant.email}
             onChange={handleChange}
             required
+            placeholder="ex: you@example.com"
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
           />
         </div>
@@ -107,6 +110,7 @@ export default function BioDataStep({
             value={consultant.title}
             onChange={handleChange}
             required
+            placeholder="ex: Software Engineer"
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
           />
         </div>
@@ -122,6 +126,7 @@ export default function BioDataStep({
             value={consultant.image}
             onChange={handleChange}
             required
+            placeholder="ex: https://example.com/image.jpg"
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
           />
         </div>
@@ -137,6 +142,7 @@ export default function BioDataStep({
             onChange={handleChange}
             rows={4}
             required
+            placeholder="ex: Passionate software engineer with 5 years of experience in web development."
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none resize-none"
           />
         </div>
@@ -221,7 +227,7 @@ export default function BioDataStep({
             setTags={(tags) =>
               setConsultant({ ...consultant, expertise: tags })
             }
-            placeholder="Add expertise..."
+            placeholder="ex: Web Development"
           />
         </div>
 
@@ -233,7 +239,7 @@ export default function BioDataStep({
           <TagInput
             tags={consultant.skills ?? []}
             setTags={(tags) => setConsultant({ ...consultant, skills: tags })}
-            placeholder="Add skills..."
+            placeholder=" ex: JavaScript, React, Node.js"
           />
         </div>
 

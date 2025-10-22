@@ -1,5 +1,5 @@
 // src/services/ConsultantService.ts
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export interface ConsultantUpsertData {
   user_id: string;
