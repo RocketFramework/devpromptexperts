@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import  Image  from "next/image";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -34,7 +35,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-3">
           {/* User Avatar */}
           {session?.user?.image ? (
-            <img
+            <Image
               src={session.user.image}
               alt="User Avatar"
               className="w-10 h-10 rounded-full object-cover"

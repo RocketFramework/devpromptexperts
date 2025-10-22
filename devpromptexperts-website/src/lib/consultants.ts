@@ -1,6 +1,6 @@
 // src/lib/consultants.ts
 import { supabase } from './supabase';
-import { Consultant, ConsultantRow, OnboardingStage } from '@/types/consultant';
+import { Consultant, ConsultantRow } from '@/types/consultant';
 import { toOnboardingStage } from '@/utils/normalizers';
 
 export async function getConsultants(): Promise<Consultant[]> {

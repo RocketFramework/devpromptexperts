@@ -1,6 +1,5 @@
 // src/types/types.ts
 import { JWT as DefaultJWT, DefaultSession, Profile } from "next-auth";
-import { Account } from "next-auth";
 
 // Extend next-auth types to include our custom fields
 declare module "next-auth" {

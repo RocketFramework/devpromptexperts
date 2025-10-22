@@ -99,11 +99,29 @@ export const getAuthProviders = (): Provider[] => [
 
       profile(profile) {
         // LinkedIn OIDC profile structure
+        let country = "Unknown";
+        let language = "Unknown";
+
+        if (typeof profile?.locale === "object" && profile?.locale !== null) {
+          const l = profile?.locale as { country?: string; language?: string };
+          language = l.language ?? "Unknown";
+          country = l.country ?? "Unknown";
+        } else if (typeof profile?.locale === "string") {
+          language = profile?.locale;
+          country = profile?.locale.split("_")[1] ?? "Unknown";
+        } else {
+          language = "Unknown";
+          country = "Unknown";
+        }
+
         return {
           id: profile.sub, // OIDC uses 'sub'
           name: profile.name,
           email: profile.email,
           image: profile.picture,
+          locale: profile.locale, // keep the raw value if you want
+          country,
+          language,
         };
       },
 

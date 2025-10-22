@@ -42,7 +42,7 @@ function extractLinkedInData(
   const fullName = profile?.name || user.name || "Unknown User";
   const profileImageUrl = profile?.picture || user?.image || null;
   const email = profile?.email || user.email || "unknown@example.com";
-  const country = profile?.locale?.toString() ?? 'Unknown';
+  const country = profile?.country ?? 'Unknown';
   return { fullName, profileImageUrl, email, country };
 }
 

@@ -11,7 +11,7 @@ export default function LoginPage() {
     setIsLoading(provider);
     try {
       await signIn(provider, { callbackUrl });
-    } catch (error) {
+    } catch {
       setIsLoading(null);
     }
   };

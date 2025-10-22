@@ -11,7 +11,6 @@ const handler = NextAuth({
 
   events: {
     async signIn({ user, account, profile }) {
-      console.log('Raw locale value:', profile?.locale);
       await AuthSyncService.handleUserSync({ user, account, profile });
     },
   },

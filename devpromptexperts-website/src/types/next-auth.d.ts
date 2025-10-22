@@ -43,5 +43,7 @@ declare module "next-auth" {
       country?: string;
       language?: string;
     };
+    country?: string;
+    language?: string;
   }
 }

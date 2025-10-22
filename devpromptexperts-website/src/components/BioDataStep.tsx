@@ -5,7 +5,7 @@ import { Consultant } from "@/types/consultant";
 import { daysOptions } from "@/data/daysOptions";
 import { hoursOptions } from "@/data/hoursOptions";
 import TagInput from "@/components/TagInput";
-import { isValidUrl, isValidLinkedInUrl } from "@/utils/validations";
+import { isValidUrl } from "@/utils/validations";
 const expertiseOptions = [
   "GPT-4",
   "Claude AI",

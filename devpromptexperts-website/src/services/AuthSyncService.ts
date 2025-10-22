@@ -8,6 +8,7 @@ import { Consultants, ConsultantsService, ConsultantsUpdate } from "./generated/
 import { ClientsService } from "./generated/ClientsService";
 import { ExtendedUsersService } from "./extended/ExtendedUsersService";
 import { ExtendedConsultansService } from "./extended/ExtendedConsultantsService";
+import { ExtendedClientsService } from "./extended/ExtendedClientsService";
 import { ProviderAccountsService } from "./generated/ProviderAccountsService";
 import { Json } from "@/types/database";
 
@@ -65,7 +66,7 @@ export class AuthSyncService {
 
       // 2️⃣ Upsert role-specific table (only for social logins)
       if (provider !== "credentials") {
-        await this.upsertRoleSpecificData(userId, role, profile, provider);
+        await this.upsertRoleSpecificData(userId, role, profile);
       }
 
       // 3️⃣ Upsert provider account (only for social logins)
@@ -113,8 +114,7 @@ export class AuthSyncService {
   private static async upsertRoleSpecificData(
     userId: string,
     userRole: string,
-    profile?: SocialProfile | null,
-    provider?: AuthProvider
+    profile?: SocialProfile | null
   ) {
     try {
       if (userRole === "consultant") {
@@ -139,7 +139,7 @@ export class AuthSyncService {
         }
       } else if (userRole === "client") {
         // Check if client profile already exists
-        const existingClient = await ClientsService.findById(userId);
+        const existingClient = await ExtendedClientsService.findByUser_Id(userId);
         const clientData = {
           user_id: userId,
         };

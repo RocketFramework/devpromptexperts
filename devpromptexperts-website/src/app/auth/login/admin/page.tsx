@@ -2,7 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { FaGoogle, FaFacebook, FaLinkedin, FaUserShield } from "react-icons/fa";
+import { FaUserShield } from "react-icons/fa";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
