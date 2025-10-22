@@ -1,7 +1,7 @@
-'use client';
+"use client";
 import React, { useState } from "react";
 import { consultants, allExpertise } from "@/data/consultants";
-
+import { signOut, useSession } from "next-auth/react";
 const PAGE_SIZE = 12;
 
 export default function ConsumerPage() {
@@ -16,8 +16,7 @@ export default function ConsumerPage() {
       c.expertise.some((exp) =>
         exp.toLowerCase().includes(search.toLowerCase())
       );
-    const matchesExpertise =
-      !expertise || c.expertise.includes(expertise);
+    const matchesExpertise = !expertise || c.expertise.includes(expertise);
     return matchesSearch && matchesExpertise;
   });
 
@@ -38,9 +37,18 @@ export default function ConsumerPage() {
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
-      <h1 className="text-4xl font-bold mb-8 text-center">Find Your AI Consultant</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center">
+        Find Your AI Consultant
+      </h1>
       {/* Search & Filter */}
+
       <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg"
+        >
+          Logout
+        </button>
         <input
           type="text"
           placeholder="Search by name or expertise..."
@@ -67,9 +75,13 @@ export default function ConsumerPage() {
           <div
             key={c.id}
             className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:shadow-xl hover:border-blue-500 transition cursor-pointer"
-            onClick={() => window.location.href = `/consultants/${c.id}`}
+            onClick={() => (window.location.href = `/consultants/${c.id}`)}
           >
-            <img src={c.image} alt={c.name} className="w-24 h-24 rounded-full mx-auto mb-4 object-cover" />
+            <img
+              src={c.image}
+              alt={c.name}
+              className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+            />
             <h4 className="text-xl font-bold text-center mb-2">{c.name}</h4>
             <p className="text-gray-600 text-center mb-2 text-sm">{c.title}</p>
             <div className="flex items-center justify-center mb-2">
@@ -78,7 +90,12 @@ export default function ConsumerPage() {
             </div>
             <div className="flex flex-wrap gap-2 justify-center mb-2">
               {c.expertise.map((skill, i) => (
-                <span key={i} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">{skill}</span>
+                <span
+                  key={i}
+                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+                >
+                  {skill}
+                </span>
               ))}
             </div>
             <div className="flex items-center justify-center text-sm text-gray-600 mb-2">
@@ -114,7 +131,9 @@ export default function ConsumerPage() {
         </div>
       )}
       {sorted.length === 0 && (
-        <div className="text-center text-gray-500 mt-12 text-xl">No consultants found matching your criteria.</div>
+        <div className="text-center text-gray-500 mt-12 text-xl">
+          No consultants found matching your criteria.
+        </div>
       )}
     </div>
   );

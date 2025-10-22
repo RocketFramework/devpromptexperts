@@ -72,9 +72,19 @@ function extractFacebookData(
     user.name ||
     "Unknown User";
 
+  // Flatten picture object to a string URL
   const profileImageUrl = profile?.picture?.data?.url ?? user?.image ?? null;
+
   const email = profile?.email || user.email || "unknown@example.com";
-  const country = profile?.locale as string;
+
+  // Safely parse locale
+  let country = "Unknown";
+  if (typeof profile?.locale === "string") {
+    // Facebook locale format: "en_US"
+    const parts = profile.locale.split("_");
+    country = parts[1] ?? "Unknown";
+  }
+
   return { fullName, profileImageUrl, email, country };
 }
 

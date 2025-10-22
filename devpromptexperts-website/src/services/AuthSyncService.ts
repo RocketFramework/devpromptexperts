@@ -1,10 +1,19 @@
 // src/services/AuthSyncService.ts
 import { Account } from "next-auth";
-import { ExtendedUser, SocialProfile, AuthProvider, LinkedInProfile } from "@/types/types";
+import {
+  ExtendedUser,
+  SocialProfile,
+  AuthProvider,
+  LinkedInProfile,
+} from "@/types/types";
 import { extractProfileData, determineUserRole } from "@/lib/profile-helpers";
 import { AuthAuditService } from "./AuthAuditService";
 import { UsersService } from "./generated/UsersService";
-import { Consultants, ConsultantsService, ConsultantsUpdate } from "./generated/ConsultantsService";
+import {
+  Consultants,
+  ConsultantsService,
+  ConsultantsUpdate,
+} from "./generated/ConsultantsService";
 import { ClientsService } from "./generated/ClientsService";
 import { ExtendedUsersService } from "./extended/ExtendedUsersService";
 import { ExtendedConsultansService } from "./extended/ExtendedConsultantsService";
@@ -35,11 +44,16 @@ export class AuthSyncService {
       const role = determineUserRole(provider);
 
       // 1️⃣ FIRST: Check if user exists to avoid duplicate email errors
-      const existingUser = await this.findUserByEmail(email);
-
+      let existingUser = await this.findUserByEmail(email);
+      console.log("login role % and exisitng user role %", role, existingUser.role);
+      if (existingUser && existingUser.role !== role) {
+        //This allow users to use the same provide to be used for login as different user roles
+        console.log("Mark user as NULL");
+        existingUser = null;
+      }
       let userData;
       if (existingUser) {
-        console.log("The COUNTRY is captured %", country)
+        console.log("The COUNTRY is captured %", country);
         // Update existing user
         userData = await UsersService.update(existingUser.id, {
           full_name: fullName,
@@ -119,12 +133,16 @@ export class AuthSyncService {
     try {
       if (userRole === "consultant") {
         // Check if consultant profile already exists
-        const existingConsultant = await ExtendedConsultansService.findByUser_Id(userId) as Consultants || null;
+        const existingConsultant =
+          ((await ExtendedConsultansService.findByUser_Id(
+            userId
+          )) as Consultants) || null;
         const linkedinUrl = (profile as LinkedInProfile)?.linkedinUrl || null;
 
         if (existingConsultant) {
           await ExtendedConsultansService.updateByUser_Id(
-            existingConsultant.user_id, { linkedinUrl : linkedinUrl } as ConsultantsUpdate
+            existingConsultant.user_id,
+            { linkedinUrl: linkedinUrl } as ConsultantsUpdate
           );
         } else {
           const consultantData = {
@@ -139,12 +157,17 @@ export class AuthSyncService {
         }
       } else if (userRole === "client") {
         // Check if client profile already exists
-        const existingClient = await ExtendedClientsService.findByUser_Id(userId);
+        console.log("User user is found 1 %", userId);
+        const existingClient = await ExtendedClientsService.findByUser_Id(
+          userId
+        );
+        console.log("User client called 2 ");
         const clientData = {
           user_id: userId,
         };
 
         if (!existingClient) {
+          console.log("Client found %", userId);
           await ClientsService.create(clientData);
         }
       }

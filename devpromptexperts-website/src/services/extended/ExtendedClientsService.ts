@@ -9,7 +9,7 @@ export class ExtendedClientsService {
       .from("clients")
       .select("*")
       .eq("user_id", user_id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -25,7 +25,7 @@ export class ExtendedClientsService {
       .update(data)
       .eq("user_id", user_id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return result;
