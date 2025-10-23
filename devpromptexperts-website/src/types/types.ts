@@ -1,40 +1,6 @@
 // src/types/types.ts
-import { JWT as DefaultJWT, DefaultSession, Profile } from "next-auth";
+import { DefaultSession, Profile } from "next-auth";
 
-// Extend next-auth types to include our custom fields
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      role?: string;
-      loginContext?: string;
-      providerData?: Record<string, Profile>;
-    } & DefaultSession["user"];
-  }
-
-  interface User {
-    id?: string;
-    name?: string;
-    email?: string;
-    image?: string;
-    role?: string;
-  }
-
-  interface JWT {
-    role?: string;
-    loginContext?: string;
-    providerData?: Record<string, Profile>;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT extends DefaultJWT {
-    sub?: string;
-    role?: string;
-    loginContext?: string;
-    providerData?: Record<string, Profile>;
-  }
-}
 
 export interface UpsertPayload {
   email: string | null;

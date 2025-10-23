@@ -47,7 +47,7 @@ export default function HomePage() {
                 <div className="text-2xl mt-4">→</div>
               </button>
             </Link>
-            <Link href="/onboarding">
+            <Link href="/consultant">
               <button className="bg-gradient-to-br from-white to-gray-500 text-black p-8 rounded-2xl shadow-2xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all group">
                 <div className="text-6xl mb-4">👤</div>
                 <h3 className="text-2xl font-bold mb-3">Become a Consultant</h3>

@@ -44,13 +44,7 @@ export class AuthSyncService {
       const role = determineUserRole(provider);
 
       // 1️⃣ FIRST: Check if user exists to avoid duplicate email errors
-      let existingUser = await this.findUserByEmail(email);
-      console.log("login role % and exisitng user role %", role, existingUser.role);
-      if (existingUser && existingUser.role !== role) {
-        //This allow users to use the same provide to be used for login as different user roles
-        console.log("Mark user as NULL");
-        existingUser = null;
-      }
+      const existingUser = await this.findUserByEmail(email);
       let userData;
       if (existingUser) {
         console.log("The COUNTRY is captured %", country);
