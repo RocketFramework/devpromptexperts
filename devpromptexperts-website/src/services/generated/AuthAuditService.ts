@@ -2,14 +2,14 @@
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/types/database'
 
-export type ProviderAccounts = Database['public']['Tables']['provider_accounts']['Row']
-export type ProviderAccountsInsert = Database['public']['Tables']['provider_accounts']['Insert']
-export type ProviderAccountsUpdate = Database['public']['Tables']['provider_accounts']['Update']
+export type AuthAudit = Database['public']['Tables']['auth_audit']['Row']
+export type AuthAuditInsert = Database['public']['Tables']['auth_audit']['Insert']
+export type AuthAuditUpdate = Database['public']['Tables']['auth_audit']['Update']
 
-export class ProviderAccountsService {
+export class AuthAuditService {
   static async findAll() {
     const { data, error } = await supabase
-      .from('provider_accounts')
+      .from('auth_audit')
       .select('*')
     
     if (error) throw error
@@ -18,7 +18,7 @@ export class ProviderAccountsService {
 
   static async findById(id: string) {
     const { data, error } = await supabase
-      .from('provider_accounts')
+      .from('auth_audit')
       .select('*')
       .eq('id', id)
       .single()
@@ -27,9 +27,9 @@ export class ProviderAccountsService {
     return data
   }
 
-  static async create(data: ProviderAccountsInsert) {
+  static async create(data: AuthAuditInsert) {
     const { data: result, error } = await supabase
-      .from('provider_accounts')
+      .from('auth_audit')
       .insert(data)
       .select()
       .single()
@@ -38,9 +38,9 @@ export class ProviderAccountsService {
     return result
   }
 
-  static async update(id: string, data: ProviderAccountsUpdate) {
+  static async update(id: string, data: AuthAuditUpdate) {
     const { data: result, error } = await supabase
-      .from('provider_accounts')
+      .from('auth_audit')
       .update(data)
       .eq('id', id)
       .select()
@@ -50,9 +50,9 @@ export class ProviderAccountsService {
     return result
   }
 
-  static async upsert(data: ProviderAccountsInsert) {
+  static async upsert(data: AuthAuditInsert) {
     const { data: result, error } = await supabase
-      .from('provider_accounts')
+      .from('auth_audit')
       .upsert(data)
       .select()
       .single()
@@ -63,7 +63,7 @@ export class ProviderAccountsService {
 
   static async delete(id: string) {
     const { error } = await supabase
-      .from('provider_accounts')
+      .from('auth_audit')
       .delete()
       .eq('id', id)
     

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { featuredConsultants } from "@/data/consultants";
 import ConsultantCard from "@/components/ConsultantCard";
@@ -23,7 +24,7 @@ export default function FeaturedConsultantsCarousel() {
     <div className="relative">
       <div className="grid md:grid-cols-3 gap-8 transition-all duration-500">
         {visibleConsultants.map(consultant => (
-          <ConsultantCard key={consultant.id} consultant={consultant} />
+          <ConsultantCard key={consultant.id} consultant={ consultant } />
         ))}
       </div>
       <div className="flex justify-center items-center mt-8 gap-4">

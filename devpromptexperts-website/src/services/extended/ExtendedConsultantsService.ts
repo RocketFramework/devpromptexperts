@@ -1,7 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import {
-  ConsultantsUpdate,
-} from "../generated/ConsultantsService";
+import { ConsultantsUpdate } from "../generated/ConsultantsService";
 
 export class ExtendedConsultansService {
   static async findByUser_Id(user_id: string) {
@@ -29,5 +27,17 @@ export class ExtendedConsultansService {
 
     if (error) throw error;
     return result;
+  }
+
+  static async updateConsultantStage(
+    user_id: string,
+    newStage: string
+  ): Promise<void> {
+    const { error } = await supabase
+      .from("consultants")
+      .update({ stage: newStage })
+      .eq("user_id", user_id);
+
+    if (error) throw error;
   }
 }

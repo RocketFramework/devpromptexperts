@@ -1,5 +1,5 @@
 // src/services/AuthAuditService.ts
-import { supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export interface AuthAuditData {
   user_id?: string | null;
@@ -13,7 +13,7 @@ export interface AuthAuditData {
 
 export class AuthAuditService {
   static async logAuthEvent(auditData: AuthAuditData) {
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from("auth_audit")
       .insert({
         user_id: auditData.user_id,

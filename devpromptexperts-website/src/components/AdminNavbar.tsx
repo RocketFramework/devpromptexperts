@@ -35,7 +35,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-3">
           {/* User Avatar */}
           {session?.user?.image ? (
-            <Image
+            <img
               src={session.user.image}
               alt="User Avatar"
               className="w-10 h-10 rounded-full object-cover"

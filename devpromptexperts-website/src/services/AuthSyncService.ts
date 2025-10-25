@@ -5,6 +5,10 @@ import {
   SocialProfile,
   AuthProvider,
   LinkedInProfile,
+  ConsultantStage,
+  ConsultantStages,
+  UserRole,
+  UserRoles,
 } from "@/types/types";
 import { extractProfileData, determineUserRole } from "@/lib/profile-helpers";
 import { AuthAuditService } from "./AuthAuditService";
@@ -22,7 +26,7 @@ import { ProviderAccountsService } from "./generated/ProviderAccountsService";
 import { Json } from "@/types/database";
 
 export class AuthSyncService {
-  static async handleUserSync({
+static async handleUserSync({
     user,
     account,
     profile,
@@ -30,34 +34,30 @@ export class AuthSyncService {
     user: ExtendedUser;
     account?: Account | null;
     profile?: SocialProfile | null;
-  }) {
-    if (!account) return;
+  }): Promise<{ userId: string; role: UserRole; onboarded?: boolean; consultantStage?: ConsultantStage }> {
+    
+    if (!account) throw new Error('Account required for sync');
 
     try {
       const provider = account.provider as AuthProvider;
       const { fullName, profileImageUrl, email, country } = extractProfileData(
-        user,
-        profile,
-        provider
+        user, profile, provider
       );
 
       const role = determineUserRole(provider);
 
-      // 1️⃣ FIRST: Check if user exists to avoid duplicate email errors
+      // 1️⃣ Find or create user - this is the critical operation
       const existingUser = await this.findUserByEmail(email);
       let userData;
+      
       if (existingUser) {
-        console.log("The COUNTRY is captured %", country);
-        // Update existing user
         userData = await UsersService.update(existingUser.id, {
           full_name: fullName,
           profile_image_url: profileImageUrl,
           country: country,
           last_sign_in: new Date().toISOString(),
         });
-        console.log(`✅ Updated existing user: ${email}`);
       } else {
-        // Create new user
         userData = await UsersService.create({
           email: email,
           full_name: fullName,
@@ -67,45 +67,75 @@ export class AuthSyncService {
           last_sign_in: new Date().toISOString(),
           profile: profile as Json,
         });
-        console.log(`✅ Created new user: ${email}`);
       }
 
       const userId = userData.id;
 
-      // 2️⃣ Upsert role-specific table (only for social logins)
-      if (provider !== "credentials") {
-        await this.upsertRoleSpecificData(userId, role, profile);
+      // 2️⃣ Get onboarding status immediately for critical path
+      let onboarded = true;
+      let consultantStage = ConsultantStages.BIO as ConsultantStage;
+      
+      if (role === 'consultant') {
+        const onboardingStatus = await this.getQuickOnboardingStatus(userId);
+        onboarded = onboardingStatus.onboarded;
+        consultantStage = onboardingStatus.stage;
       }
 
-      // 3️⃣ Upsert provider account (only for social logins)
-      if (provider !== "credentials") {
-        await this.upsertProviderAccount(userId, account, profile);
-      }
+      // 3️⃣ Background operations for non-critical data
+      this.queueBackgroundOperations(userId, role, account, profile);
 
-      // 4️⃣ Log successful auth
-      await AuthAuditService.logAuthEvent({
-        user_id: userId,
-        email: email,
-        provider: account.provider,
-        success: true,
-        notes: `Signed in via ${account.provider} as ${role}`,
-      });
+      // 4️⃣ Return critical data immediately
+      return {
+        userId,
+        role,
+        onboarded,
+        consultantStage
+      };
 
-      console.log(`✅ Successfully synced ${role} user: ${email}`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("❌ Error in AuthSyncService:", error);
-
       await AuthAuditService.logAuthEvent({
         email: user?.email || null,
         provider: account?.provider || null,
         success: false,
-        notes: `Sync error: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        notes: `Sync error: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
-
       throw error;
     }
+  }
+
+  private static async getQuickOnboardingStatus(userId: string): Promise<{ stage: ConsultantStage; onboarded: boolean }> {
+    try {
+      const consultant = await ExtendedConsultansService.findByUser_Id(userId);
+      return {
+        stage: consultant?.stage || ConsultantStages.BIO,
+        onboarded: consultant?.stage !== ConsultantStages.BIO && consultant?.stage !== null
+      };
+    } catch (error) {
+      return { stage: ConsultantStages.BIO, onboarded: false };
+    }
+  }
+
+  private static async queueBackgroundOperations(userId: string, role: string, account: Account, profile?: SocialProfile | null) {
+    setTimeout(async () => {
+      try {
+        // Only non-critical operations here
+        if (account.provider !== "credentials") {
+          await this.upsertRoleSpecificData(userId, role, profile);
+          await this.upsertProviderAccount(userId, account, profile);
+        }
+
+        await AuthAuditService.logAuthEvent({
+          user_id: userId,
+          email: '', // Will be filled by the event
+          provider: account.provider,
+          success: true,
+          notes: `Background sync completed for ${account.provider}`,
+        });
+      } catch (error) {
+        console.error('Background operations failed:', error);
+      }
+    }, 0);
   }
 
   private static async findUserByEmail(email: string) {
@@ -145,7 +175,7 @@ export class AuthSyncService {
             availability: "available",
             projects_completed: 0,
             featured: false,
-            stage: userRole === "consultant" ? "bio" : "active",
+            stage: userRole === "consultant" ? ConsultantStages.BIO : "active",
           };
           await ConsultantsService.create(consultantData);
         }

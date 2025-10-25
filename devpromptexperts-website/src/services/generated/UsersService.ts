@@ -69,4 +69,61 @@ export class UsersService {
     
     if (error) throw error
   }
+
+  
+  // One-to-one relationship with consultants
+  static async findWithConsultants(id: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select(`
+        *,
+        consultants (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWithConsultants() {
+    const { data, error } = await supabase
+      .from('users')
+      .select(`
+        *,
+        consultants (*)
+      `)
+    
+    if (error) throw error
+    return data
+  }
+
+  // Custom join methods for complex queries
+  
+  // Get user with role-specific data
+  static async findWithRoleData(id: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select(`
+        *,
+        consultants (*),
+        clients (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+}
+
+export type UsersWithConsultants = Users & {
+  consultants: Database['public']['Tables']['consultants']['Row'] | null
+}
+
+// User with all role data
+export type UserWithRoleData = Users & {
+  consultants?: Database['public']['Tables']['consultants']['Row'] | null
+  clients?: Database['public']['Tables']['clients']['Row'] | null
+  provider_accounts?: Database['public']['Tables']['provider_accounts']['Row'][]
 }

@@ -69,4 +69,58 @@ export class ConsultantsService {
     
     if (error) throw error
   }
+
+  
+  // One-to-many relationship with users
+  static async findWithUsers(id: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWithUsers() {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*)
+      `)
+    
+    if (error) throw error
+    return data
+  }
+
+  // Custom join methods for complex queries
+  
+  // Get consultant with user details and projects
+  static async findFullProfile(id: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+}
+
+export type ConsultantsWithUsers = Consultants & {
+  users: Database['public']['Tables']['users']['Row'][]
+}
+
+// Comprehensive consultant profile type
+export type ConsultantFullProfile = Consultants & {
+  users: Database['public']['Tables']['users']['Row']
 }

@@ -140,8 +140,10 @@ export type Database = {
       }
       consultants: {
         Row: {
+          assigned_free_consultation_count: number | null
           availability: string | null
           bio_summary: string | null
+          completed_free_consultation_count: number | null
           expertise: string[] | null
           featured: boolean | null
           linkedinUrl: string | null
@@ -155,8 +157,10 @@ export type Database = {
           work_experience: number | null
         }
         Insert: {
+          assigned_free_consultation_count?: number | null
           availability?: string | null
           bio_summary?: string | null
+          completed_free_consultation_count?: number | null
           expertise?: string[] | null
           featured?: boolean | null
           linkedinUrl?: string | null
@@ -170,8 +174,10 @@ export type Database = {
           work_experience?: number | null
         }
         Update: {
+          assigned_free_consultation_count?: number | null
           availability?: string | null
           bio_summary?: string | null
+          completed_free_consultation_count?: number | null
           expertise?: string[] | null
           featured?: boolean | null
           linkedinUrl?: string | null

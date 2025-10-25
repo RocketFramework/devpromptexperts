@@ -1,14 +1,15 @@
 "use client";
 
-import { Consultant } from "@/types/consultant";
-import type { OnboardingStage } from "@/types/consultant";
+import { ConsultantDTO } from "@/types/dtos/Consultant.dto"
+import type { ConsultantStage } from "@/types/types";
+import { ConsultantStages } from "@/types/types";
 
 interface Props {
-  consultants: Consultant[];
-  sortKey: keyof Consultant;
+  consultants: ConsultantDTO[];
+  sortKey: keyof ConsultantDTO;
   sortOrder: "asc" | "desc";
-  onSort: (key: keyof Consultant) => void;
-  onStageUpdate: (id: string, stage: OnboardingStage) => void;
+  onSort: (key: keyof ConsultantDTO) => void;
+  onStageUpdate: (id: string, stage: ConsultantStage) => void;
 }
 
 export default function ConsultantOnboardingTable({
@@ -18,7 +19,20 @@ export default function ConsultantOnboardingTable({
   onSort,
   onStageUpdate,
 }: Props) {
-  const stageOptions = ["bio", "interview", "probation", "active"];
+  const stageOptions = [
+    ConsultantStages.BIO,
+    ConsultantStages.BIO_DONE,
+    ConsultantStages.BIO_WIP,
+    ConsultantStages.INTV,
+    ConsultantStages.INTV_DONE,
+    ConsultantStages.INTV_DONE_ACCEPT,
+    ConsultantStages.INTV_DONE_REJECT,
+    ConsultantStages.INTV_SCHEDULED,
+    ConsultantStages.PROBATION,
+    ConsultantStages.PROBATION_DONE,
+    ConsultantStages.PROBATION_WIP,
+    ConsultantStages.PROFESSIONAL
+  ];
 
   const stageColors: Record<string, string> = {
     bio: "bg-blue-500 text-white",
@@ -28,7 +42,7 @@ export default function ConsultantOnboardingTable({
     default: "bg-gray-300 text-black",
   };
 
-  const renderSortArrow = (key: keyof Consultant) => {
+  const renderSortArrow = (key: keyof ConsultantDTO) => {
     if (sortKey !== key) return null;
     return sortOrder === "asc" ? " ▲" : " ▼";
   };
@@ -43,9 +57,9 @@ export default function ConsultantOnboardingTable({
             </th>
             <th
               className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer select-none"
-              onClick={() => onSort("name")}
+              onClick={() => onSort("title")}
             >
-              Name{renderSortArrow("name")}
+              Name{renderSortArrow("title")}
             </th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
               Availability
@@ -55,9 +69,9 @@ export default function ConsultantOnboardingTable({
             </th>
             <th
               className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer select-none"
-              onClick={() => onSort("work_experience")}
+              onClick={() => onSort("workExperience")}
             >
-              Experience{renderSortArrow("work_experience")}
+              Experience{renderSortArrow("workExperience")}
             </th>
             <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
               Assignments Finished
@@ -80,7 +94,7 @@ export default function ConsultantOnboardingTable({
         <tbody className="bg-white divide-y divide-gray-200">
           {consultants.map((c, idx) => (
             <tr
-              key={c.id}
+              key={c.user_id}
               className={`${
                 idx % 2 === 0 ? "bg-white" : "bg-gray-50"
               } hover:bg-gray-100 transition`}
@@ -98,10 +112,10 @@ export default function ConsultantOnboardingTable({
                 {c.country || "N/A"}
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800 font-semibold">
-                {c.work_experience ?? 0} yrs
+                {c.workExperience ?? 0} yrs
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
-                {c.projects_completed}
+                {c.projectsCompleted}
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
                 {c.featured ? (
@@ -121,9 +135,11 @@ export default function ConsultantOnboardingTable({
                 <select
                   value={c.stage || ""}
                   onChange={(e) =>
-                    onStageUpdate(c.id, e.target.value as OnboardingStage)
+                    onStageUpdate(c.user_id, e.target.value as ConsultantStage)
                   }
-                  className={`px-2 py-1 rounded-md ${stageColors[c.stage || "default"]} font-semibold focus:outline-none`}
+                  className={`px-2 py-1 rounded-md ${
+                    stageColors[c.stage || "default"]
+                  } font-semibold focus:outline-none`}
                 >
                   <option value="">N/A</option>
                   {stageOptions.map((s) => (

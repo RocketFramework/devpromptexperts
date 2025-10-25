@@ -1,9 +1,18 @@
 // scripts/generate-services.ts
 import fs from 'fs'
 import path from 'path'
+import { supabase } from '@/lib/supabase'
 
-// Service template
-const generateService = (tableName: string, pascalCase: string) => `
+// Define common joins for each table (you can customize this)
+const TABLE_JOINS: Record<string, string[]> = {
+  users: ['consultants'],
+  consultants: ['users'],
+  clients: ['users'],
+  // Add more tables and their joins as needed
+}
+
+// Service template with join methods
+const generateService = (tableName: string, pascalCase: string, joins: string[] = []) => `
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/types/database'
 
@@ -74,44 +83,263 @@ export class ${pascalCase}Service {
     
     if (error) throw error
   }
+
+  ${joins.map(joinTable => {
+    const joinPascalCase = joinTable.replace(/(^\w|_\w)/g, (match) => 
+      match.replace(/_/, '').toUpperCase()
+    )
+    
+    // Determine if it's a one-to-one or one-to-many relationship
+    const isOneToOne = tableName === 'users' && (joinTable === 'consultants' || joinTable === 'clients')
+    
+    if (isOneToOne) {
+      return `
+  // One-to-one relationship with ${joinTable}
+  static async findWith${joinPascalCase}(id: string) {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        ${joinTable} (*)
+      \`)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWith${joinPascalCase}() {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        ${joinTable} (*)
+      \`)
+    
+    if (error) throw error
+    return data
+  }`
+    } else {
+      return `
+  // One-to-many relationship with ${joinTable}
+  static async findWith${joinPascalCase}(id: string) {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        ${joinTable} (*)
+      \`)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWith${joinPascalCase}() {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        ${joinTable} (*)
+      \`)
+    
+    if (error) throw error
+    return data
+  }`
+    }
+  }).join('\n\n')}
+
+  // Custom join methods for complex queries
+  ${generateCustomJoinMethods(tableName, joins)}
 }
+
+${generateTypeDefinitions(tableName, pascalCase, joins)}
 `
 
-// Manually define your tables instead of dynamic import
-const tables = [
-  'users',
-  'consultants', 
-  'clients',
-  'provider_accounts'
-  // Add any other tables you have
-]
+// Generate custom join methods for complex queries
+function generateCustomJoinMethods(tableName: string, joins: string[]): string {
+  if (tableName === 'consultants') {
+    return `
+  // Get consultant with user details and projects
+  static async findFullProfile(id: string) {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        users (*),
+        projects (*)
+      \`)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
 
-// Generate services directory
-const servicesDir = path.join(process.cwd(), 'src/services/generated')
-if (!fs.existsSync(servicesDir)) {
-  fs.mkdirSync(servicesDir, { recursive: true })
+  // Get all consultants with user details
+  static async findAllWithUsers() {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        users (*)
+      \`)
+    
+    if (error) throw error
+    return data
+  }`
+  }
+
+  if (tableName === 'users') {
+    return `
+  // Get user with role-specific data
+  static async findWithRoleData(id: string) {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        consultants (*),
+        clients (*)
+      \`)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }`
+  }
+
+  return ''
 }
 
-// Generate service for each table
-tables.forEach((tableName) => {
-  const pascalCase = tableName.replace(/(^\w|_\w)/g, (match) => 
-    match.replace(/_/, '').toUpperCase()
-  )
+// Generate type definitions for joined results
+function generateTypeDefinitions(tableName: string, pascalCase: string, joins: string[]): string {
+  if (joins.length === 0) return ''
+
+  const joinTypeDefinitions = joins.map(joinTable => {
+    const joinPascalCase = joinTable.replace(/(^\w|_\w)/g, (match) => 
+      match.replace(/_/, '').toUpperCase()
+    )
+    
+    const isOneToOne = tableName === 'users' && (joinTable === 'consultants' || joinTable === 'clients')
+    
+    if (isOneToOne) {
+      return `export type ${pascalCase}With${joinPascalCase} = ${pascalCase} & {
+  ${joinTable}: Database['public']['Tables']['${joinTable}']['Row'] | null
+}`
+    } else {
+      return `export type ${pascalCase}With${joinPascalCase} = ${pascalCase} & {
+  ${joinTable}: Database['public']['Tables']['${joinTable}']['Row'][]
+}`
+    }
+  }).join('\n')
+
+  // Generate comprehensive type for complex joins
+  if (tableName === 'consultants') {
+    return `${joinTypeDefinitions}
+
+// Comprehensive consultant profile type
+export type ConsultantFullProfile = Consultant & {
+  users: Database['public']['Tables']['users']['Row']
+  projects: Database['public']['Tables']['projects']['Row'][]
+  consultant_skills?: Database['public']['Tables']['consultant_skills']['Row'][]
+}`
+  }
+
+  if (tableName === 'users') {
+    return `${joinTypeDefinitions}
+
+// User with all role data
+export type UserWithRoleData = Users & {
+  consultants?: Database['public']['Tables']['consultants']['Row'] | null
+  clients?: Database['public']['Tables']['clients']['Row'] | null
+  provider_accounts?: Database['public']['Tables']['provider_accounts']['Row'][]
+}`
+  }
+
+  return joinTypeDefinitions
+}
+
+async function getAllTables(): Promise<string[]> {
+  try {
+    // Method 1: Query information_schema (more reliable)
+    const { data, error } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+      .eq('table_type', 'BASE TABLE')
+
+    if (error) {
+      console.warn('Could not fetch tables from information_schema, using fallback:', error.message)
+      return getTablesFromFallback()
+    }
+
+    return data.map(row => row.table_name).filter(table => 
+      !table.startsWith('_') && table !== 'information_schema'
+    )
+  } catch (error) {
+    console.warn('Error fetching tables, using fallback:', error)
+    return getTablesFromFallback()
+  }
+}
+
+function getTablesFromFallback(): string[] {
+  // Fallback to manual list if auto-detection fails
+  return [
+    'ambassador_clients',
+    'ambassador_consultants',
+    'auth_audit',
+    'clients',
+    'consultants',
+    'consultations',
+    'consulting_ambassadors',
+    'payments',
+    'provider_accounts',
+    'sales_ambassadors',
+    'users',
+    // Add any other tables you have
+  ]
+}
+
+async function main() {
+  console.log('🔍 Detecting tables from Supabase...')
   
-  const serviceContent = generateService(tableName, pascalCase)
-  const filePath = path.join(servicesDir, `${pascalCase}Service.ts`)
-  fs.writeFileSync(filePath, serviceContent)
-  console.log(`✅ Generated ${pascalCase}Service.ts`)
-})
+  const tables = await getAllTables()
+  console.log(`📊 Found ${tables.length} tables:`, tables)
 
-// Generate index file
-const indexContent = tables.map((tableName) => {
-  const pascalCase = tableName.replace(/(^\w|_\w)/g, (match) => 
-    match.replace(/_/, '').toUpperCase()
-  )
-  return `export { ${pascalCase}Service } from './${pascalCase}Service'`
-}).join('\n')
+  // Generate services directory
+  const servicesDir = path.join(process.cwd(), 'src/services/generated')
+  if (!fs.existsSync(servicesDir)) {
+    fs.mkdirSync(servicesDir, { recursive: true })
+  }
 
-fs.writeFileSync(path.join(servicesDir, 'index.ts'), indexContent)
-console.log('✅ Generated index.ts')
-console.log(`🎉 Successfully generated ${tables.length} service classes!`)
+  // Generate service for each table
+  tables.forEach((tableName) => {
+    const pascalCase = tableName.replace(/(^\w|_\w)/g, (match) => 
+      match.replace(/_/, '').toUpperCase()
+    )
+    
+    const joins = TABLE_JOINS[tableName] || []
+    const serviceContent = generateService(tableName, pascalCase, joins)
+    const filePath = path.join(servicesDir, `${pascalCase}Service.ts`)
+    fs.writeFileSync(filePath, serviceContent)
+    console.log(`✅ Generated ${pascalCase}Service.ts with ${joins.length} join methods`)
+  })
+
+  // Generate index file
+  const indexContent = tables.map((tableName) => {
+    const pascalCase = tableName.replace(/(^\w|_\w)/g, (match) => 
+      match.replace(/_/, '').toUpperCase()
+    )
+    return `export { ${pascalCase}Service } from './${pascalCase}Service'`
+  }).join('\n')
+
+  fs.writeFileSync(path.join(servicesDir, 'index.ts'), indexContent)
+  console.log('✅ Generated index.ts')
+  console.log(`🎉 Successfully generated ${tables.length} service classes with join methods!`)
+}
+
+// Run the script
+main().catch(console.error)

@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import ConsultantOnboardingTable from "@/components/ConsultantOnboardingTable";
-import { consultants } from "@/data/consultants";
+import { consultantDTOs } from "@/data/consultants";
 
 export default function OnboardingPage() {
   const { data: session, status } = useSession();
@@ -28,7 +28,7 @@ export default function OnboardingPage() {
         Consultant Onboarding Requests
       </h1>
       <ConsultantOnboardingTable
-        consultants={consultants}
+        consultants={ consultantDTOs }
         sortKey="name" // or any default key like 'email', 'country'
         sortOrder="asc"
         onSort={(key) => {

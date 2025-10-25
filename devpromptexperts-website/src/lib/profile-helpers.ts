@@ -6,6 +6,8 @@ import {
   LinkedInProfile,
   GoogleProfile,
   FacebookProfile,
+  UserRole,
+  UserRoles,
 } from "@/types/types";
 
 export interface ExtractedProfileData {
@@ -16,8 +18,8 @@ export interface ExtractedProfileData {
 }
 
 export function extractProfileData(
-  user: ExtendedUser,
-  profile: SocialProfile | null | undefined,
+  user?: ExtendedUser,
+  profile?: SocialProfile | null | undefined,
   provider?: string
 ): ExtractedProfileData {
   const authProvider = provider as AuthProvider;
@@ -36,46 +38,46 @@ export function extractProfileData(
 }
 
 function extractLinkedInData(
-  user: ExtendedUser,
+  user?: ExtendedUser,
   profile?: LinkedInProfile
 ): ExtractedProfileData {
-  const fullName = profile?.name || user.name || "Unknown User";
+  const fullName = profile?.name || user?.name || "Unknown User";
   const profileImageUrl = profile?.picture || user?.image || null;
-  const email = profile?.email || user.email || "unknown@example.com";
+  const email = profile?.email || user?.email || "unknown@example.com";
   const country = profile?.country ?? 'Unknown';
   return { fullName, profileImageUrl, email, country };
 }
 
 function extractGoogleData(
-  user: ExtendedUser,
+  user?: ExtendedUser,
   profile?: GoogleProfile
 ): ExtractedProfileData {
   const fullName =
     profile?.name ||
     `${profile?.given_name || ""} ${profile?.family_name || ""}`.trim() ||
-    user.name ||
+    user?.name ||
     "Unknown User";
 
   const profileImageUrl = profile?.picture ?? user?.image ?? null;
-  const email = profile?.email || user.email || "unknown@example.com";
+  const email = profile?.email || user?.email || "unknown@example.com";
   const country = profile?.locale as string;
   return { fullName, profileImageUrl, email, country };
 }
 
 function extractFacebookData(
-  user: ExtendedUser,
+  user?: ExtendedUser,
   profile?: FacebookProfile
 ): ExtractedProfileData {
   const fullName =
     profile?.name ||
     `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
-    user.name ||
+    user?.name ||
     "Unknown User";
 
   // Flatten picture object to a string URL
   const profileImageUrl = profile?.picture?.data?.url ?? user?.image ?? null;
 
-  const email = profile?.email || user.email || "unknown@example.com";
+  const email = profile?.email || user?.email || "unknown@example.com";
 
   // Safely parse locale
   let country = "Unknown";
@@ -88,26 +90,26 @@ function extractFacebookData(
   return { fullName, profileImageUrl, email, country };
 }
 
-function extractCredentialsData(user: ExtendedUser): ExtractedProfileData {
+function extractCredentialsData(user?: ExtendedUser): ExtractedProfileData {
   return {
-    fullName: user.name || "Unknown User",
-    profileImageUrl: user.image ?? null,
-    email: user.email || "unknown@example.com",
+    fullName: user?.name || "Unknown User",
+    profileImageUrl: user?.image ?? null,
+    email: user?.email || "unknown@example.com",
     country: "Sri Lanka",
   };
 }
 
-export function determineUserRole(provider?: string): string {
+export function determineUserRole(provider?: string): UserRole {
   const authProvider = provider as AuthProvider;
 
   switch (authProvider) {
     case "linkedin":
-      return "consultant";
+      return UserRoles.CONSULTANT;
     case "google":
     case "facebook":
-      return "client";
+      return UserRoles.CLIENT;
     case "credentials":
     default:
-      return "user"; // or whatever default role you want
+      return UserRoles.ADMIN;// or whatever default role you want
   }
 }
