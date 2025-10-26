@@ -6,7 +6,6 @@ import { ConsultantBusinessService } from '@/services/business/ConsultantBusines
 import SearchConsultantHeader from '@/components/SearchConsultantHeader';
 import SearchConsultantFilters from '@/components/SearchConsultantFilters';
 import SearchConsultantGrid from '@/components/SearchConsultantGrid';
-import SearchConsultantCard from '@/components/SearchConsultantCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { ConsultantDTO as Consultant } from '@/types/dtos/Consultant.dto';
 
@@ -52,6 +51,7 @@ export default function ConsultantSearchPage() {
     try {
       setLoading(true);
       const data = await ConsultantBusinessService.getConsultantsForAdmin();
+      console.log("data received and count is: %", data.length);
       setConsultants(data);
     } catch (err) {
       setError('Failed to load consultants');
@@ -63,7 +63,8 @@ export default function ConsultantSearchPage() {
 
   const applyFilters = () => {
     let filtered = consultants;
-
+    console.log("Count before filtering is: %", consultants.length);
+    /*
     // Text search
     if (filters.query) {
       const query = filters.query.toLowerCase();
@@ -79,14 +80,14 @@ export default function ConsultantSearchPage() {
     // Expertise filter
     if (filters.expertise.length > 0) {
       filtered = filtered.filter(consultant =>
-        filters.expertise.every(exp => consultant.expertise?.includes(exp))
+        filters.expertise.some(exp => consultant.expertise?.includes(exp))
       );
     }
 
     // Skills filter
     if (filters.skills.length > 0) {
       filtered = filtered.filter(consultant =>
-        filters.skills.every(skill => consultant.skills?.includes(skill))
+        filters.skills.some(skill => consultant.skills?.includes(skill))
       );
     }
 
@@ -119,8 +120,8 @@ export default function ConsultantSearchPage() {
     // Featured only
     if (filters.featuredOnly) {
       filtered = filtered.filter(consultant => consultant.featured);
-    }
-
+    }*/
+    console.log("Count Aftre filtering is: %", filtered.length);
     setFilteredConsultants(filtered);
   };
 

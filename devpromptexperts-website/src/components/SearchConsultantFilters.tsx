@@ -5,17 +5,17 @@ import { AiSkills as AI_SKILLS } from '@/types/types';
 import { Availability as AVAILABILITY_OPTIONS} from '@/types/types';
 import { ConsultantDTO as Consultant } from '@/types/dtos/Consultant.dto';
 
-interface ConsultantFiltersProps {
+interface SearchConsultantFiltersProps {
   filters: SearchFilters;
   onFiltersChange: (filters: Partial<SearchFilters>) => void;
   consultants: Consultant[];
 }
 
-export default function ConsultantFilters({
+export default function SearchConsultantFilters({
   filters,
   onFiltersChange,
   consultants,
-}: ConsultantFiltersProps) {
+}: SearchConsultantFiltersProps) {
   const uniqueCountries = Array.from(
     new Set(consultants.map(c => c.country).filter(Boolean))
   ).sort();

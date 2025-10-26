@@ -6,13 +6,21 @@ export class ConsultantBusinessService {
   static async getConsultantsForAdmin(): Promise<ConsultantDTO[]> {
     const consultants = await ConsultantsService.findAllWithUsers();
     
-    return consultants.map(consultant => ({
-      ...consultant,
-      email: consultant.users?.[0]?.email || '',
-      name: consultant.users?.[0]?.full_name || '',
-      role: consultant.users?.[0]?.role || '',
-      image: consultant.users?.[0]?.profile_image_url || null,
-      country: consultant.users?.[0]?.country || null
-    }));
+    const mappedConsultants = consultants.map(consultant => {
+      
+      // Get the first user (there should be one user per consultant)
+      const user = Array.isArray(consultant.users) ? consultant.users[0] : consultant.users;
+      
+      return {
+        ...consultant,
+        email: user?.email || '',
+        name: user?.full_name || '',
+        role: user?.role || '',
+        image: user?.profile_image_url || null,
+        country: user?.country || null
+      };
+    });
+    
+    return mappedConsultants;
   }
 }

@@ -1,15 +1,15 @@
 // components/consultants/ConsultantSearchHeader.tsx
-interface ConsultantSearchHeaderProps {
+interface SearchConsultantHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   resultCount: number;
 }
 
-export default function ConsultantSearchHeader({
+export default function SearchConsultantHeader({
   searchQuery,
   onSearchChange,
   resultCount,
-}: ConsultantSearchHeaderProps) {
+}: SearchConsultantHeaderProps) {
   return (
     <div className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

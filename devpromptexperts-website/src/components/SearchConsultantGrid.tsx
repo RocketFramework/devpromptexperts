@@ -20,7 +20,7 @@ export default function SearchConsultantGrid({ consultants }: SearchConsultantGr
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {consultants.map(consultant => (
-        <SearchConsultantCard key={consultant.id} consultant={consultant} />
+        <SearchConsultantCard key={consultant.user_id} consultant={consultant} />
       ))}
     </div>
   );
