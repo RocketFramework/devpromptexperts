@@ -26,7 +26,7 @@ export default function Navbar() {
 
   const navigationLinks = [
     { href: "/", label: "Home" },
-    { href: "/sales", label: "Find Consultants" },
+    { href: "/findconsultants", label: "Find Consultants" },
     { href: "/onboarding", label: "Become a Consultant" },
     { href: "/about", label: "About" },
     { href: "/blog", label: "Blog" },

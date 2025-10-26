@@ -1,30 +1,48 @@
 // components/consultants/SearchConsultantCard.tsx
-import { ConsultantDTO as Consultant } from '@/types/dtos/Consultant.dto'
-import { CountryToFlag as countryToFlag } from '@/types/dtos/CountryToFlag.dto'
-import { useState } from 'react';
+import { ConsultantDTO as Consultant } from "@/types/dtos/Consultant.dto";
+import { CountryToFlag as countryToFlag } from "@/types/dtos/CountryToFlag.dto";
+import { useState } from "react";
 
 interface SearchConsultantCardProps {
   consultant: Consultant;
 }
 
-
-
-export default function SearchConsultantCard({ consultant }: SearchConsultantCardProps) {
+export default function SearchConsultantCard({
+  consultant,
+}: SearchConsultantCardProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [tooltip, setTooltip] = useState({ show: false, content: '', x: 0, y: 0 });
+  const [tooltip, setTooltip] = useState({
+    show: false,
+    content: "",
+    x: 0,
+    y: 0,
+  });
 
   const showTooltip = (content: string, event: React.MouseEvent) => {
     setTooltip({
       show: true,
       content,
       x: event.clientX,
-      y: event.clientY
+      y: event.clientY,
     });
   };
 
   const hideTooltip = () => {
-    setTooltip({ show: false, content: '', x: 0, y: 0 });
+    setTooltip({ show: false, content: "", x: 0, y: 0 });
+  };
+
+  // Function to shorten availability text
+  const shortenAvailability = (availability: string): string => {
+    if (!availability) return availability;
+    
+    return availability
+      .replace(/hours\/week/gi, 'hrs/wk')
+      .replace(/hour\/week/gi, 'hr/wk')
+      .replace(/hours/gi, 'hrs')
+      .replace(/hour/gi, 'hr')
+      .replace(/week/gi, 'wk')
+      .replace(/\/week/gi, '/wk');
   };
 
   const renderStars = (rating: number | null) => {
@@ -35,7 +53,7 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
           <svg
             key={i}
             className={`w-4 h-4 ${
-              i < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-300'
+              i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"
             }`}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -57,7 +75,7 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300">
       {/* Tooltip */}
       {tooltip.show && (
-        <div 
+        <div
           className="fixed z-50 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm max-w-xs break-words"
           style={{
             left: `${tooltip.x + 10}px`,
@@ -77,54 +95,62 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
             <div className="relative">
               {/* Image with proper error handling */}
               {showImage && (
-                <img 
-                  src={consultant.image} 
+                <img
+                  src={consultant.image}
                   alt={consultant.name}
                   className={`w-16 h-16 rounded-full object-cover shadow-sm border border-gray-200 flex-shrink-0 ${
-                    imageLoaded ? 'opacity-100' : 'opacity-0'
+                    imageLoaded ? "opacity-100" : "opacity-0"
                   } transition-opacity duration-200`}
                   onLoad={() => setImageLoaded(true)}
                   onError={() => setImageError(true)}
                 />
               )}
-              
+
               {/* Initials fallback */}
               {showInitials && (
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
-                  {consultant.name?.split(' ').map(n => n[0]).join('')}
+                  {consultant.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")}
                 </div>
               )}
-              
+
               {/* Country Flag Badge */}
-              {(consultant.country || countryFlag !== '🏴') && (
-                <div 
+              {(consultant.country || countryFlag !== "🏴") && (
+                <div
                   className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-white border-2 border-white shadow-sm flex items-center justify-center text-xs cursor-help"
-                  title={consultant.country || 'Country not specified'}
+                  title={consultant.country || "Country not specified"}
                 >
                   {countryFlag}
                 </div>
               )}
             </div>
-            
+
             <div className="min-w-0 flex-1">
               {/* Name with truncation and tooltip */}
-              <h3 
+              <h3
                 className="text-lg font-semibold text-gray-900 truncate"
                 onMouseEnter={(e) => {
-                  if (e.currentTarget.scrollWidth > e.currentTarget.clientWidth) {
-                    showTooltip(consultant.name || '', e);
+                  if (
+                    e.currentTarget.scrollWidth > e.currentTarget.clientWidth
+                  ) {
+                    showTooltip(consultant.name || "", e);
                   }
                 }}
                 onMouseLeave={hideTooltip}
               >
                 {consultant.name}
               </h3>
-              
+
               {/* Title with truncation and tooltip */}
-              <p 
+              <p
                 className="text-blue-600 font-medium truncate mt-1"
                 onMouseEnter={(e) => {
-                  if (consultant.title && e.currentTarget.scrollWidth > e.currentTarget.clientWidth) {
+                  if (
+                    consultant.title &&
+                    e.currentTarget.scrollWidth > e.currentTarget.clientWidth
+                  ) {
                     showTooltip(consultant.title, e);
                   }
                 }}
@@ -132,7 +158,7 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
               >
                 {consultant.title}
               </p>
-              
+
               {consultant.featured && (
                 <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full mt-1">
                   Featured
@@ -155,9 +181,9 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
         {/* Rating and Experience */}
         <div className="flex items-center justify-between text-sm">
           {renderStars(consultant.rating)}
-          {consultant.workExperience && (
+          {consultant.work_experience && (
             <span className="text-gray-600 whitespace-nowrap">
-              {consultant.workExperience}+ years
+              {consultant.work_experience}+ yrs
             </span>
           )}
         </div>
@@ -169,7 +195,7 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
               Expertise
             </h4>
             <div className="flex flex-wrap gap-1">
-              {consultant.expertise.slice(0, 3).map(exp => (
+              {consultant.expertise.slice(0, 3).map((exp) => (
                 <span
                   key={exp}
                   className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full truncate max-w-[120px]"
@@ -179,9 +205,9 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
                 </span>
               ))}
               {consultant.expertise.length > 3 && (
-                <span 
+                <span
                   className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                  title={consultant.expertise.slice(3).join(', ')}
+                  title={consultant.expertise.slice(3).join(", ")}
                 >
                   +{consultant.expertise.length - 3}
                 </span>
@@ -197,7 +223,7 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
               Skills
             </h4>
             <div className="flex flex-wrap gap-1">
-              {consultant.skills.slice(0, 4).map(skill => (
+              {consultant.skills.slice(0, 4).map((skill) => (
                 <span
                   key={skill}
                   className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full truncate max-w-[100px]"
@@ -207,9 +233,9 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
                 </span>
               ))}
               {consultant.skills.length > 4 && (
-                <span 
+                <span
                   className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                  title={consultant.skills.slice(4).join(', ')}
+                  title={consultant.skills.slice(4).join(", ")}
                 >
                   +{consultant.skills.length - 4}
                 </span>
@@ -220,11 +246,18 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
 
         {/* Stats - Removed country from here since it's now in the flag */}
         <div className="flex items-center justify-between text-sm text-gray-600 pt-2 border-t border-gray-100">
-          {consultant.projectsCompleted && (
-            <span className="whitespace-nowrap">{consultant.projectsCompleted} projects</span>
+          {consultant.projects_completed && (
+            <span className="whitespace-nowrap">
+              {consultant.projects_completed} Proj.
+            </span>
           )}
           {consultant.availability && (
-            <span className="capitalize whitespace-nowrap">{consultant.availability}</span>
+            <span
+              className="capitalize whitespace-nowrap"
+              title={consultant.availability} // Show full text on hover
+            >
+              {shortenAvailability(consultant.availability)}
+            </span>
           )}
           {/* Country removed from stats since it's now shown as flag */}
         </div>
@@ -233,13 +266,13 @@ export default function SearchConsultantCard({ consultant }: SearchConsultantCar
       {/* Footer with compact buttons */}
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
         <div className="flex space-x-3">
-          <button 
+          <button
             className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-3 rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 whitespace-nowrap"
             title="Contact Expert"
           >
             Contact
           </button>
-          <button 
+          <button
             className="flex-1 border border-gray-300 text-gray-700 py-3 px-3 rounded-xl text-sm font-semibold hover:bg-white hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 whitespace-nowrap"
             title="View Full Profile"
           >

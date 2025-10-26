@@ -1,5 +1,5 @@
 // components/consultants/ConsultantFilters.tsx
-import { SearchFilters } from '@/app/consultant/search/page';
+import { SearchFilters } from '@/app/findconsultants/page';
 import { ExpertiseOptions as AI_EXPERTISE } from '@/types/types';
 import { AiSkills as AI_SKILLS } from '@/types/types';
 import { Availability as AVAILABILITY_OPTIONS} from '@/types/types';

@@ -86,18 +86,6 @@ export class ConsultantsService {
     return data
   }
 
-  static async findAllWithUsers() {
-    const { data, error } = await supabase
-      .from('consultants')
-      .select(`
-        *,
-        users (*)
-      `)
-    
-    if (error) throw error
-    return data
-  }
-
   // Custom join methods for complex queries
   
   // Get consultant with user details and projects
@@ -106,10 +94,24 @@ export class ConsultantsService {
       .from('consultants')
       .select(`
         *,
-        users (*)
+        users (*),
+        projects (*)
       `)
       .eq('id', id)
       .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  // Get all consultants with user details
+  static async findAllWithUsers() {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*)
+      `)
     
     if (error) throw error
     return data

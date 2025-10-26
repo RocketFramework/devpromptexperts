@@ -138,59 +138,376 @@ export type Database = {
           },
         ]
       }
+      commission_payouts: {
+        Row: {
+          consultant_id: string | null
+          id: string
+          paid_at: string | null
+          payout_method: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string | null
+          total_commission: number | null
+          transaction_id: string | null
+        }
+        Insert: {
+          consultant_id?: string | null
+          id?: string
+          paid_at?: string | null
+          payout_method?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string | null
+          total_commission?: number | null
+          transaction_id?: string | null
+        }
+        Update: {
+          consultant_id?: string | null
+          id?: string
+          paid_at?: string | null
+          payout_method?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string | null
+          total_commission?: number | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_payouts_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      consultant_applications: {
+        Row: {
+          application_data: Json
+          applied_at: string | null
+          founder_cohort: string | null
+          id: string
+          notes: string | null
+          onboarding_tier: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          skip_probation: boolean | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          application_data: Json
+          applied_at?: string | null
+          founder_cohort?: string | null
+          id?: string
+          notes?: string | null
+          onboarding_tier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          skip_probation?: boolean | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          application_data?: Json
+          applied_at?: string | null
+          founder_cohort?: string | null
+          id?: string
+          notes?: string | null
+          onboarding_tier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          skip_probation?: boolean | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultant_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultant_availability: {
+        Row: {
+          consultant_id: string | null
+          created_at: string | null
+          day_of_week: number | null
+          id: string
+          is_recurring: boolean | null
+          time_slots: Json | null
+        }
+        Insert: {
+          consultant_id?: string | null
+          created_at?: string | null
+          day_of_week?: number | null
+          id?: string
+          is_recurring?: boolean | null
+          time_slots?: Json | null
+        }
+        Update: {
+          consultant_id?: string | null
+          created_at?: string | null
+          day_of_week?: number | null
+          id?: string
+          is_recurring?: boolean | null
+          time_slots?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_availability_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      consultant_industries: {
+        Row: {
+          consultant_id: string
+          industry: string
+        }
+        Insert: {
+          consultant_id: string
+          industry: string
+        }
+        Update: {
+          consultant_id?: string
+          industry?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_industries_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      consultant_project_types: {
+        Row: {
+          consultant_id: string
+          project_type: string
+        }
+        Insert: {
+          consultant_id: string
+          project_type: string
+        }
+        Update: {
+          consultant_id?: string
+          project_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_project_types_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      consultant_referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          referred_email: string
+          referred_name: string | null
+          referrer_id: string | null
+          status: string | null
+          token: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referred_email: string
+          referred_name?: string | null
+          referrer_id?: string | null
+          status?: string | null
+          token?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referred_email?: string
+          referred_name?: string | null
+          referrer_id?: string | null
+          status?: string | null
+          token?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       consultants: {
         Row: {
+          active_referrals_count: number | null
+          advisory_interest: boolean | null
+          approval_status: string | null
           assigned_free_consultation_count: number | null
           availability: string | null
           bio_summary: string | null
+          certifications: string[] | null
           completed_free_consultation_count: number | null
+          direct_access_granted: boolean | null
+          equity_interest: boolean | null
           expertise: string[] | null
           featured: boolean | null
+          founder_number: number | null
+          free_consultations_completed: number | null
+          free_consultations_required: number | null
+          hourly_rate: number | null
+          hours_per_week: number | null
+          industries: string[] | null
+          is_approved: boolean | null
           linkedinUrl: string | null
+          min_project_size: number | null
+          notice_period: string | null
+          onboarding_completed_at: string | null
+          onboarding_tier: string | null
+          portfolio_url: string | null
+          preferred_engagement_type: string[] | null
+          probation_completed: boolean | null
+          probation_required: boolean | null
+          project_types: string[] | null
           projects_completed: number | null
           publications: string[] | null
           rating: number | null
+          referral_contacts: string | null
+          referred_by: string | null
           skills: string[] | null
+          special_requests: string | null
           stage: string | null
+          start_date: string | null
+          time_slots: string[] | null
           title: string | null
+          total_commission_earned: number | null
+          updated_at: string | null
           user_id: string
           work_experience: number | null
         }
         Insert: {
+          active_referrals_count?: number | null
+          advisory_interest?: boolean | null
+          approval_status?: string | null
           assigned_free_consultation_count?: number | null
           availability?: string | null
           bio_summary?: string | null
+          certifications?: string[] | null
           completed_free_consultation_count?: number | null
+          direct_access_granted?: boolean | null
+          equity_interest?: boolean | null
           expertise?: string[] | null
           featured?: boolean | null
+          founder_number?: number | null
+          free_consultations_completed?: number | null
+          free_consultations_required?: number | null
+          hourly_rate?: number | null
+          hours_per_week?: number | null
+          industries?: string[] | null
+          is_approved?: boolean | null
           linkedinUrl?: string | null
+          min_project_size?: number | null
+          notice_period?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_tier?: string | null
+          portfolio_url?: string | null
+          preferred_engagement_type?: string[] | null
+          probation_completed?: boolean | null
+          probation_required?: boolean | null
+          project_types?: string[] | null
           projects_completed?: number | null
           publications?: string[] | null
           rating?: number | null
+          referral_contacts?: string | null
+          referred_by?: string | null
           skills?: string[] | null
+          special_requests?: string | null
           stage?: string | null
+          start_date?: string | null
+          time_slots?: string[] | null
           title?: string | null
+          total_commission_earned?: number | null
+          updated_at?: string | null
           user_id: string
           work_experience?: number | null
         }
         Update: {
+          active_referrals_count?: number | null
+          advisory_interest?: boolean | null
+          approval_status?: string | null
           assigned_free_consultation_count?: number | null
           availability?: string | null
           bio_summary?: string | null
+          certifications?: string[] | null
           completed_free_consultation_count?: number | null
+          direct_access_granted?: boolean | null
+          equity_interest?: boolean | null
           expertise?: string[] | null
           featured?: boolean | null
+          founder_number?: number | null
+          free_consultations_completed?: number | null
+          free_consultations_required?: number | null
+          hourly_rate?: number | null
+          hours_per_week?: number | null
+          industries?: string[] | null
+          is_approved?: boolean | null
           linkedinUrl?: string | null
+          min_project_size?: number | null
+          notice_period?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_tier?: string | null
+          portfolio_url?: string | null
+          preferred_engagement_type?: string[] | null
+          probation_completed?: boolean | null
+          probation_required?: boolean | null
+          project_types?: string[] | null
           projects_completed?: number | null
           publications?: string[] | null
           rating?: number | null
+          referral_contacts?: string | null
+          referred_by?: string | null
           skills?: string[] | null
+          special_requests?: string | null
           stage?: string | null
+          start_date?: string | null
+          time_slots?: string[] | null
           title?: string | null
+          total_commission_earned?: number | null
+          updated_at?: string | null
           user_id?: string
           work_experience?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "consultants_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "consultants_user_id_fkey"
             columns: ["user_id"]
@@ -373,6 +690,67 @@ export type Database = {
           },
         ]
       }
+      referral_commissions: {
+        Row: {
+          commission_amount: number | null
+          commission_percentage: number | null
+          ended_at: string | null
+          id: string
+          notes: string | null
+          referral_id: string | null
+          referred_consultant_id: string | null
+          referrer_id: string | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          commission_amount?: number | null
+          commission_percentage?: number | null
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          referral_id?: string | null
+          referred_consultant_id?: string | null
+          referrer_id?: string | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          commission_amount?: number | null
+          commission_percentage?: number | null
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          referral_id?: string | null
+          referred_consultant_id?: string | null
+          referrer_id?: string | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "consultant_referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_referred_consultant_id_fkey"
+            columns: ["referred_consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       sales_ambassadors: {
         Row: {
           commission_rate: number | null
@@ -406,9 +784,11 @@ export type Database = {
           id: string
           last_sign_in: string | null
           metadata: Json | null
+          phone: string | null
           profile: Json | null
           profile_image_url: string | null
           role: string
+          timezone: string | null
         }
         Insert: {
           company?: string | null
@@ -419,9 +799,11 @@ export type Database = {
           id?: string
           last_sign_in?: string | null
           metadata?: Json | null
+          phone?: string | null
           profile?: Json | null
           profile_image_url?: string | null
           role: string
+          timezone?: string | null
         }
         Update: {
           company?: string | null
@@ -432,9 +814,11 @@ export type Database = {
           id?: string
           last_sign_in?: string | null
           metadata?: Json | null
+          phone?: string | null
           profile?: Json | null
           profile_image_url?: string | null
           role?: string
+          timezone?: string | null
         }
         Relationships: []
       }

@@ -124,7 +124,7 @@ export default function BioDataStep({
           <input
             type="number"
             name="work_experience"
-            value={consultant.workExperience ?? ""}
+            value={consultant.work_experience ?? ""}
             onChange={handleChange}
             required
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
@@ -139,7 +139,7 @@ export default function BioDataStep({
           <input
             type="number"
             name="projects_completed"
-            value={consultant.projectsCompleted ?? ""}
+            value={consultant.projects_completed ?? ""}
             onChange={handleChange}
             required
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"

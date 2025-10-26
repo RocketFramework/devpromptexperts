@@ -7,11 +7,11 @@ export interface ConsultantDTO {
   stage: ConsultantStage | null;
   expertise: string[] | null;
   availability: string | null;
-  workExperience: number | null; // Changed from work_experience
+  work_experience: number | null; // Changed from work_experience
   skills: string[] | null;
   linkedinUrl: string | null;
   publications: string[] | null;
-  projectsCompleted: number | null; // Changed from projects_completed
+  projects_completed: number | null; // Changed from projects_completed
   rating: number | null;
   featured: boolean | null;
   bioSummary: string; // Changed from bio_summary

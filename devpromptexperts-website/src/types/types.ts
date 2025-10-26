@@ -206,3 +206,31 @@ export const AiSkills = [
 ];
 
 export const Availability = ['Full-time', 'Part-time', 'Contract', 'Freelance'];
+
+export const Industries = [
+  "Technology/SaaS",
+  "Financial Services",
+  "Healthcare",
+  "E-commerce & Retail",
+  "Manufacturing",
+  "Energy & Utilities",
+  "Telecommunications",
+  "Media & Entertainment",
+  "Education",
+  "Government",
+  "Startups & Venture Capital",
+  "Consulting & Professional Services",
+];
+
+export const Projects_Types = [
+  "Strategic Advisory",
+  "Technical Implementation",
+  "Team Building & Mentoring",
+  "System Architecture",
+  "Proof of Concept",
+  "Production Deployment",
+  "Technical Due Diligence",
+  "AI Transformation",
+  "Model Optimization",
+  "Data Strategy",
+];

@@ -69,9 +69,9 @@ export default function ConsultantOnboardingTable({
             </th>
             <th
               className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer select-none"
-              onClick={() => onSort("workExperience")}
+              onClick={() => onSort("work_experience")}
             >
-              Experience{renderSortArrow("workExperience")}
+              Experience{renderSortArrow("work_experience")}
             </th>
             <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
               Assignments Finished
@@ -112,10 +112,10 @@ export default function ConsultantOnboardingTable({
                 {c.country || "N/A"}
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800 font-semibold">
-                {c.workExperience ?? 0} yrs
+                {c.work_experience ?? 0} yrs
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
-                {c.projectsCompleted}
+                {c.projects_completed}
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
                 {c.featured ? (

@@ -20,8 +20,8 @@ import {
 } from "./generated/ConsultantsService";
 import { ClientsService } from "./generated/ClientsService";
 import { ExtendedUsersService } from "./extended/ExtendedUsersService";
-import { ExtendedConsultansService } from "./extended/ExtendedConsultantsService";
 import { ExtendedClientsService } from "./extended/ExtendedClientsService";
+import { ExtendedConsultantsService } from "./extended/ExtendedConsultantsService";
 import { ProviderAccountsService } from "./generated/ProviderAccountsService";
 import { Json } from "@/types/database";
 
@@ -106,7 +106,7 @@ static async handleUserSync({
 
   private static async getQuickOnboardingStatus(userId: string): Promise<{ stage: ConsultantStage; onboarded: boolean }> {
     try {
-      const consultant = await ExtendedConsultansService.findByUser_Id(userId);
+      const consultant = await ExtendedConsultantsService.findByUser_Id(userId);
       return {
         stage: consultant?.stage || ConsultantStages.BIO,
         onboarded: consultant?.stage !== ConsultantStages.BIO && consultant?.stage !== null
@@ -158,13 +158,13 @@ static async handleUserSync({
       if (userRole === "consultant") {
         // Check if consultant profile already exists
         const existingConsultant =
-          ((await ExtendedConsultansService.findByUser_Id(
+          ((await ExtendedConsultantsService.findByUser_Id(
             userId
           )) as Consultants) || null;
         const linkedinUrl = (profile as LinkedInProfile)?.linkedinUrl || null;
 
         if (existingConsultant) {
-          await ExtendedConsultansService.updateByUser_Id(
+          await ExtendedConsultantsService.updateByUser_Id(
             existingConsultant.user_id,
             { linkedinUrl: linkedinUrl } as ConsultantsUpdate
           );
