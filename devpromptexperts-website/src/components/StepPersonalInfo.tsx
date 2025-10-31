@@ -1,7 +1,16 @@
 // components/onboarding/steps/PersonalInfoStep.tsx
+interface PersonalInfoData {
+  fullName: string;
+  email: string;
+  phone?: string;
+  country: string;
+  timezone: string;
+  linkedinUrl: string;
+}
+
 interface StepPersonalInfoProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: PersonalInfoData;
+  onUpdate: (data: Partial<PersonalInfoData>) => void;
   onNext: () => void;
 }
 
@@ -15,14 +24,13 @@ export default function StepPersonalInfo({ data, onUpdate, onNext }: StepPersona
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Personal Information</h2>
-        <p className="text-gray-600">Let's start with your basic details</p>
+        <p className="text-gray-600">{`Let's start with your basic details`}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Full Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Full Name *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
           <input
             type="text"
             required
@@ -33,10 +41,9 @@ export default function StepPersonalInfo({ data, onUpdate, onNext }: StepPersona
           />
         </div>
 
+        {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
           <input
             type="email"
             required
@@ -47,23 +54,21 @@ export default function StepPersonalInfo({ data, onUpdate, onNext }: StepPersona
           />
         </div>
 
+        {/* Phone */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
           <input
             type="tel"
-            value={data.phone}
+            value={data.phone || ""}
             onChange={(e) => onUpdate({ phone: e.target.value })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="+1 (555) 000-0000"
           />
         </div>
 
+        {/* Country */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Country *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
           <select
             required
             value={data.country}
@@ -76,14 +81,13 @@ export default function StepPersonalInfo({ data, onUpdate, onNext }: StepPersona
             <option value="UK">United Kingdom</option>
             <option value="AU">Australia</option>
             <option value="DE">Germany</option>
-            {/* Add more countries */}
+            {/* Add more countries as needed */}
           </select>
         </div>
 
+        {/* Timezone */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Timezone *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Timezone *</label>
           <select
             required
             value={data.timezone}
@@ -101,10 +105,9 @@ export default function StepPersonalInfo({ data, onUpdate, onNext }: StepPersona
           </select>
         </div>
 
+        {/* LinkedIn */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            LinkedIn Profile *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn Profile *</label>
           <input
             type="url"
             required

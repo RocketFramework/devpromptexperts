@@ -1,7 +1,7 @@
 // components/consultants/ReferralDashboard.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface ReferralStats {
   totalReferrals: number;
@@ -15,38 +15,45 @@ export default function Referral({ consultantId }: { consultantId: string }) {
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [referralLink, setReferralLink] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadReferralData();
-  }, [consultantId]);
-
-  const loadReferralData = async () => {
+  const loadReferralData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await fetch(`/api/consultants/referral-dashboard?consultantId=${consultantId}`);
       const data = await response.json();
-      
+
       if (data.success) {
         setStats(data.dashboard.stats);
         setReferralLink(data.dashboard.referralLink);
+      } else {
+        setError('Failed to load referral data.');
       }
-    } catch (error) {
-      console.error('Failed to load referral data:', error);
+    } catch (err) {
+      console.error('Failed to load referral data:', err);
+      setError('Failed to load referral data.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [consultantId]);
+
+  useEffect(() => {
+    loadReferralData();
+  }, [loadReferralData]);
 
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
-    // Show success message
+    alert('Referral link copied!');
   };
 
   if (loading) return <div>Loading referral dashboard...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Referral Program</h2>
-      
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-blue-50 rounded-lg p-4 text-center">
@@ -71,13 +78,13 @@ export default function Referral({ consultantId }: { consultantId: string }) {
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
         <h3 className="font-semibold text-gray-900 mb-2">Your Referral Link</h3>
         <div className="flex gap-2">
-          <input 
-            type="text" 
-            value={referralLink} 
-            readOnly 
+          <input
+            type="text"
+            value={referralLink}
+            readOnly
             className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm bg-white"
           />
-          <button 
+          <button
             onClick={copyReferralLink}
             className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
           >
@@ -85,7 +92,7 @@ export default function Referral({ consultantId }: { consultantId: string }) {
           </button>
         </div>
         <p className="text-sm text-gray-600 mt-2">
-          Share this link with other AI experts. You'll earn 10% of their platform earnings forever!
+          Share this link with other AI experts. You&apos;ll earn 10% of their platform earnings forever!
         </p>
       </div>
 

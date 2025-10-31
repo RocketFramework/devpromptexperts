@@ -1,7 +1,18 @@
-// components/onboarding/steps/AvailabilityStep.tsx
+// components/onboarding/steps/StepAvailability.tsx
+import React from "react";
+
+interface AvailabilityData {
+  hoursPerWeek: number;
+  preferredEngagement: 'advisory' | 'implementation' | 'assessment' | 'mentoring';
+  timeSlots: string[];
+  startDate: string;
+  noticePeriod?: string;
+}
+
+
 interface StepAvailabilityProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: AvailabilityData;
+  onUpdate: (data: Partial<AvailabilityData>) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -45,7 +56,7 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
 
   const toggleTimeSlot = (slot: string) => {
     const newSlots = data.timeSlots.includes(slot)
-      ? data.timeSlots.filter((s: string) => s !== slot)
+      ? data.timeSlots.filter((s) => s !== slot)
       : [...data.timeSlots, slot];
     onUpdate({ timeSlots: newSlots });
   };
@@ -68,12 +79,12 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
           onChange={(e) => onUpdate({ hoursPerWeek: parseInt(e.target.value) })}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="5">5 hours</option>
-          <option value="10">10 hours</option>
-          <option value="15">15 hours</option>
-          <option value="20">20 hours</option>
-          <option value="25">25 hours</option>
-          <option value="30">30+ hours</option>
+          <option value={5}>5 hours</option>
+          <option value={10}>10 hours</option>
+          <option value={15}>15 hours</option>
+          <option value={20}>20 hours</option>
+          <option value={25}>25 hours</option>
+          <option value={30}>30+ hours</option>
         </select>
         <p className="text-sm text-gray-500 mt-1">This helps us match you with appropriately sized projects</p>
       </div>
@@ -91,7 +102,11 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
                 name="engagementType"
                 value={type.value}
                 checked={data.preferredEngagement === type.value}
-                onChange={() => onUpdate({ preferredEngagement: type.value })}
+                onChange={() =>
+                  onUpdate({
+                    preferredEngagement: type.value as AvailabilityData['preferredEngagement']
+                  })
+                }
                 className="mt-1 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
               />
               <div>

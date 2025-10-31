@@ -1,29 +1,31 @@
-// components/onboarding/steps/ExpertiseStep.tsx
-
+// components/onboarding/steps/StepExpertise.tsx
+import React from "react";
 import { ExpertiseOptions as AI_EXPERTISE_AREAS, Industries as INDUSTRIES, Projects_Types as PROJECT_TYPES } from "@/types/types";
+
+interface StepExpertiseData {
+  primaryExpertise: string[];
+  industries: string[];
+  projectTypes: string[];
+  hourlyRate: number;
+  minProjectSize: number;
+  secondarySkills: string[];
+}
+
 interface StepExpertiseProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: StepExpertiseData;
+  onUpdate: (data: Partial<StepExpertiseData>) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export default function StepExpertise({
-  data,
-  onUpdate,
-  onNext,
-  onBack,
-}: StepExpertiseProps) {
+export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepExpertiseProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNext();
   };
 
-  const toggleArrayItem = (array: string[], item: string) => {
-    return array.includes(item)
-      ? array.filter((i) => i !== item)
-      : [...array, item];
-  };
+  const toggleArrayItem = (array: string[], item: string) =>
+    array.includes(item) ? array.filter((i) => i !== item) : [...array, item];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -51,12 +53,7 @@ export default function StepExpertise({
                 type="checkbox"
                 checked={data.primaryExpertise.includes(expertise)}
                 onChange={() =>
-                  onUpdate({
-                    primaryExpertise: toggleArrayItem(
-                      data.primaryExpertise,
-                      expertise
-                    ),
-                  })
+                  onUpdate({ primaryExpertise: toggleArrayItem(data.primaryExpertise, expertise) })
                 }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
               />
@@ -81,9 +78,7 @@ export default function StepExpertise({
                 type="checkbox"
                 checked={data.industries.includes(industry)}
                 onChange={() =>
-                  onUpdate({
-                    industries: toggleArrayItem(data.industries, industry),
-                  })
+                  onUpdate({ industries: toggleArrayItem(data.industries, industry) })
                 }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
               />
@@ -108,9 +103,7 @@ export default function StepExpertise({
                 type="checkbox"
                 checked={data.projectTypes.includes(type)}
                 onChange={() =>
-                  onUpdate({
-                    projectTypes: toggleArrayItem(data.projectTypes, type),
-                  })
+                  onUpdate({ projectTypes: toggleArrayItem(data.projectTypes, type) })
                 }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
               />
@@ -133,8 +126,8 @@ export default function StepExpertise({
             <input
               type="number"
               required
-              min="50"
-              max="1000"
+              min={50}
+              max={1000}
               value={data.hourlyRate}
               onChange={(e) =>
                 onUpdate({ hourlyRate: parseInt(e.target.value) })
@@ -159,9 +152,9 @@ export default function StepExpertise({
             <input
               type="number"
               required
-              min="1000"
-              max="100000"
-              step="1000"
+              min={1000}
+              max={100000}
+              step={1000}
               value={data.minProjectSize}
               onChange={(e) =>
                 onUpdate({ minProjectSize: parseInt(e.target.value) })
@@ -171,7 +164,7 @@ export default function StepExpertise({
             />
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            Smallest project you'll consider
+            Smallest project you&apos;ll consider
           </p>
         </div>
       </div>

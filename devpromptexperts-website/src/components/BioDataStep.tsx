@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-//import { ConsultantFullProfile as Consultant } from "@/services/generated/ConsultantsService";
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 import { daysOptions } from "@/data/daysOptions";
 import { hoursOptions } from "@/data/hoursOptions";
@@ -19,6 +18,10 @@ export default function BioDataStep({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setConsultant({ ...consultant, [e.target.name]: e.target.value });
+  };
+
+  const handleNumberChange = (field: keyof ConsultantDTO, value: string) => {
+    setConsultant({ ...consultant, [field]: Number(value) });
   };
 
   const handleAvailabilityChange = (field: "days" | "hours", value: string) => {
@@ -76,7 +79,7 @@ export default function BioDataStep({
           <input
             type="text"
             name="title"
-            value={consultant.title??""}
+            value={consultant.title ?? ""}
             onChange={handleChange}
             required
             placeholder="ex: Software Engineer"
@@ -106,7 +109,7 @@ export default function BioDataStep({
             Short Bio <span className="text-red-500">*</span>
           </label>
           <textarea
-            name="bio_summary"
+            name="bioSummary"
             value={consultant.bioSummary || ""}
             onChange={handleChange}
             rows={4}
@@ -123,9 +126,9 @@ export default function BioDataStep({
           </label>
           <input
             type="number"
-            name="work_experience"
+            name="workExperience"
             value={consultant.work_experience ?? ""}
-            onChange={handleChange}
+            onChange={(e) => handleNumberChange("work_experience", e.target.value)}
             required
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
           />
@@ -138,9 +141,9 @@ export default function BioDataStep({
           </label>
           <input
             type="number"
-            name="projects_completed"
-            value={consultant.projects_completed ?? ""}
-            onChange={handleChange}
+            name="projectsCompleted"
+            value={consultant.projectsCompleted ?? ""}
+            onChange={(e) => handleNumberChange("projectsCompleted", e.target.value)}
             required
             className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
           />
@@ -167,9 +170,7 @@ export default function BioDataStep({
             </select>
             <select
               value={consultant.availability?.split(" - ")[1] || ""}
-              onChange={(e) =>
-                handleAvailabilityChange("hours", e.target.value)
-              }
+              onChange={(e) => handleAvailabilityChange("hours", e.target.value)}
               required
               className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             >
@@ -193,9 +194,7 @@ export default function BioDataStep({
           </label>
           <TagInput
             tags={consultant.expertise ?? []}
-            setTags={(tags) =>
-              setConsultant({ ...consultant, expertise: tags })
-            }
+            setTags={(tags) => setConsultant({ ...consultant, expertise: tags })}
             placeholder="ex: Web Development"
           />
         </div>
@@ -208,7 +207,7 @@ export default function BioDataStep({
           <TagInput
             tags={consultant.skills ?? []}
             setTags={(tags) => setConsultant({ ...consultant, skills: tags })}
-            placeholder=" ex: JavaScript, React, Node.js"
+            placeholder="ex: JavaScript, React, Node.js"
           />
         </div>
 
@@ -245,6 +244,7 @@ export default function BioDataStep({
             )}
           </div>
         </div>
+
         {/* Publications */}
         <div className="md:col-span-2">
           <label className="text-sm font-semibold mb-1 text-gray-700">
@@ -253,9 +253,7 @@ export default function BioDataStep({
           <div className="space-y-2">
             <TagInput
               tags={consultant.publications ?? []}
-              setTags={(tags) =>
-                setConsultant({ ...consultant, publications: tags })
-              }
+              setTags={(tags) => setConsultant({ ...consultant, publications: tags })}
               placeholder="Add publication URLs (https://...)"
             />
             <div className="flex flex-wrap gap-2">

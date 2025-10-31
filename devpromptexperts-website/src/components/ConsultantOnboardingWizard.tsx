@@ -55,10 +55,9 @@ export interface OnboardingData {
     selectedTier: 'general' | 'founder_100' | 'referred';
   };
   probation?: {
-    agreedToTerms: boolean;
-    startDate: string;
-    duration: number;
+    probationTermsAccepted?: boolean;
   };
+
 }
 
 export default function ConsultantOnboardingWizard() {
@@ -109,20 +108,23 @@ export default function ConsultantOnboardingWizard() {
       selectedTier: 'general'
     },
     probation: {
-      agreedToTerms: false,
-      startDate: new Date().toISOString().split('T')[0],
-      duration: 90
+      probationTermsAccepted: false
     }
+
   });
 
   const totalSteps = 8; // Updated to 8 since you have 8 steps
 
-  const updateOnboardingData = (step: keyof OnboardingData, data: any) => {
+  const updateOnboardingData = <K extends keyof OnboardingData>(
+    step: K,
+    data: Partial<OnboardingData[K]>
+  ) => {
     setOnboardingData(prev => ({
       ...prev,
       [step]: { ...prev[step], ...data }
     }));
   };
+
 
   const nextStep = () => {
     if (currentStep < totalSteps) {

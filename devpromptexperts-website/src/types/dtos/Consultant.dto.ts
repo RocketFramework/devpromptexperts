@@ -11,14 +11,14 @@ export interface ConsultantDTO {
   skills: string[] | null;
   linkedinUrl: string | null;
   publications: string[] | null;
-  projects_completed: number | null; // Changed from projects_completed
+  projectsCompleted: number | null; // Changed from projects_completed
   rating: number | null;
   featured: boolean | null;
   bioSummary: string; // Changed from bio_summary
   email: string;
   name: string;
   role: string;
-  image: string | null;
+  image: string;
   country: string | null;
   created_at?: string;
 }

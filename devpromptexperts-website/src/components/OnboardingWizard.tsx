@@ -28,7 +28,7 @@ const [consultant, setConsultant] = useState<ConsultantDTO>({
     work_experience: 0,
     skills: [],
     publications: [],
-    projects_completed: 0,
+    projectsCompleted: 0,
     rating: 0,
     featured: false,
     stage: "bio",
@@ -77,7 +77,7 @@ const [consultant, setConsultant] = useState<ConsultantDTO>({
         work_experience: consultant.work_experience,
         skills: consultant.skills,
         publications: consultant.publications,
-        projects_completed: consultant.projects_completed,
+        projects_completed: consultant.projectsCompleted,
         stage: consultant.stage,
         rating: consultant.rating,
         featured: consultant.featured

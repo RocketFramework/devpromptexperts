@@ -43,7 +43,7 @@ export default function ConsultantCard({
         {consultant.availability}
       </div>
       <div className="text-center text-sm text-gray-500">
-        {consultant.projects_completed} projects completed
+        {consultant.projectsCompleted} projects completed
       </div>
     </div>
   );

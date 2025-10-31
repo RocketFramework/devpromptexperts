@@ -125,19 +125,22 @@ export default function ConsultantSearchPage() {
   };
 
   // Calculate page numbers for pagination display
-  const pageNumbers = [];
+  // Calculate page numbers for pagination display
+  const pageNumbers: number[] = [];
   const maxVisiblePages = 5;
   let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-  
-  // Adjust if we're near the end
+  const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+  // Adjust startPage if we're near the end
   if (endPage - startPage + 1 < maxVisiblePages) {
     startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
-  
+
+  // Populate page numbers array
   for (let i = startPage; i <= endPage; i++) {
     pageNumbers.push(i);
   }
+
 
   if (loading && consultants.length === 0) return <LoadingSpinner />;
   if (error) return <div className="text-red-500 text-center p-8">{error}</div>;

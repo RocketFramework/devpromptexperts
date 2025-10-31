@@ -115,7 +115,7 @@ export default function ConsultantOnboardingTable({
                 {c.work_experience ?? 0} yrs
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
-                {c.projects_completed}
+                {c.projectsCompleted}
               </td>
               <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-800">
                 {c.featured ? (

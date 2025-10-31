@@ -1,7 +1,15 @@
 // components/onboarding/steps/ProfessionalBackgroundStep.tsx
+interface ProfessionalBackgroundData {
+  currentRole: string;
+  company: string;
+  yearsExperience: number;
+  portfolioUrl?: string;
+  bio: string;
+}
+
 interface StepProfessionalBackgroundProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: ProfessionalBackgroundData;
+  onUpdate: (data: Partial<ProfessionalBackgroundData>) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -70,12 +78,12 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
             onChange={(e) => onUpdate({ yearsExperience: parseInt(e.target.value) })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="0">Select Experience</option>
-            <option value="5">5+ years</option>
-            <option value="10">10+ years</option>
-            <option value="15">15+ years</option>
-            <option value="20">20+ years</option>
-            <option value="25">25+ years</option>
+            <option value={0}>Select Experience</option>
+            <option value={5}>5+ years</option>
+            <option value={10}>10+ years</option>
+            <option value={15}>15+ years</option>
+            <option value={20}>20+ years</option>
+            <option value={25}>25+ years</option>
           </select>
         </div>
 
@@ -85,7 +93,7 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
           </label>
           <input
             type="url"
-            value={data.portfolioUrl}
+            value={data.portfolioUrl || ''}
             onChange={(e) => onUpdate({ portfolioUrl: e.target.value })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="https://yourportfolio.com"

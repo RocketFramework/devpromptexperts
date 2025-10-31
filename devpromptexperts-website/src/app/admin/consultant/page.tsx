@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ExtendedConsultansService } from "@/services/extended/ExtendedConsultantsService";
-import { ConsultantBusinessService } from "@/services/business/ConsultantBusinessService";
+import { ExtendedConsultantsService } from "@/services/extended/ExtendedConsultantsService";
+import { ConsultantsBusinessService } from "@/services/business/ConsultantBusinessService";
 import { useSession } from "next-auth/react";
 import type { ConsultantStage as OnboardingStage } from "@/types/types";
 import ConsultantOnboardingTable from "@/components/ConsultantOnboardingTable";
 
 // Use the actual DTO type instead of recreating it
-type ConsultantDTO = Awaited<ReturnType<typeof ConsultantBusinessService.getConsultantsForAdmin>>[0];
+type ConsultantDTO = Awaited<ReturnType<typeof ConsultantsBusinessService.getConsultantsForAdmin>>[0];
 
 export default function AdminConsultantsPage() {
   const { data: session, status } = useSession();
@@ -36,7 +36,7 @@ export default function AdminConsultantsPage() {
       setLoading(true);
       setError(null);
       try {
-        const data = await ConsultantBusinessService.getConsultantsForAdmin();
+        const data = await ConsultantsBusinessService.getConsultantsForAdmin();
         setConsultants(data);
       } catch (err) {
         console.error("Error fetching consultants:", err);
@@ -75,7 +75,7 @@ export default function AdminConsultantsPage() {
 
   const handleStageUpdate = async (user_id: string, newStage: OnboardingStage) => {
     try {
-      await ExtendedConsultansService.updateConsultantStage(user_id, newStage);
+      await ExtendedConsultantsService.updateConsultantStage(user_id, newStage);
       setConsultants((prev) =>
         prev.map((c) => (c.user_id === user_id ? { ...c, stage: newStage } : c))
       );

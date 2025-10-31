@@ -246,9 +246,9 @@ export default function SearchConsultantCard({
 
         {/* Stats - Removed country from here since it's now in the flag */}
         <div className="flex items-center justify-between text-sm text-gray-600 pt-2 border-t border-gray-100">
-          {consultant.projects_completed && (
+          {consultant.projectsCompleted && (
             <span className="whitespace-nowrap">
-              {consultant.projects_completed} Proj.
+              {consultant.projectsCompleted} Proj.
             </span>
           )}
           {consultant.availability && (
