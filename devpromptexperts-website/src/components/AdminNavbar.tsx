@@ -117,6 +117,12 @@ export default function Navbar() {
         >
           Blog Management
         </a>
+        <a
+          href="/admin/review"
+          className="block hover:bg-white p-2 rounded transition"
+        >
+          Review
+        </a>
       </nav>
     </aside>
   );
