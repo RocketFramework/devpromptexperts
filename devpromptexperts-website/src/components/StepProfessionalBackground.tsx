@@ -1,3 +1,5 @@
+import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
+
 // components/onboarding/steps/ProfessionalBackgroundStep.tsx
 interface ProfessionalBackgroundData {
   currentRole: string;
@@ -8,8 +10,8 @@ interface ProfessionalBackgroundData {
 }
 
 interface StepProfessionalBackgroundProps {
-  data: ProfessionalBackgroundData;
-  onUpdate: (data: Partial<ProfessionalBackgroundData>) => void;
+  data: OnboardingData['professionalBackground'];
+  onUpdate: (data: OnboardingData['professionalBackground']) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -22,7 +24,7 @@ const EXECUTIVE_ROLES = [
   'Head of Data Science', 'Chief AI Officer',
   'Technical Director', 'Engineering Manager'
 ];
-
+//SAVING IS STILL NOT WORKING ROLE RELATED ERROR
 export default function StepProfessionalBackground({ data, onUpdate, onNext, onBack }: StepProfessionalBackgroundProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +46,7 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
           <select
             required
             value={data.currentRole}
-            onChange={(e) => onUpdate({ currentRole: e.target.value })}
+            onChange={(e) => onUpdate({ ...data, currentRole: e.target.value })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select Role</option>
@@ -62,7 +64,7 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
             type="text"
             required
             value={data.company}
-            onChange={(e) => onUpdate({ company: e.target.value })}
+            onChange={(e) => onUpdate({ ...data, company: e.target.value })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Google, Microsoft, etc."
           />
@@ -75,7 +77,7 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
           <select
             required
             value={data.yearsExperience}
-            onChange={(e) => onUpdate({ yearsExperience: parseInt(e.target.value) })}
+            onChange={(e) => onUpdate({ ...data, yearsExperience: parseInt(e.target.value) })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value={0}>Select Experience</option>
@@ -93,8 +95,8 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
           </label>
           <input
             type="url"
-            value={data.portfolioUrl || ''}
-            onChange={(e) => onUpdate({ portfolioUrl: e.target.value })}
+            value={data.portfolioUrl}
+            onChange={(e) => onUpdate({ ...data, portfolioUrl: e.target.value })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="https://yourportfolio.com"
           />
@@ -108,7 +110,7 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
         <textarea
           required
           value={data.bio}
-          onChange={(e) => onUpdate({ bio: e.target.value })}
+          onChange={(e) => onUpdate({ ...data, bio: e.target.value })}
           rows={6}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Describe your background, achievements, and what makes you an expert in your field..."

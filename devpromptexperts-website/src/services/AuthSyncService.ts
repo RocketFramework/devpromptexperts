@@ -34,7 +34,7 @@ static async handleUserSync({
     user: ExtendedUser;
     account?: Account | null;
     profile?: SocialProfile | null;
-  }): Promise<{ userId: string; role: UserRole; onboarded?: boolean; consultantStage?: ConsultantStage }> {
+  }): Promise<{ userId: string; role: UserRole; onboarded?: boolean; consultantStage?: ConsultantStage, country?: string, profileImageUrl?: string | null }> {
     
     if (!account) throw new Error('Account required for sync');
 
@@ -89,7 +89,9 @@ static async handleUserSync({
         userId,
         role,
         onboarded,
-        consultantStage
+        consultantStage,
+        country,
+        profileImageUrl
       };
 
     } catch (error: unknown) {

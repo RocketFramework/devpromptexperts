@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { ConsultantsUpdate } from "../generated/ConsultantsService";
+import { ConsultantsUpdate, ConsultantsService, Consultants } from "../generated/ConsultantsService";
 
 export class ExtendedConsultantsService {
   static async findByUser_Id(user_id: string) {
@@ -152,4 +152,11 @@ export class ExtendedConsultantsService {
       total_pages,
     };
   }
+
+  static async upsert(consultantData: Consultants) {
+    // Implementation for upserting consultant data
+    // This should handle both insert and update scenarios
+    ConsultantsService.upsert(consultantData);
+  }
+
 }

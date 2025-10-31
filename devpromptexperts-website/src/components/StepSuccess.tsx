@@ -1,8 +1,7 @@
 // components/onboarding/steps/SuccessStep.tsx
-import { MouseEvent } from "react";
-import { OnboardingData } from './ConsultantOnboardingWizard';
-
+import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
 interface StepSuccessProps {
+  data: OnboardingData;
   data: OnboardingData;
   referralToken?: string | null;
 }
@@ -29,6 +28,7 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
       <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to the Founder 100!</h2>
       <p className="text-xl text-gray-600 mb-8 max-w-md mx-auto">
         Your application has been received and you&apos;re one step closer to joining our exclusive community.
+        Your application has been received and you&apos;re one step closer to joining our exclusive community.
       </p>
 
       {/* Referral Bonus Notice */}
@@ -41,6 +41,7 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
             <div>
               <h3 className="text-lg font-semibold text-green-800">Referral Bonus Unlocked!</h3>
               <p className="text-green-700 text-sm">
+                You joined via referral - you&apos;ll receive priority onboarding and special community benefits.
                 You joined via referral - you&apos;ll receive priority onboarding and special community benefits.
               </p>
             </div>
@@ -79,6 +80,7 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
           <p>✅ <strong>Prepare your portfolio:</strong> Gather case studies and project examples</p>
           <p>✅ <strong>Update your LinkedIn:</strong> Ensure your profile reflects your expertise</p>
           <p>✅ <strong>Think about availability:</strong> Consider your schedule for upcoming projects</p>
+          <p>✅ <strong>Review our platform guide:</strong> We&apos;ll send this after approval</p>
           <p>✅ <strong>Review our platform guide:</strong> We&apos;ll send this after approval</p>
         </div>
       </div>

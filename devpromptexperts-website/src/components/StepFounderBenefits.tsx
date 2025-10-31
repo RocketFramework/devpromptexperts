@@ -1,26 +1,14 @@
-// components/onboarding/steps/StepFounderBenefitsStep.tsx
-import React from "react";
-
-interface FounderBenefitsData {
-  interestedInEquity: boolean;
-  wantAdvisoryRole: boolean;
-  referralContacts: string;
-  specialRequests: string;
-}
-
+import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
+// components/onboarding/steps/FounderBenefitsStep.tsx
 interface StepFounderBenefitsProps {
-  data: FounderBenefitsData;
-  onUpdate: (data: Partial<FounderBenefitsData>) => void;
+  data: OnboardingData['founderBenefits'];
+  onUpdate: (data: OnboardingData['founderBenefits']) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export default function StepFounderBenefits({
-  data,
-  onUpdate,
-  onNext,
-  onBack,
-}: StepFounderBenefitsProps) {
+
+export default function StepFounderBenefits({ data, onUpdate, onNext, onBack }: StepFounderBenefitsProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNext();
@@ -88,9 +76,7 @@ export default function StepFounderBenefits({
             <input
               type="checkbox"
               checked={data.interestedInEquity}
-              onChange={(e) =>
-                onUpdate({ interestedInEquity: e.target.checked })
-              }
+              onChange={(e) => onUpdate({...data, interestedInEquity: e.target.checked })}
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -109,9 +95,7 @@ export default function StepFounderBenefits({
             <input
               type="checkbox"
               checked={data.wantAdvisoryRole}
-              onChange={(e) =>
-                onUpdate({ wantAdvisoryRole: e.target.checked })
-              }
+              onChange={(e) => onUpdate({ ...data, wantAdvisoryRole: e.target.checked })}
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -125,9 +109,7 @@ export default function StepFounderBenefits({
           </label>
           <textarea
             value={data.referralContacts}
-            onChange={(e) =>
-              onUpdate({ referralContacts: e.target.value })
-            }
+            onChange={(e) => onUpdate({ ...data, referralContacts: e.target.value })}
             rows={3}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Know other top AI experts who might be interested in joining? Share their details..."
@@ -141,9 +123,7 @@ export default function StepFounderBenefits({
           </label>
           <textarea
             value={data.specialRequests}
-            onChange={(e) =>
-              onUpdate({ specialRequests: e.target.value })
-            }
+            onChange={(e) => onUpdate({ ...data, specialRequests: e.target.value })}
             rows={3}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Any specific requests or information you'd like to share with our team..."

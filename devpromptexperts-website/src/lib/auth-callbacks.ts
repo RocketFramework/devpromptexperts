@@ -32,6 +32,8 @@ export const authCallbacks = {
         token.role = syncResult.role;
         token.onboarded = syncResult.onboarded;
         token.consultantStage = syncResult.consultantStage;
+        token.country = syncResult.country;
+        token.image = syncResult.profileImageUrl;
 
         // Your existing provider data logic
         if (profile && account.provider === "linkedin") {
@@ -76,6 +78,8 @@ export const authCallbacks = {
       session.user.loginContext = token.loginContext as string;
       session.user.providerData = token.providerData || {};
       session.user.onboarded = token.onboarded as boolean;
+      session.user.country = token.country as string;
+      session.user.image = token.image;
       session.user.consultantStage = token.consultantStage as ConsultantStage;
     }
     

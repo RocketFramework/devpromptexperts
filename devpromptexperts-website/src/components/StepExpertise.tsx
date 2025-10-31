@@ -1,5 +1,7 @@
-// components/onboarding/steps/StepExpertise.tsx
-import React from "react";
+import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
+
+// components/onboarding/steps/ExpertiseStep.tsx
+
 import { ExpertiseOptions as AI_EXPERTISE_AREAS, Industries as INDUSTRIES, Projects_Types as PROJECT_TYPES } from "@/types/types";
 
 interface StepExpertiseData {
@@ -12,8 +14,8 @@ interface StepExpertiseData {
 }
 
 interface StepExpertiseProps {
-  data: StepExpertiseData;
-  onUpdate: (data: Partial<StepExpertiseData>) => void;
+  data: OnboardingData['expertise'];
+  onUpdate: (data: Partial<OnboardingData['expertise']>) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -164,6 +166,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
             />
           </div>
           <p className="text-sm text-gray-500 mt-1">
+            Smallest project you&apos;ll consider
             Smallest project you&apos;ll consider
           </p>
         </div>

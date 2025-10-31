@@ -96,7 +96,7 @@ export default function SearchConsultantCard({
               {/* Image with proper error handling */}
               {showImage && (
                 <img
-                  src={consultant.image}
+                  src={consultant.image??""}
                   alt={consultant.name}
                   className={`w-16 h-16 rounded-full object-cover shadow-sm border border-gray-200 flex-shrink-0 ${
                     imageLoaded ? "opacity-100" : "opacity-0"

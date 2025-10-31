@@ -11,10 +11,13 @@ declare module "next-auth" {
       role?: UserRole | null;
       name?: string | null;
       email?: string | null;
+      country?: string | null;
       image?: string | null;
+      founderCohort?: string | null;
       loginContext?: string | null;
       onboarded?: boolean | null;
       consultantStage?: ConsultantStage| null;
+      linkedInUrl?: string | null;
       clientState?: ClientState | null;
       providerData?: {
         credentials?: Record<string, unknown> | null;
@@ -40,17 +43,20 @@ declare module "next-auth/jwt" {
     facebookProfile?: Record<string, unknown> | null;
     linkedinProfile?: Record<string, unknown> | null;
     role?: string | null;
+    country?: string | null;
+    image?: string | null;
     consultantStage?: ConsultantStage| null;
     clientState?: ClientState | null;
   }
 }
 
+type LinkedInLocale = 
+  | string 
+  | { country?: string; language?: string };
+
 declare module "next-auth" {
   interface Profile {
-    locale?: string | {
-      country?: string;
-      language?: string;
-    };
+    locale?: LinkedInLocale
     country?: string;
     language?: string;
   }

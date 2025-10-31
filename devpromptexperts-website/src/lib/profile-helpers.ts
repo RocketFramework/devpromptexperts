@@ -44,8 +44,29 @@ function extractLinkedInData(
   const fullName = profile?.name || user?.name || "Unknown User";
   const profileImageUrl = profile?.picture || user?.image || null;
   const email = profile?.email || user?.email || "unknown@example.com";
-  const country = profile?.country ?? 'Unknown';
+  const country = getCountryFromProfile(profile??null);
+  console.log("back end know the country %", profile);
   return { fullName, profileImageUrl, email, country };
+}
+
+
+function getCountryFromProfile(profile: LinkedInProfile | null): string {
+  const locale = profile?.locale ?? "unknown";
+
+  if (!locale) return "";
+
+  // Case 1: locale is an object { country: "US" }
+  if (typeof locale === "object" && "country" in locale) {
+    return locale.country || "";
+  }
+
+  // Case 2: locale is a string like "en_US"
+  if (typeof locale === "string") {
+    const parts = locale.split(/[-_]/);
+    return parts[1]?.toUpperCase() || "";
+  }
+
+  return "";
 }
 
 function extractGoogleData(

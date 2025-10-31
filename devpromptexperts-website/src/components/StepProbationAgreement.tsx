@@ -1,13 +1,10 @@
 // components/onboarding/steps/ProbationAgreementStep.tsx
+import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
 import { useState } from "react";
 
-interface ProbationAgreementData {
-  probationTermsAccepted?: boolean;
-}
-
 interface StepProbationAgreementProps {
-  data: ProbationAgreementData;
-  onUpdate: (data: Partial<ProbationAgreementData>) => void;
+  data: OnboardingData['probation'];
+  onUpdate: (data: Partial<OnboardingData['probation']>) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -17,8 +14,7 @@ export default function StepProbationAgreement({ data, onUpdate, onNext, onBack 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!acceptedTerms) return; // safety check
-    onUpdate({ probationTermsAccepted: true });
+    onUpdate({ ...data, probationTermsAccepted: true });
     onNext();
   };
 

@@ -96,7 +96,10 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
         </label>
         <div className="grid grid-cols-1 gap-4">
           {ENGAGEMENT_TYPES.map((type) => (
-            <label key={type.value} className="flex items-start p-4 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+            <label
+              key={type.value}
+              className="flex items-start p-4 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+            >
               <input
                 type="radio"
                 name="engagementType"
@@ -159,11 +162,11 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Typical Notice Period for New Projects
         </label>
-        <select
-          value={data.noticePeriod || '2 weeks'}
-          onChange={(e) => onUpdate({ noticePeriod: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
+          <select
+            value={(data as typeof data & { noticePeriod?: string }).noticePeriod || '2 weeks'}
+            onChange={(e) => onUpdate({ noticePeriod: e.target.value as 'immediately' | '1 week' | '2 weeks' | '1 month' | '2 months'})}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
           <option value="immediately">Immediately</option>
           <option value="1 week">1 week</option>
           <option value="2 weeks">2 weeks</option>
