@@ -69,4 +69,11 @@ export class ProviderAccountsService {
     
     if (error) throw error
   }
+
+  
+
+  // Custom join methods for complex queries
+  
 }
+
+

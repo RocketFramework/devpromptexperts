@@ -1,17 +1,21 @@
 // src/types/next-auth.d.ts
 
 import { DefaultSession, DefaultUser } from "next-auth"
+import { ConsultantStage, UserRole, ClientState } from './types';
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
       sub: string;
-      role?: string | null;
+      role?: UserRole | null;
       name?: string | null;
       email?: string | null;
       image?: string | null;
       loginContext?: string | null;
+      onboarded?: boolean | null;
+      consultantStage?: ConsultantStage| null;
+      clientState?: ClientState | null;
       providerData?: {
         credentials?: Record<string, unknown> | null;
         google?: Record<string, unknown> | null;
@@ -36,6 +40,8 @@ declare module "next-auth/jwt" {
     facebookProfile?: Record<string, unknown> | null;
     linkedinProfile?: Record<string, unknown> | null;
     role?: string | null;
+    consultantStage?: ConsultantStage| null;
+    clientState?: ClientState | null;
   }
 }
 

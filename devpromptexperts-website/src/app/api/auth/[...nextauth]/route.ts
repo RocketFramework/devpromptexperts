@@ -11,7 +11,7 @@ const handler = NextAuth({
 
   events: {
     async signIn({ user, account, profile }) {
-      await AuthSyncService.handleUserSync({ user, account, profile });
+      console.log(`User signed in: ${user.email}`);
     },
   },
 

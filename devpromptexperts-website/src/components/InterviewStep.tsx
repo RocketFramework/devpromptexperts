@@ -1,5 +1,5 @@
 import React from "react";
-import { InterviewSlot } from "@/types/consultant";
+import { InterviewSlot } from "@/types/types";
 
 export default function InterviewStep({
   interviewSlots,

@@ -232,6 +232,7 @@ export default function DashboardPage() {
           <ConsultationTable />
         </div>
       </div>
+
     </div>
   );
 }

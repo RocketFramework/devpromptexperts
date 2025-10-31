@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/types/database'
 
@@ -68,4 +69,39 @@ export class ClientsService {
     
     if (error) throw error
   }
+
+  
+  // One-to-many relationship with users
+  static async findWithUsers(id: string) {
+    const { data, error } = await supabase
+      .from('clients')
+      .select(`
+        *,
+        users (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWithUsers() {
+    const { data, error } = await supabase
+      .from('clients')
+      .select(`
+        *,
+        users (*)
+      `)
+    
+    if (error) throw error
+    return data
+  }
+
+  // Custom join methods for complex queries
+  
+}
+
+export type ClientsWithUsers = Clients & {
+  users: Database['public']['Tables']['users']['Row'][]
 }

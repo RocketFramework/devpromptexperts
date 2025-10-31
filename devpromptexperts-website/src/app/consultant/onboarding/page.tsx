@@ -1,9 +1,5 @@
-import ConsultantOnboardingWizard from "@/components/OnboardingWizard";
+import ConsultantOnboardingWizard from '@/components/ConsultantOnboardingWizard';
 
 export default function OnboardingPage() {
-  return (
-    <div>
-      <ConsultantOnboardingWizard />
-    </div>
-  );
+  return <ConsultantOnboardingWizard />;
 }

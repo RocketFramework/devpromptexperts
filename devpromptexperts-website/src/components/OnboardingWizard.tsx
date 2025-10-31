@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Consultant } from "@/types/consultant";
+import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 import BioDataStep from "./BioDataStep";
 import InterviewStep from "./InterviewStep";
 import ProbationStep from "./ProbationStep";
@@ -13,12 +13,15 @@ export default function ConsultantOnboardingWizard() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const [consultant, setConsultant] = useState<Consultant>({
+  
+const [consultant, setConsultant] = useState<ConsultantDTO>({
+    user_id: "",
     id: "",
     name: "",
     email: "",
+    role: "",
     title: "",
-    bio_summary: "",
+    bioSummary: "",
     expertise: [],
     image: "",
     availability: "",
@@ -29,7 +32,9 @@ export default function ConsultantOnboardingWizard() {
     rating: 0,
     featured: false,
     stage: "bio",
-  });
+    country: "",
+    linkedinUrl: "",
+  }); 
 
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
@@ -66,7 +71,7 @@ export default function ConsultantOnboardingWizard() {
       const { error: consultantError } = await supabase.from("consultants").upsert({
         user_id: userId,
         title: consultant.title,
-        bio_summary: consultant.bio_summary,
+        bio_summary: consultant.bioSummary,
         expertise: consultant.expertise,
         availability: consultant.availability,
         work_experience: consultant.work_experience,

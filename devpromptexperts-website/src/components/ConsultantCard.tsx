@@ -1,15 +1,15 @@
 import React from "react";
-import { Consultant } from "@/types/consultant";
+import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 
 export default function ConsultantCard({
   consultant,
 }: {
-  consultant: Consultant;
+  consultant: ConsultantDTO;
 }) {
   return (
     <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:shadow-xl hover:border-blue-500 transition cursor-pointer">
       <img
-        src={consultant.image}
+        src={consultant.image??""}
         alt={consultant.name}
         className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
       />

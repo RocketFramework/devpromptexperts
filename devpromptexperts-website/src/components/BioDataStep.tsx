@@ -1,49 +1,19 @@
 "use client";
 
 import React from "react";
-import { Consultant } from "@/types/consultant";
+//import { ConsultantFullProfile as Consultant } from "@/services/generated/ConsultantsService";
+import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 import { daysOptions } from "@/data/daysOptions";
 import { hoursOptions } from "@/data/hoursOptions";
 import TagInput from "@/components/TagInput";
 import { isValidUrl } from "@/utils/validations";
-const expertiseOptions = [
-  "GPT-4",
-  "Claude AI",
-  "Prompt Engineering",
-  "React",
-  "Next.js",
-  "AI Integration",
-  "PyTorch",
-  "TensorFlow",
-  "MLOps",
-  "AI Strategy",
-  "Enterprise Solutions",
-  "Cloud AI",
-  "NLP",
-  "Text Analytics",
-  "Chatbots",
-  "Product Management",
-  "AI Roadmaps",
-  "Team Leadership",
-  "Computer Vision",
-  "Image Recognition",
-  "Deep Learning",
-  "AI Security",
-  "Risk Assessment",
-  "Compliance",
-  "Data Science",
-  "Predictive Analytics",
-  "Big Data",
-  "DevOps",
-  "Automation",
-];
 
 export default function BioDataStep({
   consultant,
   setConsultant,
 }: {
-  consultant: Consultant;
-  setConsultant: (data: Consultant) => void;
+  consultant: ConsultantDTO;
+  setConsultant: (data: ConsultantDTO) => void;
 }) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -54,8 +24,8 @@ export default function BioDataStep({
   const handleAvailabilityChange = (field: "days" | "hours", value: string) => {
     const availability =
       field === "days"
-        ? `${value} - ${consultant.availability.split(" - ")[1] || ""}`
-        : `${consultant.availability.split(" - ")[0] || ""} - ${value}`;
+        ? `${value} - ${consultant.availability?.split(" - ")[1] || ""}`
+        : `${consultant.availability?.split(" - ")[0] || ""} - ${value}`;
     setConsultant({ ...consultant, availability });
   };
 
@@ -82,7 +52,6 @@ export default function BioDataStep({
           />
         </div>
 
-
         {/* Email */}
         <div className="flex flex-col">
           <label className="text-sm font-semibold mb-1 text-gray-700">
@@ -107,7 +76,7 @@ export default function BioDataStep({
           <input
             type="text"
             name="title"
-            value={consultant.title}
+            value={consultant.title??""}
             onChange={handleChange}
             required
             placeholder="ex: Software Engineer"
@@ -123,7 +92,7 @@ export default function BioDataStep({
           <input
             type="url"
             name="image"
-            value={consultant.image}
+            value={consultant.image ?? ""}
             onChange={handleChange}
             required
             placeholder="ex: https://example.com/image.jpg"
@@ -138,7 +107,7 @@ export default function BioDataStep({
           </label>
           <textarea
             name="bio_summary"
-            value={consultant.bio_summary || ""}
+            value={consultant.bioSummary || ""}
             onChange={handleChange}
             rows={4}
             required
@@ -184,7 +153,7 @@ export default function BioDataStep({
           </label>
           <div className="flex flex-col md:flex-row gap-4">
             <select
-              value={consultant.availability.split(" - ")[0] || ""}
+              value={consultant.availability?.split(" - ")[0] || ""}
               onChange={(e) => handleAvailabilityChange("days", e.target.value)}
               required
               className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-400 focus:outline-none"
@@ -197,7 +166,7 @@ export default function BioDataStep({
               ))}
             </select>
             <select
-              value={consultant.availability.split(" - ")[1] || ""}
+              value={consultant.availability?.split(" - ")[1] || ""}
               onChange={(e) =>
                 handleAvailabilityChange("hours", e.target.value)
               }
@@ -249,31 +218,31 @@ export default function BioDataStep({
             LinkedIn Profile
           </label>
           <div className="space-y-2">
-            <TagInput
-              tags={consultant.linkedinUrl ?? []}
-              setTags={(tags) =>
-                setConsultant({ ...consultant, linkedinUrl: tags })
+            <input
+              type="url"
+              value={consultant.linkedinUrl || ""}
+              onChange={(e) =>
+                setConsultant({ ...consultant, linkedinUrl: e.target.value })
               }
-              placeholder="Add LinkedIn URLs (https://...)"
+              placeholder="https://linkedin.com/in/username"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <div className="flex flex-wrap gap-2">
-              {consultant.linkedinUrl?.map((linkedinUrl, index) => (
-                <div key={index} className="text-xs">
-                  {isValidUrl(linkedinUrl) ? (
-                    <a
-                      href={linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      📎 Link {index + 1}
-                    </a>
-                  ) : (
-                    <span>{linkedinUrl}</span>
-                  )}
-                </div>
-              ))}
-            </div>{" "}
+            {consultant.linkedinUrl && (
+              <div className="text-xs">
+                {isValidUrl(consultant.linkedinUrl) ? (
+                  <a
+                    href={consultant.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    📎 View LinkedIn Profile
+                  </a>
+                ) : (
+                  <span className="text-red-500">Please enter a valid URL</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         {/* Publications */}
