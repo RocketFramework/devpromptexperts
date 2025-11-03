@@ -1,5 +1,5 @@
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto"
-import { ConsultantStage } from "@/types/types";
+import { ConsultantStage } from "@/types/";
 
 export const baseConsultants: ConsultantDTO[] = [
   {

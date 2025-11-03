@@ -1,13 +1,4 @@
-import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
-
-// components/onboarding/steps/ProfessionalBackgroundStep.tsx
-interface ProfessionalBackgroundData {
-  currentRole: string;
-  company: string;
-  yearsExperience: number;
-  portfolioUrl?: string;
-  bio: string;
-}
+import { OnboardingSubmissionData as OnboardingData } from "@/types/";
 
 interface StepProfessionalBackgroundProps {
   data: OnboardingData['professionalBackground'];
@@ -55,21 +46,6 @@ export default function StepProfessionalBackground({ data, onUpdate, onNext, onB
             ))}
           </select>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Company/Organization *
-          </label>
-          <input
-            type="text"
-            required
-            value={data.company}
-            onChange={(e) => onUpdate({ ...data, company: e.target.value })}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Google, Microsoft, etc."
-          />
-        </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Years of Experience *

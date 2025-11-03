@@ -9,7 +9,7 @@ import {
   ConsultantStages,
   UserRole,
   UserRoles,
-} from "@/types/types";
+} from "@/types/";
 import { extractProfileData, determineUserRole } from "@/lib/profile-helpers";
 import { AuthAuditService } from "./AuthAuditService";
 import { UsersService } from "./generated/UsersService";
@@ -48,6 +48,7 @@ static async handleUserSync({
 
       // 1️⃣ Find or create user - this is the critical operation
       const existingUser = await this.findUserByEmail(email);
+
       let userData;
       
       if (existingUser) {

@@ -2,7 +2,7 @@
 import { JWT } from "next-auth/jwt";
 import { Session, User, Account, Profile } from "next-auth";
 import { AdapterUser } from "next-auth/adapters";
-import { ExtendedUser, SocialProfile, ConsultantStages, UserRole, ConsultantStage } from "@/types/types";
+import { ExtendedUser, SocialProfile, ConsultantStages, UserRole, ConsultantStage } from "@/types/";
 import { AuthSyncService } from "@/services/AuthSyncService";
 
 export const authCallbacks = {
@@ -34,7 +34,7 @@ export const authCallbacks = {
         token.consultantStage = syncResult.consultantStage;
         token.country = syncResult.country;
         token.image = syncResult.profileImageUrl;
-
+        
         // Your existing provider data logic
         if (profile && account.provider === "linkedin") {
           const linkedInProfile = profile as SocialProfile;
@@ -82,7 +82,6 @@ export const authCallbacks = {
       session.user.image = token.image;
       session.user.consultantStage = token.consultantStage as ConsultantStage;
     }
-    
     return session;
   },
 

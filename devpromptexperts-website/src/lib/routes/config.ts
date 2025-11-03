@@ -4,7 +4,7 @@ import {
   RouteMap, 
   ConsultantStage, 
   ClientState 
-} from '@/types/types';
+} from '@/types/';
 
 export const ROUTE_CONFIG: RouteConfig = {
   PUBLIC: {

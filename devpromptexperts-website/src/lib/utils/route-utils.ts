@@ -3,9 +3,7 @@ import {
   AppRoute, 
   ConsultantStage, 
   ClientState, 
-  ConsultantRouteMap, 
-  ClientRouteMap,
-} from '@/types';
+} from '@/types/';
 
 import { isConsultantStage, isClientState } from "@/types/auth";
 import { CONSULTANT_STAGE_MAP, CLIENT_STATE_MAP, ROUTE_CONFIG } from '@/lib/routes/config';

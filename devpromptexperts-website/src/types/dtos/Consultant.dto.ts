@@ -1,4 +1,4 @@
-import { ConsultantStage } from "@/types/types";
+import { ConsultantStage } from "@/types/";
 
 export interface ConsultantDTO {
   id: string;

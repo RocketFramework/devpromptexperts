@@ -1,7 +1,7 @@
 // src/types/next-auth.d.ts
 
 import { DefaultSession, DefaultUser } from "next-auth"
-import { ConsultantStage, UserRole, ClientState } from './types';
+import { ConsultantStage, UserRole, ClientState } from './interfaces';
 
 declare module "next-auth" {
   interface Session {

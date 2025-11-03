@@ -1,17 +1,17 @@
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
-import { Countries } from "@/types/types";
+import { OnboardingSubmissionData as OnboardingData } from "@/types/";
+import { Countries } from "@/types/";
 
 // components/onboarding/steps/PersonalInfoStep.tsx
-interface PersonalInfoData {
-  fullName: string;
-  email: string;
-  phone?: string;
-  country: string;
-  timezone: string;
-  linkedinUrl: string;
-}
+// interface PersonalInfoData {
+//   fullName: string;
+//   email: string;
+//   phone?: string;
+//   country: string;
+//   timezone: string;
+//   linkedinUrl: string;
+// }
 
 interface StepPersonalInfoProps {
   data: OnboardingData["personalInfo"];
@@ -138,6 +138,20 @@ export default function StepPersonalInfo({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Company/Organization *
+            </label>
+            <input
+              type="text"
+              required
+              value={data.company}
+              onChange={(e) => onUpdate({ ...data, company: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Google, Microsoft, etc."
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Timezone *
             </label>
             <select
@@ -186,4 +200,3 @@ export default function StepPersonalInfo({
     </div>
   );
 }
-

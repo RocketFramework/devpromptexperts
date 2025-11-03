@@ -6,7 +6,7 @@ const supabaseUrl =
     ? process.env.SUPABASE_URL        // Node scripts & server-side
     : process.env.NEXT_PUBLIC_SUPABASE_URL // Front-end
 
-const supabaseKey =
+const supabaseAnonKey =
   typeof window === 'undefined'
     ? process.env.SUPABASE_ANON_KEY
     : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

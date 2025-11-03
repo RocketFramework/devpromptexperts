@@ -1,80 +1,36 @@
-// components/onboarding/ConsultantOnboardingWizard.tsx
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import StepPersonalInfo from './StepPersonalInfo';
-import StepProfessionalBackground from './StepProfessionalBackground';
-import StepExpertise from './StepExpertise';
-import StepAvailability from './StepAvailability';
-import StepFounderBenefits from './StepFounderBenefits';
-import StepReview from './StepReview';
-import StepSuccess from './StepSuccess';
-import StepProbationAgreement from './StepProbationAgreement';
-import StepOnboardingTier from './StepOnboardingTier';
-
-export interface OnboardingData {
-  personalInfo: {
-    fullName: string;
-    email: string;
-    phone: string;
-    country: string;
-    timezone: string;
-    linkedinUrl: string;
-  };
-  professionalBackground: {
-    currentRole: string;
-    company: string;
-    yearsExperience: number;
-    previousRoles: string[];
-    certifications: string[];
-    portfolioUrl: string;
-    bio: string;
-  };
-  expertise: {
-    primaryExpertise: string[];
-    secondarySkills: string[];
-    industries: string[];
-    projectTypes: string[];
-    hourlyRate: number;
-    minProjectSize: number;
-  };
-  availability: {
-    hoursPerWeek: number;
-    timeSlots: string[];
-    startDate: string;
-    preferredEngagement: 'advisory' | 'implementation' | 'assessment' | 'mentoring';
-  };
-  founderBenefits: {
-    interestedInEquity: boolean;
-    wantAdvisoryRole: boolean;
-    referralContacts: string;
-    specialRequests: string;
-  };
-  onboardingTier?: {
-    selectedTier: 'general' | 'founder_100' | 'referred';
-  };
-  probation?: {
-    probationTermsAccepted?: boolean;
-  };
-
-}
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import StepPersonalInfo from "./StepPersonalInfo";
+import StepProfessionalBackground from "./StepProfessionalBackground";
+import StepExpertise from "./StepExpertise";
+import StepAvailability from "./StepAvailability";
+import StepFounderBenefits from "./StepFounderBenefits";
+import StepReview from "./StepReview";
+import StepSuccess from "./StepSuccess";
+import StepProbationAgreement from "./StepProbationAgreement";
+import StepOnboardingTier from "./StepOnboardingTier";
+import { ConsultantsBusinessService } from "@/services/business/ConsultantBusinessService";
+import { NoticePeriodTypes, OnboardingSubmissionData as OnboardingData, TierTypes } from "@/types/";
 
 export default function ConsultantOnboardingWizard() {
   const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null); // Add error state
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    
     personalInfo: {
       userId: session?.user?.id || "",
+      Id: session?.user?.id || "",
       joinedAt: new Date().toISOString().split("T")[0],
       founderCohort: "first-100",
       fullName: session?.user?.name || "",
       email: session?.user?.email || "",
       phone: "",
       country: "",
+      company: "",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       linkedinUrl: "",
       image: session?.user?.image || "",
@@ -82,7 +38,6 @@ export default function ConsultantOnboardingWizard() {
     },
     professionalBackground: {
       currentRole: "",
-      company: "",
       yearsExperience: 0,
       previousRoles: [],
       certifications: [],
@@ -102,7 +57,7 @@ export default function ConsultantOnboardingWizard() {
       timeSlots: [],
       startDate: new Date().toISOString().split("T")[0],
       preferredEngagement: "advisory",
-      noticePeriod: '2 months',
+      noticePeriod: NoticePeriodTypes.ONE_WEEK,
     },
     founderBenefits: {
       interestedInEquity: false,
@@ -112,12 +67,9 @@ export default function ConsultantOnboardingWizard() {
     },
     // Initialize optional fields
     onboardingTier: {
-      selectedTier: "general",
+      selectedTier: TierTypes[0].label,
     },
     probation: {
-      probationTermsAccepted: false
-    }
-
       agreedToTerms: false,
       startDate: new Date().toISOString().split("T")[0],
       duration: 90,
@@ -131,18 +83,11 @@ export default function ConsultantOnboardingWizard() {
     step: K,
     data: Partial<OnboardingData[K]>
   ) => {
-    setOnboardingData(prev => ({
-  const updateOnboardingData = <K extends keyof OnboardingData>(
-    step: K,
-    data: Partial<OnboardingData[K]>
-  ) => {
-    console.log("inside handleSubmit");
     setOnboardingData((prev) => ({
       ...prev,
       [step]: { ...prev[step], ...data },
     }));
   };
-
 
   const nextStep = () => {
     if (currentStep < totalSteps) {
@@ -159,16 +104,20 @@ export default function ConsultantOnboardingWizard() {
   const handleSubmit = async () => {
     if (!session?.user?.id) {
       console.error("No user session found");
+      setSubmitError("No user session found. Please sign in again.");
       return;
     }
 
     setIsSubmitting(true);
+    setSubmitError(null); // Clear previous errors
     try {
       const submissionData = {
-        ...onboardingData
+        ...onboardingData,
       };
 
-      const result = await ConsultantsBusinessService.submitOnboardingData(
+      submissionData.personalInfo.Id = session?.user?.id || "";
+      submissionData.personalInfo.userId = session?.user?.id || "";
+      const result = await ConsultantsBusinessService.saveCompleteOnboardingData(
         submissionData
       );
 
@@ -179,11 +128,42 @@ export default function ConsultantOnboardingWizard() {
       }
     } catch (error) {
       console.error("Onboarding submission error:", error);
-      // Handle error state - you might want to show an error message to the user
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save your data. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const fetchExistingData = async (userId: string) => {
+    try {
+      const existingData =
+        await ConsultantsBusinessService.getCompleteOnboardingData(userId);
+      console.log("Mapped existingData: %", existingData);
+      return existingData;
+    } catch (error) {
+      console.error("Error fetching existing data:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+  const loadExistingData = async () => {
+    if (session?.user?.id) {
+      const existingData = await fetchExistingData(session.user.id);
+      if (existingData) {
+        setOnboardingData(existingData);
+        // You might also want to track if this is an edit vs new
+        setIsEditing(true);
+      }
+    }
+  };
+
+  loadExistingData();
+}, [session?.user?.id]);
 
   // Get referral token from URL
   const [referralToken, setReferralToken] = useState<string | null>(null);
@@ -246,7 +226,7 @@ export default function ConsultantOnboardingWizard() {
         // Show different step based on selected tier
         const selectedTier = onboardingData.onboardingTier?.selectedTier;
 
-        if (selectedTier === "general") {
+        if (selectedTier === TierTypes[0].label) {
           return (
             <StepProbationAgreement
               data={onboardingData.probation}
@@ -255,7 +235,7 @@ export default function ConsultantOnboardingWizard() {
               onBack={prevStep}
             />
           );
-        } else if (selectedTier === "founder_100") {
+        } else if (selectedTier ===  TierTypes[1].label) {
           return (
             <StepFounderBenefits
               data={onboardingData.founderBenefits}
@@ -277,6 +257,7 @@ export default function ConsultantOnboardingWizard() {
             onBack={prevStep}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
+            error={submitError}
           />
         );
       case 8:

@@ -1,17 +1,6 @@
-import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
+import { OnboardingSubmissionData as OnboardingData } from "@/types/";
+import { ExpertiseOptions as AI_EXPERTISE_AREAS, Industries as INDUSTRIES, Projects_Types as PROJECT_TYPES } from "@/types/";
 
-// components/onboarding/steps/ExpertiseStep.tsx
-
-import { ExpertiseOptions as AI_EXPERTISE_AREAS, Industries as INDUSTRIES, Projects_Types as PROJECT_TYPES } from "@/types/types";
-
-interface StepExpertiseData {
-  primaryExpertise: string[];
-  industries: string[];
-  projectTypes: string[];
-  hourlyRate: number;
-  minProjectSize: number;
-  secondarySkills: string[];
-}
 
 interface StepExpertiseProps {
   data: OnboardingData['expertise'];
@@ -55,7 +44,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
                 type="checkbox"
                 checked={data.primaryExpertise.includes(expertise)}
                 onChange={() =>
-                  onUpdate({ primaryExpertise: toggleArrayItem(data.primaryExpertise, expertise) })
+                  onUpdate({ ...data, primaryExpertise: toggleArrayItem(data.primaryExpertise, expertise) })
                 }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
               />
@@ -80,7 +69,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
                 type="checkbox"
                 checked={data.industries.includes(industry)}
                 onChange={() =>
-                  onUpdate({ industries: toggleArrayItem(data.industries, industry) })
+                  onUpdate({ ...data, industries: toggleArrayItem(data.industries, industry) })
                 }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
               />
@@ -105,7 +94,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
                 type="checkbox"
                 checked={data.projectTypes.includes(type)}
                 onChange={() =>
-                  onUpdate({ projectTypes: toggleArrayItem(data.projectTypes, type) })
+                  onUpdate({ ...data, projectTypes: toggleArrayItem(data.projectTypes, type) })
                 }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
               />
@@ -132,7 +121,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
               max={1000}
               value={data.hourlyRate}
               onChange={(e) =>
-                onUpdate({ hourlyRate: parseInt(e.target.value) })
+                onUpdate({ ...data, hourlyRate: parseInt(e.target.value) })
               }
               className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="200"
@@ -159,7 +148,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
               step={1000}
               value={data.minProjectSize}
               onChange={(e) =>
-                onUpdate({ minProjectSize: parseInt(e.target.value) })
+                onUpdate({ ...data, minProjectSize: parseInt(e.target.value) })
               }
               className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="10000"
@@ -180,7 +169,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
         <textarea
           value={data.secondarySkills.join(", ")}
           onChange={(e) =>
-            onUpdate({
+            onUpdate({...data, 
               secondarySkills: e.target.value
                 .split(",")
                 .map((skill) => skill.trim())

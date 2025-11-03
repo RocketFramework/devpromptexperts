@@ -8,7 +8,7 @@ import {
   FacebookProfile,
   UserRole,
   UserRoles,
-} from "@/types/types";
+} from "@/types/";
 
 export interface ExtractedProfileData {
   fullName: string;

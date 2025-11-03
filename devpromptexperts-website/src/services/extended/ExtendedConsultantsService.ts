@@ -1,5 +1,8 @@
 import { supabase } from "@/lib/supabase";
-import { ConsultantsUpdate, ConsultantsService, Consultants } from "../generated/ConsultantsService";
+import {
+  ConsultantsUpdate,
+  Consultants,
+} from "./../generated";
 
 export class ExtendedConsultantsService {
   static async findByUser_Id(user_id: string) {
@@ -18,15 +21,27 @@ export class ExtendedConsultantsService {
   }
 
   static async updateByUser_Id(user_id: string, data: ConsultantsUpdate) {
+    // 1️⃣ Validate user_id
+    if (!user_id || user_id.trim() === "") {
+      throw new Error("Invalid user_id: empty string");
+      console.log("Invalid user_id: empty string");
+    }
+
+    // Optional: stricter UUID check
+    // if (!isUuid(user_id)) throw new Error("Invalid user_id: not a valid UUID");
+
+    // 2️⃣ Perform the update
     const { data: result, error } = await supabase
       .from("consultants")
       .update(data)
       .eq("user_id", user_id)
-      .select()
-      .maybeSingle();
+      .select();
 
     if (error) throw error;
-    return result;
+    console.log("record saved");
+    // 3️⃣ Handle 0 or 1 row safely
+    if (!result || result.length === 0) return null; // no row found
+    return result[0]; // return the updated row
   }
 
   static async updateConsultantStage(
@@ -132,7 +147,7 @@ export class ExtendedConsultantsService {
         query = query.order("rating", { ascending: false });
         break;
       default:
-        query = query.order("users(created_at)", { ascending: false });  
+        query = query.order("users(created_at)", { ascending: false });
         break;
     }
 
@@ -153,10 +168,14 @@ export class ExtendedConsultantsService {
     };
   }
 
-  static async upsert(consultantData: Consultants) {
-    // Implementation for upserting consultant data
-    // This should handle both insert and update scenarios
-    ConsultantsService.upsert(consultantData);
-  }
+  static async upsert(data: Consultants) {
+    const { data: result, error } = await supabase
+      .from("consultants")
+      .upsert(data, { onConflict: "user_id" }) // ✅ specify the unique key
+      .select()
+      .single();
 
+    if (error) throw error;
+    return result;
+  }
 }

@@ -1,4 +1,4 @@
-import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
+import { OnboardingSubmissionData as OnboardingData } from "@/types";
 // components/onboarding/steps/FounderBenefitsStep.tsx
 interface StepFounderBenefitsProps {
   data: OnboardingData['founderBenefits'];

@@ -1,8 +1,8 @@
 "use client";
 
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto"
-import type { ConsultantStage } from "@/types/types";
-import { ConsultantStages } from "@/types/types";
+import type { ConsultantStage } from "@/types/";
+import { ConsultantStages } from "@/types/";
 
 interface Props {
   consultants: ConsultantDTO[];

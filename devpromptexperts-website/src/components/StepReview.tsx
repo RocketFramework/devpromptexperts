@@ -1,53 +1,14 @@
-import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
+import { OnboardingSubmissionData as OnboardingData } from "@/types/";
 
 // components/onboarding/steps/ReviewStep.tsx
 import { MouseEvent, FormEvent } from "react";
-
-interface PersonalInfo {
-  fullName: string;
-  email: string;
-  country: string;
-  timezone: string;
-}
-
-interface ProfessionalBackground {
-  currentRole: string;
-  company: string;
-  yearsExperience: number;
-  bio: string;
-}
-
-interface Expertise {
-  hourlyRate: number;
-  minProjectSize: number;
-  primaryExpertise: string[];
-  industries: string[];
-}
-
-interface Availability {
-  hoursPerWeek: number;
-  preferredEngagement: string;
-  timeSlots: string[];
-}
-
-interface FounderBenefits {
-  interestedInEquity: boolean;
-  wantAdvisoryRole: boolean;
-}
-
-interface StepReviewData {
-  personalInfo: PersonalInfo;
-  professionalBackground: ProfessionalBackground;
-  expertise: Expertise;
-  availability: Availability;
-  founderBenefits: FounderBenefits;
-}
 
 interface StepReviewProps {
   data: OnboardingData;
   referralToken?: string | null;
   onBack: () => void;
   onSubmit: () => void;
+  error?: string | null;
   isSubmitting: boolean;
 }
 
@@ -57,6 +18,7 @@ export default function StepReview({
   onBack,
   onSubmit,
   isSubmitting,
+  error
 }: StepReviewProps) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -81,7 +43,6 @@ export default function StepReview({
             <div>
               <h3 className="text-lg font-semibold text-green-800 mb-1">Referral Bonus Applied!</h3>
               <p className="text-green-700">
-                You were referred by a community member! You&apos;ll receive priority review and special onboarding benefits.
                 You were referred by a community member! You&apos;ll receive priority review and special onboarding benefits.
               </p>
             </div>
@@ -134,7 +95,7 @@ export default function StepReview({
             </div>
             <div>
               <span className="text-gray-600">Company:</span>
-              <p className="font-medium">{data.professionalBackground.company}</p>
+              <p className="font-medium">{data.personalInfo.company}</p>
             </div>
             <div>
               <span className="text-gray-600">Experience:</span>
@@ -242,6 +203,19 @@ export default function StepReview({
           </div>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="text-red-800 font-medium">Submission Error</span>
+          </div>
+          <p className="text-red-700 mt-1 text-sm">{error}</p>
+        </div>
+      )}
 
       <div className="flex justify-between pt-6">
         <button

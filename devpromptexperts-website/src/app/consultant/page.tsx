@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ExtendedConsultantsService } from "@/services/extended/ExtendedConsultantsService";
 import { ConsultantsBusinessService } from "@/services/business/ConsultantBusinessService";
 import { useSession } from "next-auth/react";
-import type { ConsultantStage as OnboardingStage } from "@/types/types";
+import type { ConsultantStage as OnboardingStage } from "@/types/";
 import ConsultantOnboardingTable from "@/components/ConsultantOnboardingTable";
 
 // Use the actual DTO type instead of recreating it

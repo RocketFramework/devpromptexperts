@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ConsultantsBusinessService as ConsultantBusinessService, PaginatedConsultantsResponse, SearchParams } from '@/services/business/ConsultantBusinessService';
+import { ConsultantsBusinessService as ConsultantBusinessService } from '@/services/business/ConsultantBusinessService';
+import { PaginatedConsultantsResponse, SearchParams } from "@/types/";
 import SearchConsultantHeader from '@/components/SearchConsultantHeader';
 import SearchConsultantFilters from '@/components/SearchConsultantFilters';
 import SearchConsultantGrid from '@/components/SearchConsultantGrid';

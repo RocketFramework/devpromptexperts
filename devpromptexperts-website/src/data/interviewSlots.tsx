@@ -1,4 +1,4 @@
-import { InterviewSlot } from "@/types/types";
+import { InterviewSlot } from "@/types/interfaces";
 
 export const interviewSlots: InterviewSlot[] = [
   { id: 1, time: "2025-10-12 10:00 AM" },

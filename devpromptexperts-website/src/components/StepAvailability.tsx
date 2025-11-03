@@ -1,18 +1,18 @@
 // components/onboarding/steps/StepAvailability.tsx
 import React from "react";
+import { OnboardingSubmissionData as OnboardingData, EngagementType } from "@/types/";
 
 interface AvailabilityData {
-  hoursPerWeek: number;
-  preferredEngagement: 'advisory' | 'implementation' | 'assessment' | 'mentoring';
-  timeSlots: string[];
-  startDate: string;
-  noticePeriod?: string;
+    hoursPerWeek: number;
+    timeSlots: string[];
+    startDate: string;
+    preferredEngagement?: EngagementType;
+    noticePeriod: 'immediately' | '1 week' | '2 weeks' | '1 month' | '2 months';
 }
 
-
 interface StepAvailabilityProps {
-  data: AvailabilityData;
-  onUpdate: (data: Partial<AvailabilityData>) => void;
+  data: OnboardingData["availability"];
+  onUpdate: (data: OnboardingData["availability"]) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -58,7 +58,7 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
     const newSlots = data.timeSlots.includes(slot)
       ? data.timeSlots.filter((s) => s !== slot)
       : [...data.timeSlots, slot];
-    onUpdate({ timeSlots: newSlots });
+    onUpdate({...data, timeSlots: newSlots });
   };
 
   return (
@@ -76,7 +76,7 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
         <select
           required
           value={data.hoursPerWeek}
-          onChange={(e) => onUpdate({ hoursPerWeek: parseInt(e.target.value) })}
+          onChange={(e) => onUpdate({ ...data, hoursPerWeek: parseInt(e.target.value) as number })}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           <option value={5}>5 hours</option>
@@ -106,7 +106,7 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
                 value={type.value}
                 checked={data.preferredEngagement === type.value}
                 onChange={() =>
-                  onUpdate({
+                  onUpdate({ ...data, 
                     preferredEngagement: type.value as AvailabilityData['preferredEngagement']
                   })
                 }
@@ -150,7 +150,7 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
           type="date"
           required
           value={data.startDate}
-          onChange={(e) => onUpdate({ startDate: e.target.value })}
+          onChange={(e) => onUpdate({...data,  startDate: e.target.value })}
           min={new Date().toISOString().split('T')[0]}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
@@ -164,7 +164,7 @@ export default function StepAvailability({ data, onUpdate, onNext, onBack }: Ste
         </label>
           <select
             value={(data as typeof data & { noticePeriod?: string }).noticePeriod || '2 weeks'}
-            onChange={(e) => onUpdate({ noticePeriod: e.target.value as 'immediately' | '1 week' | '2 weeks' | '1 month' | '2 months'})}
+            onChange={(e) => onUpdate({...data,  noticePeriod: e.target.value as 'immediately' | '1 week' | '2 weeks' | '1 month' | '2 months'})}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
           <option value="immediately">Immediately</option>

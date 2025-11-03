@@ -1,126 +1,423 @@
 // services/business/ConsultantBusinessService.ts
-import { Consultants, ConsultantsService } from "@/services/generated/ConsultantsService";
-import { ExtendedConsultantsService } from "@/services/extended/ExtendedConsultantsService";
+
+import { ExtendedConsultantsService, ExtendedConsultantApplicationsService } from "@/services/extended";
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
-import { UsersService, ConsultantIndustriesService, ConsultantProjectTypesService, ConsultantApplicationsService } from "../generated";
-import { Users } from "../generated/UsersService";
-import { DateTime } from "next-auth/providers/kakao";
-
-export interface PaginatedConsultantsResponse {
-  consultants: ConsultantDTO[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-
-export interface SearchParams {
-  page?: number;
-  limit?: number;
-  query?: string;
-  expertise?: string[];
-  skills?: string[];
-  availability?: string[];
-  minExperience?: number;
-  maxExperience?: number;
-  minRating?: number;
-  country?: string;
-  featuredOnly?: boolean;
-  sortBy?: "default" | "projects_completed" | "work_experience" | "rating";
-}
-
-const ENGAGEMENT_TYPES = [
-  {
-    value: 'advisory',
-    label: 'Strategic Advisory',
-    description: 'High-level guidance, board-level consulting, strategy sessions',
-  },
-  {
-    value: 'implementation',
-    label: 'Hands-on Implementation',
-    description: 'Technical development, coding, system architecture',
-  },
-  {
-    value: 'assessment',
-    label: 'Technical Assessment',
-    description: 'Code reviews, architecture evaluation, due diligence',
-  },
-  {
-    value: 'mentoring',
-    label: 'Team Mentoring',
-    description: 'Training, coaching, team development',
-  },
-] as const;
-
-export const TIERS = [
-  { id: 'general', label: 'General' },
-  { id: 'founder_100', label: 'Founder 100' },
-  { id: 'referred', label: 'Referred' },
-] as const;
-
-export interface OnboardingTierData {
-  selectedTier: 'general' | 'founder_100' | 'referred';
-}
-
-export type EngagementType = typeof ENGAGEMENT_TYPES[number]['value'];
-
-export interface OnboardingSubmissionData {
-  personalInfo: {
-    userId: string;
-    joinedAt: DateTime;
-    founderCohort: string;
-    fullName: string;
-    email: string;
-    phone: string;
-    country: string;
-    timezone: string;
-    linkedinUrl: string;
-    image: string;
-    role: string;
-  };
-  professionalBackground: {
-    currentRole: string;
-    company: string;
-    yearsExperience: number;
-    previousRoles: string[];
-    certifications: string[];
-    portfolioUrl: string;
-    bio: string;
-  };
-  expertise: {
-    primaryExpertise: string[];
-    secondarySkills: string[];
-    industries: string[];
-    projectTypes: string[];
-    hourlyRate: number;
-    minProjectSize: number;
-  };
-  availability: {
-    hoursPerWeek: number;
-    timeSlots: string[];
-    startDate: string;
-    preferredEngagement?: EngagementType;
-    noticePeriod?: 'immediately' | '1 week' | '2 weeks' | '1 month' | '2 months' | undefined;
-  };
-  founderBenefits: {
-    interestedInEquity: boolean;
-    wantAdvisoryRole: boolean;
-    referralContacts: string;
-    specialRequests: string;
-  };
-  onboardingTier?: {
-    selectedTier: "general" | "founder_100" | "referred";
-  };
-  probation?: {
-    agreedToTerms: boolean;
-    startDate: string;
-    duration: number;
-    probationTermsAccepted: boolean;
-  };
-}
+import {
+  UsersService,
+  Users,
+  Consultants,
+  ConsultantsService,
+  ConsultantApplications,
+  ConsultantIndustriesService,
+  ConsultantProjectTypesService,
+  ConsultantApplicationsService,
+  ConsultantsUpdate,
+} from "../generated";
+import {
+  SearchParams,
+  PaginatedConsultantsResponse,
+  OnboardingSubmissionData,
+  Projects_Types,
+  ProjectType,
+  Industries,
+  Industry,
+  ENGAGEMENT_TYPES,
+  EngagementType,
+  TierType,
+  TierTypes,
+  UserRoles,
+  NoticePeriodTypes,
+  ConsultantStages
+} from "@/types/";
 
 export class ConsultantsBusinessService {
+  /**
+   * Saves complete onboarding data by distributing it across all related tables
+   */
+  static async saveCompleteOnboardingData(
+    onboardingData: OnboardingSubmissionData
+  ): Promise<{ success: boolean; consultantId?: string; error?: string }> {
+    try {
+      const userId = onboardingData.personalInfo.userId;
+      console.log("OnboardingSubmissionData: %", onboardingData);
+      // Execute all operations in sequence to maintain data integrity
+      await this.updateUserRecordNew(onboardingData.personalInfo);
+      console.log("Update Users");
+      await this.updateConsultantRecord(onboardingData);
+       console.log("Update Consultant");
+      await this.updateApplicationRecord(onboardingData);
+       console.log("Update Application");
+      return {
+        success: true,
+        consultantId: userId,
+      };
+    } catch (error) {
+      console.error("Error saving complete onboarding data:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  /**
+   * Retrieves complete onboarding data by aggregating from all related tables
+   */
+  static async getCompleteOnboardingData(
+    userId: string
+  ): Promise<OnboardingSubmissionData | null> {
+    try {
+      // Fetch all related data in parallel for better performance
+      const [user, consultant, application] =
+        await Promise.all([
+          UsersService.findById(userId).catch(() => null),
+          ExtendedConsultantsService.findByUser_Id(userId).catch(() => null),
+          ExtendedConsultantApplicationsService.findByUser_Id(userId).catch(() => null),
+        ]);
+
+      // Return null if no user or consultant data exists (new onboarding)
+      if (!user || !consultant) return null;
+
+      console.log("Fetched Users: %", user);
+      console.log("Fetched consultant: %", consultant);
+      consultant.linkedinUrl = "https://www.linkedin.com/in/nirosh/";
+      ExtendedConsultantsService.updateByUser_Id(userId, consultant);
+      console.log("Fetched application: %", application);
+
+      // Transform database records into onboarding data structure
+      return this.transformToOnboardingData(user, consultant, application);
+    } catch (error) {
+      console.error("Error retrieving complete onboarding data:", error);
+      return null;
+    }
+  }
+
+  // Private helper methods for data transformation
+
+  private static async updateUserRecordNew(
+    personalInfo: OnboardingSubmissionData["personalInfo"]
+  ) {
+    const userUpdateData: Users = {
+      id: personalInfo.userId,
+      full_name: personalInfo.fullName,
+      email: personalInfo.email,
+      phone: personalInfo.phone,
+      country: personalInfo.country,
+      company: personalInfo.company,
+      timezone:
+        personalInfo.timezone ??
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+      role: personalInfo.role,
+      profile_image_url: personalInfo.image,
+      last_sign_in: new Date().toISOString().split("T")[0],
+      created_at: new Date().toISOString().split("T")[0],
+      profile: "",
+      metadata: "",
+    };
+
+    await UsersService.upsert(userUpdateData);
+  }
+
+  private static async updateConsultantRecord(
+    onboardingData: OnboardingSubmissionData
+  ) {
+    const {
+      personalInfo,
+      professionalBackground,
+      expertise,
+      availability,
+      founderBenefits,
+      onboardingTier,
+      probation,
+    } = onboardingData;
+
+    const consultantData: ConsultantsUpdate = {
+      user_id: personalInfo.Id,
+      // Personal Info
+      linkedinUrl: personalInfo.linkedinUrl,
+
+      // Professional Background
+      title: professionalBackground.currentRole,
+      work_experience: professionalBackground.yearsExperience,
+      certifications: professionalBackground.certifications,
+      portfolio_url: professionalBackground.portfolioUrl,
+      bio_summary: professionalBackground.bio,
+
+      // Expertise
+      expertise: expertise.primaryExpertise,
+      skills: expertise.secondarySkills,
+      hourly_rate: expertise.hourlyRate,
+      min_project_size: expertise.minProjectSize,
+      industries: expertise.industries,
+      project_types: expertise.projectTypes,
+      publications: [], // MISSING
+
+      // Availability
+      hours_per_week: availability.hoursPerWeek,
+      time_slots: availability.timeSlots,
+      start_date: availability.startDate,
+      preferred_engagement_type: [
+        availability.preferredEngagement ?? "advisory",
+      ],
+      availability: "available",
+
+      // Founder Benefits
+      equity_interest: founderBenefits.interestedInEquity,
+      advisory_interest: founderBenefits.wantAdvisoryRole,
+      referral_contacts: founderBenefits.referralContacts,
+      special_requests: founderBenefits.specialRequests,
+
+      // Onboarding Tier & Probation
+      onboarding_tier: onboardingTier?.selectedTier as string,
+      probation_required: onboardingTier?.selectedTier === "general",
+      probation_completed: probation?.agreedToTerms || false,
+
+      // Additional fields
+      onboarding_completed_at: personalInfo.joinedAt,
+      approval_status: "pending",
+      is_approved: false,
+      stage: ConsultantStages.BIO_DONE,
+
+      // Initialize counts and ratings
+      projects_completed: 0,
+      rating: 0,
+      total_commission_earned: 0,
+      free_consultations_completed: 0,
+      free_consultations_required:
+        onboardingTier?.selectedTier === "general" ? 3 : 0,
+      active_referrals_count: 0,
+      assigned_free_consultation_count:
+        onboardingTier?.selectedTier === "general" ? 3 : 0,
+      direct_access_granted:
+        onboardingTier?.selectedTier == "founder_100" ? true : false,
+      completed_free_consultation_count: 0,
+      featured: false,
+      founder_number: onboardingTier?.selectedTier == "founder_100" ? 1 : 0,
+      notice_period: NoticePeriodTypes.ONE_WEEK,
+      referred_by: null, // MISSING
+      updated_at: new Date().toISOString().split("T")[0],
+    };
+    console.log("to be saved consultantData:", consultantData);
+    await ExtendedConsultantsService.updateByUser_Id(personalInfo.Id, consultantData);
+  }
+
+  private static async updateRelatedTables(
+    consultantId: string,
+    expertise: OnboardingSubmissionData["expertise"]
+  ) {
+    // Handle industries - clear existing and create new
+    if (expertise.industries?.length > 0) {
+      await ConsultantIndustriesService.delete(consultantId);
+      const industryPromises = expertise.industries.map((industry) =>
+        ConsultantIndustriesService.create({
+          consultant_id: consultantId,
+          industry,
+        })
+      );
+      await Promise.all(industryPromises);
+    }
+
+    // Handle project types - clear existing and create new
+    if (expertise.projectTypes?.length > 0) {
+      await ConsultantProjectTypesService.delete(consultantId);
+      const projectTypePromises = expertise.projectTypes.map((projectType) =>
+        ConsultantProjectTypesService.create({
+          consultant_id: consultantId,
+          project_type: projectType,
+        })
+      );
+      await Promise.all(projectTypePromises);
+    }
+  }
+
+  private static async updateApplicationRecord(
+    onboardingData: OnboardingSubmissionData
+  ) {
+    const cleanOnboardingData = JSON.parse(JSON.stringify(onboardingData));
+    const applicationData = {
+      user_id: onboardingData.personalInfo.userId,
+      application_data: cleanOnboardingData,
+      founder_cohort: onboardingData.personalInfo.founderCohort,
+      onboarding_tier: onboardingData.onboardingTier?.selectedTier,
+      skip_probation:
+        (onboardingData.onboardingTier?.selectedTier as TierType) !==
+        TierTypes[0].id,
+      status: "submitted",
+      applied_at: new Date().toISOString(),
+    };
+
+    await ExtendedConsultantApplicationsService.updateByUser_Id(applicationData.user_id, applicationData);
+  }
+
+  private static transformToOnboardingData(
+    user: Users,
+    consultant: Consultants,
+    application: ConsultantApplications
+  ): OnboardingSubmissionData {
+    return {
+      personalInfo: {
+        userId: user.id,
+        Id: user.id,
+        joinedAt: (consultant.onboarding_completed_at || user.created_at) ?? "",
+        founderCohort: application?.founder_cohort || "first-100",
+        fullName: user.full_name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        country: user.country || "",
+        company: user.company || "",
+        timezone:
+          user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        linkedinUrl: consultant.linkedinUrl || "",
+        image: user.profile_image_url || "",
+        role: user.role || UserRoles.CONSULTANT,
+      },
+      professionalBackground: {
+        currentRole: consultant.title || "",
+        yearsExperience: consultant.work_experience || 0,
+        previousRoles: [], // Add to database if needed
+        certifications: consultant.certifications || [],
+        portfolioUrl: consultant.portfolio_url || "",
+        bio: consultant.bio_summary || "",
+      },
+      expertise: {
+        primaryExpertise: consultant.expertise || [],
+        secondarySkills: consultant.skills || [],
+        industries:
+          consultant.industries?.filter((pt: string): pt is Industry =>
+            Industries.includes(pt as Industry)
+          ) || [],
+        projectTypes:
+          consultant.project_types?.filter((pt: string): pt is ProjectType =>
+            Projects_Types.includes(pt as ProjectType)
+          ) || [],
+        hourlyRate: consultant.hourly_rate || 150,
+        minProjectSize: consultant.min_project_size || 5000,
+      },
+      availability: {
+        hoursPerWeek: consultant.hours_per_week || 10,
+        timeSlots: consultant.time_slots || [],
+        startDate:
+          consultant.start_date || new Date().toISOString().split("T")[0],
+        preferredEngagement: consultant.preferred_engagement_type?.[0] as
+          | EngagementType
+          | undefined,
+        noticePeriod: consultant.notice_period ? "2 weeks" : undefined,
+      },
+      founderBenefits: {
+        interestedInEquity: consultant.equity_interest || false,
+        wantAdvisoryRole: consultant.advisory_interest || false,
+        referralContacts: consultant.referral_contacts || "",
+        specialRequests: consultant.special_requests || "",
+      },
+      onboardingTier: {
+        selectedTier:
+          (consultant.onboarding_tier as TierType) ?? TierTypes[0].id,
+      },
+      probation: {
+        agreedToTerms: consultant.probation_completed || false,
+        startDate:
+          consultant.start_date || new Date().toISOString().split("T")[0],
+        duration: 90,
+        probationTermsAccepted: consultant.probation_completed || false,
+      },
+    };
+  }
+
+  // Add to ConsultantBusinessService.ts
+  static async getExistingOnboardingData(
+    userId: string
+  ): Promise<OnboardingSubmissionData | null> {
+    try {
+      // Get user data
+      const user = await UsersService.findById(userId);
+      if (!user) return null;
+
+      // Get consultant data
+      const consultant = await ExtendedConsultantsService.findByUser_Id(userId);
+
+      // Get additional relations
+      const [industries, projectTypes, application] = await Promise.all([
+        ConsultantIndustriesService.findById(userId),
+        ConsultantProjectTypesService.findById(userId),
+        ConsultantApplicationsService.findById(userId),
+      ]);
+
+      // If no consultant data exists, return null (new onboarding)
+      if (!consultant) return null;
+
+      // Map database records back to onboarding data structure
+      return {
+        personalInfo: {
+          userId: user.id,
+          Id: user.id,
+          joinedAt: consultant.onboarding_completed_at || user.created_at,
+          founderCohort: application?.founder_cohort || "first-100",
+          fullName: user.full_name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          country: user.country || "",
+          company: user.company || "",
+          timezone:
+            user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+          linkedinUrl: consultant.linkedinUrl || "",
+          image: user.profile_image_url || "",
+          role: user.role || "consultant",
+        },
+        professionalBackground: {
+          currentRole: consultant.title || "",
+          yearsExperience: consultant.work_experience || 0,
+          previousRoles: [], // You might need to add this field
+          certifications: consultant.certifications || [],
+          portfolioUrl: consultant.portfolio_url || "",
+          bio: consultant.bio_summary || "",
+        },
+        expertise: {
+          primaryExpertise: consultant.expertise || [],
+          secondarySkills: consultant.skills || [],
+          industries: consultant.industries.filter(
+            (pt: string): pt is Industry => Industries.includes(pt as Industry)
+          ),
+          projectTypes: consultant.projectTypes.filter(
+            (pt: string): pt is ProjectType =>
+              Projects_Types.includes(pt as ProjectType)
+          ),
+          hourlyRate: consultant.hourly_rate || 150,
+          minProjectSize: consultant.min_project_size || 5000,
+        },
+        availability: {
+          hoursPerWeek: consultant.hours_per_week || 10,
+          timeSlots: consultant.time_slots || [],
+          startDate:
+            consultant.start_date || new Date().toISOString().split("T")[0],
+          preferredEngagement:
+            consultant.preferred_engagement_type?.[0] || "advisory",
+          noticePeriod: "2 months", // You might need to add this field
+        },
+        founderBenefits: {
+          interestedInEquity: consultant.equity_interest || false,
+          wantAdvisoryRole: consultant.advisory_interest || false,
+          referralContacts: consultant.referral_contacts || "",
+          specialRequests: consultant.special_requests || "",
+        },
+        onboardingTier: {
+          selectedTier: consultant.onboarding_tier || "general",
+        },
+        probation: {
+          agreedToTerms: consultant.probation_completed || false,
+          startDate:
+            consultant.probation_start_date ||
+            new Date().toISOString().split("T")[0],
+          duration: 90, // Default or from database
+          probationTermsAccepted: consultant.probation_completed || false,
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching existing onboarding data:", error);
+      return null;
+    }
+  }
+
   static async getConsultantsPaginated(
     searchParams: SearchParams = {}
   ): Promise<PaginatedConsultantsResponse> {
@@ -211,16 +508,24 @@ export class ConsultantsBusinessService {
     onboardingData: OnboardingSubmissionData
   ): Promise<{ success: boolean; consultantId?: string; error?: string }> {
     try {
-      console.log("user Id : %", onboardingData.personalInfo);
       // First, update the user record with personal info
-      await this.updateUserRecord(onboardingData.personalInfo.userId, onboardingData.personalInfo);
+      await this.updateUserRecord(
+        onboardingData.personalInfo.userId,
+        onboardingData.personalInfo
+      );
 
       // Then create/update the consultant record
       const consultantData = this.mapToConsultantTable(onboardingData);
-      const consultantResult = await ExtendedConsultantsService.upsert(consultantData as Consultants);
+      console.log("Consultant Data : %", consultantData); // THIS LINE IS UNDEFINED AND ALSO WE DON"T STOP WHEN SAVING ERRORS
+      const consultantResult = await ExtendedConsultantsService.upsert(
+        consultantData as Consultants
+      );
 
       // Handle additional tables for industries and project types
-      await this.handleAdditionalTables(onboardingData.personalInfo.userId, onboardingData.expertise);
+      await this.handleAdditionalTables(
+        onboardingData.personalInfo.userId,
+        onboardingData.expertise
+      );
 
       // Create consultant application record
       await this.createApplicationRecord(onboardingData);
@@ -230,15 +535,19 @@ export class ConsultantsBusinessService {
         consultantId: onboardingData.personalInfo.userId, // Since consultant user_id is the same as user id
       };
     } catch (error) {
-      console.error('Error submitting onboarding data:', error);
+      console.error("Error submitting onboarding data:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
 
-  private static async updateUserRecord(userId: string, personalInfo: OnboardingSubmissionData['personalInfo']) {
+  private static async updateUserRecord(
+    userId: string,
+    personalInfo: OnboardingSubmissionData["personalInfo"]
+  ) {
     // Update user table with personal information
     const userUpdateData = {
       id: userId,
@@ -256,65 +565,76 @@ export class ConsultantsBusinessService {
     await UsersService.upsert(userUpdateData);
   }
 
-  private static mapToConsultantTable(onboardingData: OnboardingSubmissionData) {
-    const { personalInfo, professionalBackground, expertise, availability, founderBenefits, onboardingTier, probation } = onboardingData;
+  private static mapToConsultantTable(
+    onboardingData: OnboardingSubmissionData
+  ) {
+    const {
+      personalInfo,
+      professionalBackground,
+      expertise,
+      availability,
+      founderBenefits,
+      onboardingTier,
+      probation,
+    } = onboardingData;
 
     return {
       user_id: onboardingData.personalInfo.userId,
       // Personal Info (some goes to users table, some to consultants)
       linkedinUrl: personalInfo.linkedinUrl,
-      
+
       // Professional Background
       title: professionalBackground.currentRole,
       work_experience: professionalBackground.yearsExperience,
       certifications: professionalBackground.certifications,
       portfolio_url: professionalBackground.portfolioUrl,
       bio_summary: professionalBackground.bio,
-      
+
       // Expertise
       expertise: expertise.primaryExpertise,
       skills: expertise.secondarySkills,
       hourly_rate: expertise.hourlyRate,
       min_project_size: expertise.minProjectSize,
-      
+
       // Availability
       hours_per_week: availability.hoursPerWeek,
       time_slots: availability.timeSlots,
       start_date: availability.startDate,
       preferred_engagement_type: [availability.preferredEngagement],
-      availability: 'available', // You might want to map this based on your business logic
-      
+      availability: "available", // You might want to map this based on your business logic
+
       // Founder Benefits
       equity_interest: founderBenefits.interestedInEquity,
       advisory_interest: founderBenefits.wantAdvisoryRole,
       referral_contacts: founderBenefits.referralContacts,
       special_requests: founderBenefits.specialRequests,
-      
+
       // Onboarding Tier & Probation
       onboarding_tier: onboardingTier?.selectedTier,
-      probation_required: onboardingTier?.selectedTier === 'general',
+      probation_required: onboardingTier?.selectedTier === "general",
       probation_completed: probation?.agreedToTerms || false,
-      
+
       // Additional fields
       //founder_cohort: onboardingData.founderCohort??null,
       onboarding_completed_at: onboardingData.personalInfo.joinedAt,
-      approval_status: 'pending',
+      approval_status: "pending",
       is_approved: false,
-      stage: 'onboarding_completed',
-      
+      stage: "onboarding_completed",
+
       // Initialize counts and ratings
       projects_completed: 0,
       rating: 0,
       total_commission_earned: 0,
       free_consultations_completed: 0,
-      free_consultations_required: onboardingTier?.selectedTier === 'general' ? 3 : 0, // Example logic
+      free_consultations_required:
+        onboardingTier?.selectedTier === "general" ? 3 : 0, // Example logic
       active_referrals_count: 0,
     };
   }
 
   private static async handleAdditionalTables(
     consultantId: string,
-    expertise: OnboardingSubmissionData['expertise']
+    expertise: OnboardingSubmissionData["expertise"]
   ) {
     try {
       // Handle industries
@@ -330,28 +650,32 @@ export class ConsultantsBusinessService {
 
       // Handle project types
       if (expertise.projectTypes && expertise.projectTypes.length > 0) {
-        const projectTypePromises = expertise.projectTypes.map(async (projectType) => {
-          return ConsultantProjectTypesService.upsert({
-            consultant_id: consultantId,
-            project_type: projectType,
-          });
-        });
+        const projectTypePromises = expertise.projectTypes.map(
+          async (projectType) => {
+            return ConsultantProjectTypesService.upsert({
+              consultant_id: consultantId,
+              project_type: projectType,
+            });
+          }
+        );
         await Promise.all(projectTypePromises);
       }
     } catch (error) {
-      console.error('Error handling additional tables:', error);
+      console.error("Error handling additional tables:", error);
     }
   }
 
-  private static async createApplicationRecord(onboardingData: OnboardingSubmissionData) {
+  private static async createApplicationRecord(
+    onboardingData: OnboardingSubmissionData
+  ) {
     const cleanOnboardingData = JSON.parse(JSON.stringify(onboardingData));
     const applicationData = {
       user_id: onboardingData.personalInfo.userId,
       application_data: cleanOnboardingData,
       founder_cohort: onboardingData.personalInfo.founderCohort,
       onboarding_tier: onboardingData.onboardingTier?.selectedTier,
-      skip_probation: onboardingData.onboardingTier?.selectedTier !== 'general',
-      status: 'submitted',
+      skip_probation: onboardingData.onboardingTier?.selectedTier !== "general",
+      status: "submitted",
       applied_at: new Date().toISOString(),
     };
 

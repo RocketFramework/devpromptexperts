@@ -1,5 +1,5 @@
 // types/auth.ts
-import { UserRole, ConsultantStage, ClientState } from '@/types/types';
+import { UserRole, ConsultantStage, ClientState } from '@/types/';
 
 export interface AuthUser {
   id: string;

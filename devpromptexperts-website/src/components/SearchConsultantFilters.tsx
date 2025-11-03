@@ -1,8 +1,7 @@
 // components/consultants/ConsultantFilters.tsx
 import { SearchFilters } from '@/app/findconsultants/page';
-import { ExpertiseOptions as AI_EXPERTISE } from '@/types/types';
-import { AiSkills as AI_SKILLS } from '@/types/types';
-import { Availability as AVAILABILITY_OPTIONS} from '@/types/types';
+import { ExpertiseOptions as AI_EXPERTISE, Availabilities as AVAILABILITY_OPTIONS } from '@/types/';
+import { AiSkills as AI_SKILLS } from '@/types/';
 import { ConsultantDTO as Consultant } from '@/types/dtos/Consultant.dto';
 
 interface SearchConsultantFiltersProps {

@@ -1,5 +1,6 @@
-import { OnboardingSubmissionData as OnboardingData } from "@/services/business/ConsultantBusinessService";
-
+import { OnboardingSubmissionData as OnboardingData } from "@/types";
+import { TierTypes, type Tier } from "@/types/";
+import React from "react";
 // components/onboarding/steps/OnboardingTierStep.tsx
 interface StepOnboardingTierProps {
   data: OnboardingData['onboardingTier'];
@@ -9,13 +10,6 @@ interface StepOnboardingTierProps {
   referralToken?: string | null;
 }
 
-// Define TIERS locally since it's not imported
-const TIERS = [
-  { id: 'founder_100' as const, name: 'Founder 100 Elite' },
-  { id: 'referred' as const, name: 'Referred Expert' },
-  { id: 'general' as const, name: 'Standard Application' }
-];
-
 export default function StepOnboardingTier({
   data,
   onUpdate,
@@ -23,60 +17,10 @@ export default function StepOnboardingTier({
   onBack,
   referralToken,
 }: StepOnboardingTierProps) {
-  const availableTiers: Tier[] = [
-    {
-      id: 'founder_100' as const,
-      name: 'Founder 100 Elite',
-      available: true, // Would check if spots remaining
-      description: 'Join our exclusive founding cohort',
-      benefits: [
-        "Immediate paid project access",
-        "No probation period",
-        "Referral commission rights (10% forever)",
-        "Platform advisory opportunities",
-        "Equity consideration",
-      ],
-      requirements: [
-        "Proven AI expertise",
-        "Executive-level experience",
-        "Commitment to platform growth",
-      ],
-    },
-    {
-      id: 'referred' as const,
-      name: 'Referred Expert',
-      available: !!referralToken,
-      description: "Skip probation via Founder 100 referral",
-      benefits: [
-        "Immediate paid project access",
-        "No probation period",
-        "Fast-track approval",
-      ],
-      requirements: [
-        "Referral from Founder 100 member",
-        "Meet platform quality standards",
-      ],
-    },
-    {
-      id: 'general' as const,
-      name: 'Standard Application',
-      available: true,
-      description: "Standard onboarding process",
-      benefits: [
-        "Access to premium AI projects",
-        "Growing expert community",
-        "Competitive earning potential",
-      ],
-      requirements: [
-        "2 free consultation projects",
-        "Quality and performance review",
-        "Platform approval required",
-      ],
-    },
-  ];
+  const availableTiers = TierTypes;
 
-  const handleTierSelect = (tierId: typeof TIERS[number]['id']) => {
-    onUpdate({ selectedTier: tierId });
+  const handleTierSelect = (tierId: Tier['id']) => {
+    onUpdate({...data, selectedTier: tierId });
   };
 
   const handleSubmit = (e: React.FormEvent) => {

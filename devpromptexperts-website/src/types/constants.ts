@@ -1,0 +1,261 @@
+import { Tier } from "./interfaces";  
+
+export const AuthProviders = {
+  LINKEDIN: "linkedin" as const,
+  GOOGLE: "google" as const,
+  FACEBOOK: "facebook" as const,
+  CREDENTIALS: "credentials" as const,
+} as const;
+
+export const ConsultantStages = {
+  BIO: "bio" as const,
+  BIO_WIP: "bio-wip" as const,
+  BIO_DONE: "bio-done" as const,
+  INTV: "interview" as const,
+  INTV_SCHEDULED: "interview-scheduled" as const,
+  INTV_DONE: "interview-done" as const,
+  INTV_DONE_ACCEPT: "interview-done-accept" as const,
+  INTV_DONE_REJECT: "interview-done-reject" as const,
+  PROBATION: "probation" as const,
+  PROBATION_WIP: "probation-wip" as const,
+  PROBATION_DONE: "probation-done" as const,
+  PROFESSIONAL: "professional" as const,
+} as const;
+
+export const UserRoles = {
+  ADMIN: "admin" as const,
+  CLIENT: "client" as const,
+  CONSULTANT: "consultant" as const,
+  PUBLIC: "public" as const,
+} as const;
+
+export const ClientStates = {
+  ONBOARDING: "onboarding" as const,
+  VERIFICATION_PENDING: "verification-pending" as const,
+  VERIFICATION_APPROVED: "verification-approved" as const,
+  ACTIVE: "active" as const,
+  SUSPENDED: "suspended" as const,
+} as const;
+
+export const ExpertiseOptions = [
+  "GPT-4",
+  "Claude AI",
+  "Prompt Engineering",
+  "React",
+  "Next.js",
+  "AI Integration",
+  "PyTorch",
+  "TensorFlow",
+  "MLOps",
+  "AI Strategy",
+  "Enterprise Solutions",
+  "Cloud AI",
+  "NLP",
+  "Text Analytics",
+  "Chatbots",
+  "Product Management",
+  "AI Roadmaps",
+  "Team Leadership",
+  "Computer Vision",
+  "Image Recognition",
+  "Deep Learning",
+  "AI Security",
+  "Risk Assessment",
+  "Compliance",
+  "Data Science",
+  "Predictive Analytics",
+  "Big Data",
+  "DevOps",
+  "Automation",
+];
+
+export const AiSkills = [
+  'Python', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'Keras', 'OpenCV', 'NLTK', 'spaCy',
+  'Hugging Face', 'LangChain', 'AWS SageMaker', 'Azure ML', 'Google AI', 'Docker', 'Kubernetes'
+];
+
+export const Availabilities = ['Full-time', 'Part-time', 'Contract', 'Freelance'];
+
+export const Industries = [
+  "Technology/SaaS",
+  "Financial Services",
+  "Healthcare",
+  "E-commerce & Retail",
+  "Manufacturing",
+  "Energy & Utilities",
+  "Telecommunications",
+  "Media & Entertainment",
+  "Education",
+  "Government",
+  "Startups & Venture Capital",
+  "Consulting & Professional Services",
+];
+
+export const Projects_Types = [
+  "Strategic Advisory",
+  "Technical Implementation",
+  "Team Building & Mentoring",
+  "System Architecture",
+  "Proof of Concept",
+  "Production Deployment",
+  "Technical Due Diligence",
+  "AI Transformation",
+  "Model Optimization",
+  "Data Strategy",
+];
+
+export const Countries = [
+  { code: "AF", name: "Afghanistan" },
+  { code: "AL", name: "Albania" },
+  { code: "DZ", name: "Algeria" },
+  { code: "AD", name: "Andorra" },
+  { code: "AO", name: "Angola" },
+  { code: "AR", name: "Argentina" },
+  { code: "AM", name: "Armenia" },
+  { code: "AU", name: "Australia" },
+  { code: "AT", name: "Austria" },
+  { code: "AZ", name: "Azerbaijan" },
+  { code: "BD", name: "Bangladesh" },
+  { code: "BE", name: "Belgium" },
+  { code: "BT", name: "Bhutan" },
+  { code: "BR", name: "Brazil" },
+  { code: "BG", name: "Bulgaria" },
+  { code: "CA", name: "Canada" },
+  { code: "CN", name: "China" },
+  { code: "CO", name: "Colombia" },
+  { code: "CU", name: "Cuba" },
+  { code: "DK", name: "Denmark" },
+  { code: "EG", name: "Egypt" },
+  { code: "FI", name: "Finland" },
+  { code: "FR", name: "France" },
+  { code: "DE", name: "Germany" },
+  { code: "GR", name: "Greece" },
+  { code: "HK", name: "Hong Kong" },
+  { code: "IN", name: "India" },
+  { code: "ID", name: "Indonesia" },
+  { code: "IR", name: "Iran" },
+  { code: "IQ", name: "Iraq" },
+  { code: "IE", name: "Ireland" },
+  { code: "IL", name: "Israel" },
+  { code: "IT", name: "Italy" },
+  { code: "JP", name: "Japan" },
+  { code: "JO", name: "Jordan" },
+  { code: "KE", name: "Kenya" },
+  { code: "KR", name: "Korea, Republic of" },
+  { code: "KW", name: "Kuwait" },
+  { code: "LK", name: "Sri Lanka" },
+  { code: "MY", name: "Malaysia" },
+  { code: "MV", name: "Maldives" },
+  { code: "MM", name: "Myanmar" },
+  { code: "NP", name: "Nepal" },
+  { code: "NL", name: "Netherlands" },
+  { code: "NZ", name: "New Zealand" },
+  { code: "PK", name: "Pakistan" },
+  { code: "PH", name: "Philippines" },
+  { code: "RU", name: "Russia" },
+  { code: "SA", name: "Saudi Arabia" },
+  { code: "SG", name: "Singapore" },
+  { code: "ZA", name: "South Africa" },
+  { code: "ES", name: "Spain" },
+  { code: "SE", name: "Sweden" },
+  { code: "CH", name: "Switzerland" },
+  { code: "TH", name: "Thailand" },
+  { code: "TR", name: "Turkey" },
+  { code: "AE", name: "United Arab Emirates" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "US", name: "United States" },
+  { code: "VN", name: "Vietnam" },
+];
+
+export const ENGAGEMENT_TYPES = [
+  {
+    value: 'advisory',
+    label: 'Strategic Advisory',
+    description: 'High-level guidance, board-level consulting, strategy sessions',
+  },
+  {
+    value: 'implementation',
+    label: 'Hands-on Implementation',
+    description: 'Technical development, coding, system architecture',
+  },
+  {
+    value: 'assessment',
+    label: 'Technical Assessment',
+    description: 'Code reviews, architecture evaluation, due diligence',
+  },
+  {
+    value: 'mentoring',
+    label: 'Team Mentoring',
+    description: 'Training, coaching, team development',
+  },
+] as const;
+
+// export const TierTypes = [
+//   { id: 'general', label: 'General' },
+//   { id: 'founder_100', label: 'Founder 100' },
+//   { id: 'referred', label: 'Referred' },
+// ] as const;
+
+export const NoticePeriodTypes = {
+  IMMEDIATE: 'immediately' as const,
+  ONE_WEEK: '1 week' as const,
+  TWO_WEEKS: '2 weeks' as const,
+  ONE_MONTH: '1 month' as const,
+  TWO_MONTHS: '2 months' as const,
+  UNDEFINED: undefined
+}
+
+export const TierTypes: Tier[] = [
+  {
+    id: 'founder_100',
+    name: 'Founder 100 Elite',
+    label: 'Founder 100',
+    available: true, // Would check if spots remaining
+    description: 'Join our exclusive founding cohort',
+    benefits: [
+      "Immediate paid project access",
+      "No probation period", 
+      "Referral commission rights (10% forever)",
+      "Platform advisory opportunities",
+      "Equity consideration",
+    ],
+    requirements: [
+      "Proven AI expertise",
+      "Executive-level experience", 
+      "Commitment to platform growth",
+    ],
+  },
+  {
+    id: 'referred',
+    name: 'Referred Expert', 
+    label: 'Referred',
+    available: false, // Default to false, will be set dynamically
+    description: "Skip probation via Founder 100 referral",
+    benefits: [
+      "Immediate paid project access",
+      "No probation period",
+      "Fast-track approval",
+    ],
+    requirements: [
+      "Referral from Founder 100 member",
+      "Meet platform quality standards", 
+    ],
+  },
+  {
+    id: 'general',
+    name: 'Standard Application',
+    label: 'General',
+    available: true,
+    description: "Standard onboarding process", 
+    benefits: [
+      "Access to premium AI projects",
+      "Growing expert community",
+      "Competitive earning potential",
+    ],
+    requirements: [
+      "2 free consultation projects", 
+      "Quality and performance review",
+      "Platform approval required",
+    ],
+  },
+];
