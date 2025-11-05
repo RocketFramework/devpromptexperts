@@ -1,10 +1,51 @@
 import { supabase } from "@/lib/supabase";
-import {
-  ConsultantsUpdate,
-  Consultants,
-} from "./../generated";
+import { ConsultantsUpdate, Consultants } from "./../generated";
+import { RpcBusinessService } from "./RpcBusinessService";
 
 export class ExtendedConsultantsService {
+  /**
+   * Assign a random partner to a consultant
+   */
+  static async assignRandomPartnerToConsultant(
+    ob_partner_id: string,
+    consultantId: string,
+    assignedBy?: string
+  ): Promise<string | null> {
+    try {
+      if (ob_partner_id !== null && ob_partner_id !== undefined)
+        return null;
+      const partnerId = await RpcBusinessService.getRandomPartnerWithWorkload();
+
+      if (!partnerId) {
+        throw new Error("No available partners to assign");
+      }
+      console.log("Inside assignRandomPartnerToConsultant consultantId: %, assignedBy: %, partnerId: %", consultantId, assignedBy, partnerId)
+      // Create the partnership record
+      const { data, error } = await supabase
+        .from("consultants_with_ob_partners")
+        .insert({
+          consultant_id: consultantId,
+          ob_partner_id: partnerId,
+          partnership_status: "active",
+          assigned_by: null,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to assign partner: ${error.message}`);
+      }
+
+      console.log(
+        `✅ Assigned partner ${partnerId} to consultant ${consultantId}`
+      );
+      return partnerId;
+    } catch (error) {
+      console.error("Error assigning random partner:", error);
+      return null;
+    }
+  }
+
   static async findByUser_Id(user_id: string) {
     const { data, error } = await supabase
       .from("consultants")

@@ -42,14 +42,13 @@ export interface ProfessionalBackground {
   bio: string;
 }
 
-// interface StepExpertiseData {
-//   primaryExpertise: string[];
-//   industries: string[];
-//   projectTypes: string[];
-//   hourlyRate: number;
-//   minProjectSize: number;
-//   secondarySkills: string[];
-// }
+export interface AvailableSlot {
+  slot_id: string;
+  start_time: string;
+  end_time: string;
+  slot_date: string;
+  day_of_week: string;
+}
 
 export interface Availability {
   hoursPerWeek: number;
@@ -141,9 +140,9 @@ export interface RouteConfig {
   };
 }
 
-export interface OnboardingTierData {
-  selectedTier: 'general' | 'founder_100' | 'referred';
-}
+// export interface OnboardingTierData {
+//   selectedTier: 'general' | 'founder_100' | 'referred';
+// }
 
 export interface OnboardingSubmissionData {
   personalInfo: {
@@ -259,10 +258,10 @@ export interface FacebookProfile extends Profile {
   };
 }
 
-export interface InterviewSlot {
-  id: number;
-  time: string;
-}
+// export interface InterviewSlot {
+//   id: number;
+//   time: string;
+// }
 
   // Base route configuration structure
 export interface RouteConfig {

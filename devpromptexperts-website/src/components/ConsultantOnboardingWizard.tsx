@@ -12,7 +12,13 @@ import StepSuccess from "./StepSuccess";
 import StepProbationAgreement from "./StepProbationAgreement";
 import StepOnboardingTier from "./StepOnboardingTier";
 import { ConsultantsBusinessService } from "@/services/business/ConsultantBusinessService";
-import { NoticePeriodTypes, OnboardingSubmissionData as OnboardingData, TierTypes } from "@/types/";
+import {
+  NoticePeriodTypes,
+  OnboardingSubmissionData as OnboardingData,
+  TierTypesData,
+  EngagementTypes,
+  UserRoles,
+} from "@/types/";
 
 export default function ConsultantOnboardingWizard() {
   const { data: session } = useSession();
@@ -25,7 +31,8 @@ export default function ConsultantOnboardingWizard() {
       userId: session?.user?.id || "",
       Id: session?.user?.id || "",
       joinedAt: new Date().toISOString().split("T")[0],
-      founderCohort: "first-100",
+      founderCohort:
+        session?.user?.role == UserRoles.CONSULTANT ? "first-100" : "N/A",
       fullName: session?.user?.name || "",
       email: session?.user?.email || "",
       phone: "",
@@ -34,7 +41,7 @@ export default function ConsultantOnboardingWizard() {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       linkedinUrl: "",
       image: session?.user?.image || "",
-      role: session?.user?.role || "consultant",
+      role: session?.user?.role || UserRoles.CONSULTANT,
     },
     professionalBackground: {
       currentRole: "",
@@ -56,7 +63,7 @@ export default function ConsultantOnboardingWizard() {
       hoursPerWeek: 10,
       timeSlots: [],
       startDate: new Date().toISOString().split("T")[0],
-      preferredEngagement: "advisory",
+      preferredEngagement: EngagementTypes.ADVISORY,
       noticePeriod: NoticePeriodTypes.ONE_WEEK,
     },
     founderBenefits: {
@@ -67,7 +74,7 @@ export default function ConsultantOnboardingWizard() {
     },
     // Initialize optional fields
     onboardingTier: {
-      selectedTier: TierTypes[0].label,
+      selectedTier: TierTypesData[0].label,
     },
     probation: {
       agreedToTerms: false,
@@ -117,9 +124,10 @@ export default function ConsultantOnboardingWizard() {
 
       submissionData.personalInfo.Id = session?.user?.id || "";
       submissionData.personalInfo.userId = session?.user?.id || "";
-      const result = await ConsultantsBusinessService.saveCompleteOnboardingData(
-        submissionData
-      );
+      const result =
+        await ConsultantsBusinessService.saveCompleteOnboardingData(
+          submissionData
+        );
 
       if (result.success) {
         setCurrentStep(totalSteps); // Success step
@@ -151,19 +159,19 @@ export default function ConsultantOnboardingWizard() {
   };
 
   useEffect(() => {
-  const loadExistingData = async () => {
-    if (session?.user?.id) {
-      const existingData = await fetchExistingData(session.user.id);
-      if (existingData) {
-        setOnboardingData(existingData);
-        // You might also want to track if this is an edit vs new
-        setIsEditing(true);
+    const loadExistingData = async () => {
+      if (session?.user?.id) {
+        const existingData = await fetchExistingData(session.user.id);
+        if (existingData) {
+          setOnboardingData(existingData);
+          // You might also want to track if this is an edit vs new
+          setIsEditing(true);
+        }
       }
-    }
-  };
+    };
 
-  loadExistingData();
-}, [session?.user?.id]);
+    loadExistingData();
+  }, [session?.user?.id]);
 
   // Get referral token from URL
   const [referralToken, setReferralToken] = useState<string | null>(null);
@@ -226,7 +234,7 @@ export default function ConsultantOnboardingWizard() {
         // Show different step based on selected tier
         const selectedTier = onboardingData.onboardingTier?.selectedTier;
 
-        if (selectedTier === TierTypes[0].label) {
+        if (selectedTier === TierTypesData[0].label) {
           return (
             <StepProbationAgreement
               data={onboardingData.probation}
@@ -235,7 +243,7 @@ export default function ConsultantOnboardingWizard() {
               onBack={prevStep}
             />
           );
-        } else if (selectedTier ===  TierTypes[1].label) {
+        } else if (selectedTier === TierTypesData[1].label) {
           return (
             <StepFounderBenefits
               data={onboardingData.founderBenefits}

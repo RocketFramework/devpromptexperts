@@ -1,6 +1,6 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { OnboardingSubmissionData as OnboardingData } from "@/types/";
 import { ExpertiseOptions as AI_EXPERTISE_AREAS, Industries as INDUSTRIES, Projects_Types as PROJECT_TYPES } from "@/types/";
-
 
 interface StepExpertiseProps {
   data: OnboardingData['expertise'];
@@ -9,17 +9,294 @@ interface StepExpertiseProps {
   onBack: () => void;
 }
 
+// ================================
+// TYPES AND INTERFACES
+// ================================
+interface TagInputHookProps {
+  initialTags: string[];
+  allOptions: string[];
+  maxSuggestions?: number;
+}
+
+interface TagInputHookReturn {
+  tags: string[];
+  inputValue: string;
+  suggestions: string[];
+  showSuggestions: boolean;
+  addTag: (tag: string) => string[];
+  removeTag: (index: number) => string[];
+  handleInputChange: (value: string) => void;
+  handleSuggestionClick: (suggestion: string) => void;
+  setShowSuggestions: (show: boolean) => void;
+}
+
+// ================================
+// CUSTOM HOOK: useTagInput
+// ================================
+const useTagInput = ({
+  initialTags,
+  allOptions,
+  maxSuggestions = 5
+}: TagInputHookProps): TagInputHookReturn => {
+  const [tags, setTags] = useState<string[]>(initialTags);
+  const [inputValue, setInputValue] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+
+  // Memoized suggestion update function
+  const updateSuggestions = useCallback((value: string) => {
+    const trimmedValue = value.trim().toLowerCase();
+    
+    if (trimmedValue === '') {
+      // Show available options when input is empty
+      const availableOptions = allOptions.filter(option => !tags.includes(option));
+      setSuggestions(availableOptions.slice(0, maxSuggestions));
+    } else {
+      // Filter options based on input with case-insensitive matching
+      const filtered = allOptions.filter(option => 
+        option.toLowerCase().includes(trimmedValue) && 
+        !tags.includes(option)
+      );
+      setSuggestions(filtered.slice(0, maxSuggestions));
+    }
+  }, [allOptions, tags, maxSuggestions]);
+
+  // Update suggestions when tags or inputValue changes
+  useEffect(() => {
+    updateSuggestions(inputValue);
+  }, [updateSuggestions, inputValue, tags]);
+
+  const addTag = useCallback((tag: string): string[] => {
+    const trimmedTag = tag.trim();
+    
+    // VALIDATION: Check for empty tag and duplicates
+    if (!trimmedTag || tags.includes(trimmedTag)) {
+      return tags;
+    }
+
+    const newTags = [...tags, trimmedTag];
+    setTags(newTags);
+    setInputValue('');
+    setShowSuggestions(false);
+    
+    return newTags;
+  }, [tags]);
+
+  const removeTag = useCallback((indexToRemove: number): string[] => {
+    const newTags = tags.filter((_, index) => index !== indexToRemove);
+    setTags(newTags);
+    return newTags;
+  }, [tags]);
+
+  const handleInputChange = useCallback((value: string) => {
+    setInputValue(value);
+    setShowSuggestions(true);
+  }, []);
+
+  const handleSuggestionClick = useCallback((suggestion: string) => {
+    addTag(suggestion);
+  }, [addTag]);
+
+  return {
+    tags,
+    inputValue,
+    suggestions,
+    showSuggestions,
+    addTag,
+    removeTag,
+    handleInputChange,
+    handleSuggestionClick,
+    setShowSuggestions,
+  };
+};
+
+// ================================
+// COMPONENT: TagInputField
+// ================================
+interface TagInputFieldProps {
+  label: string;
+  tags: string[];
+  onTagsChange: (tags: string[]) => void;
+  allOptions: string[];
+  placeholder?: string;
+  required?: boolean;
+  helperText?: string;
+}
+
+const TagInputField: React.FC<TagInputFieldProps> = ({
+  label,
+  tags,
+  onTagsChange,
+  allOptions,
+  placeholder = "Type to add...",
+  required = false,
+  helperText
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  const tagInput = useTagInput({
+    initialTags: tags,
+    allOptions,
+    maxSuggestions: 5
+  });
+
+  // SYNC TAGS WITH PARENT COMPONENT - IMPORTANT FOR FORM STATE MANAGEMENT
+  useEffect(() => {
+    if (JSON.stringify(tagInput.tags) !== JSON.stringify(tags)) {
+      tagInput.addTag; // This ensures the hook state is in sync
+    }
+  }, [tags]);
+
+  const handleAddTag = (tag: string) => {
+    const newTags = tagInput.addTag(tag);
+    onTagsChange(newTags);
+  };
+
+  const handleRemoveTag = (index: number) => {
+    const newTags = tagInput.removeTag(index);
+    onTagsChange(newTags);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.inputValue.trim()) {
+      e.preventDefault();
+      handleAddTag(tagInput.inputValue);
+    } else if (e.key === 'Backspace' && tagInput.inputValue === '' && tags.length > 0) {
+      handleRemoveTag(tags.length - 1);
+    } else if (e.key === 'Escape') {
+      tagInput.setShowSuggestions(false);
+      inputRef.current?.blur();
+    }
+  };
+
+  const handleContainerClick = () => {
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="w-full">
+      <label className="block text-sm font-medium text-gray-700 mb-3">
+        {label} {required && '*'}
+      </label>
+      
+      {/* Tag Input Container */}
+      <div className="relative">
+        <div 
+          className={`flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg bg-white min-h-12 cursor-text transition-colors ${
+            tagInput.showSuggestions ? 'ring-2 ring-blue-500 border-blue-500' : 'hover:border-gray-400'
+          }`}
+          onClick={handleContainerClick}
+        >
+          {/* Existing Tags */}
+          {tags.map((tag, index) => (
+            <span
+              key={`${tag}-${index}`}
+              className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium transition-colors hover:bg-blue-200"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveTag(index);
+                }}
+                className="ml-2 text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full w-4 h-4 flex items-center justify-center"
+                aria-label={`Remove ${tag}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          
+          {/* Input Field */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={tagInput.inputValue}
+            onChange={(e) => tagInput.handleInputChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => tagInput.setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => tagInput.setShowSuggestions(false), 200)} // Delay to allow click events
+            placeholder={tags.length === 0 ? placeholder : "Add another..."}
+            className="flex-1 min-w-[120px] border-none outline-none bg-transparent text-sm text-gray-700 placeholder-gray-400"
+            aria-autocomplete="list"
+            aria-expanded={tagInput.showSuggestions}
+          />
+        </div>
+
+        {/* Suggestions Dropdown */}
+        {tagInput.showSuggestions && tagInput.suggestions.length > 0 && (
+          <div 
+            className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+            role="listbox"
+          >
+            {tagInput.suggestions.map((suggestion, index) => (
+              <div
+                key={suggestion}
+                onClick={() => {
+                  handleAddTag(suggestion);
+                  tagInput.setShowSuggestions(false);
+                }}
+                className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm text-gray-700 transition-colors border-b border-gray-100 last:border-b-0"
+                role="option"
+                aria-selected="false"
+              >
+                {suggestion}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Helper Text */}
+      {helperText && (
+        <p className="mt-2 text-xs text-gray-500">
+          {helperText}
+        </p>
+      )}
+    </div>
+  );
+};
+
+// ================================
+// MAIN COMPONENT: StepExpertise
+// ================================
 export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepExpertiseProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // VALIDATION: Check if required fields have at least one selection
+    if (data.primaryExpertise.length === 0 || 
+        data.industries.length === 0 || 
+        data.projectTypes.length === 0) {
+      // YOU MAY WANT TO ADD PROPER FORM VALIDATION/TOAST NOTIFICATION HERE
+      console.warn('Please fill in all required fields');
+      return;
+    }
+    
     onNext();
   };
 
-  const toggleArrayItem = (array: string[], item: string) =>
-    array.includes(item) ? array.filter((i) => i !== item) : [...array, item];
+  // Handler functions for tag updates
+  const handlePrimaryExpertiseChange = (newTags: string[]) => {
+    onUpdate({ ...data, primaryExpertise: newTags });
+  };
+
+  const handleIndustriesChange = (newTags: string[]) => {
+    onUpdate({ ...data, industries: newTags });
+  };
+
+  const handleProjectTypesChange = (newTags: string[]) => {
+    onUpdate({ ...data, projectTypes: newTags });
+  };
+
+  const handleSecondarySkillsChange = (newTags: string[]) => {
+    onUpdate({ ...data, secondarySkills: newTags });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Header Section */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           AI Expertise & Skills
@@ -29,82 +306,40 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
         </p>
       </div>
 
-      {/* Primary Expertise */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Primary AI Expertise Areas *
-        </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {AI_EXPERTISE_AREAS.map((expertise) => (
-            <label
-              key={expertise}
-              className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={data.primaryExpertise.includes(expertise)}
-                onChange={() =>
-                  onUpdate({ ...data, primaryExpertise: toggleArrayItem(data.primaryExpertise, expertise) })
-                }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
-              />
-              <span className="text-sm text-gray-700">{expertise}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Primary Expertise - UPDATED WITH TAG INPUT */}
+      <TagInputField
+        label="Primary AI Expertise Areas"
+        tags={data.primaryExpertise}
+        onTagsChange={handlePrimaryExpertiseChange}
+        allOptions={AI_EXPERTISE_AREAS}
+        placeholder="Type AI expertise areas..."
+        required={true}
+        helperText="Type to search from available expertise areas or enter your own. Press Enter to add."
+      />
 
-      {/* Industries */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Industry Experience *
-        </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {INDUSTRIES.map((industry) => (
-            <label
-              key={industry}
-              className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={data.industries.includes(industry)}
-                onChange={() =>
-                  onUpdate({ ...data, industries: toggleArrayItem(data.industries, industry) })
-                }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
-              />
-              <span className="text-sm text-gray-700">{industry}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Industries - UPDATED WITH TAG INPUT */}
+      <TagInputField
+        label="Industry Experience"
+        tags={data.industries}
+        onTagsChange={handleIndustriesChange}
+        allOptions={INDUSTRIES}
+        placeholder="Type industries..."
+        required={true}
+        helperText="Type to search from available industries or enter your own. Press Enter to add."
+      />
 
-      {/* Project Types */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Preferred Project Types *
-        </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {PROJECT_TYPES.map((type) => (
-            <label
-              key={type}
-              className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={data.projectTypes.includes(type)}
-                onChange={() =>
-                  onUpdate({ ...data, projectTypes: toggleArrayItem(data.projectTypes, type) })
-                }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
-              />
-              <span className="text-sm text-gray-700">{type}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Project Types - UPDATED WITH TAG INPUT */}
+      <TagInputField
+        label="Preferred Project Types"
+        tags={data.projectTypes}
+        onTagsChange={handleProjectTypesChange}
+        allOptions={PROJECT_TYPES}
+        placeholder="Type project types..."
+        required={true}
+        helperText="Type to search from available project types or enter your own. Press Enter to add."
+      />
 
-      {/* Rate & Pricing */}
+      {/* Rate & Pricing - UNCHANGED */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -121,7 +356,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
               max={1000}
               value={data.hourlyRate}
               onChange={(e) =>
-                onUpdate({ ...data, hourlyRate: parseInt(e.target.value) })
+                onUpdate({ ...data, hourlyRate: parseInt(e.target.value) || 0 })
               }
               className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="200"
@@ -148,7 +383,7 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
               step={1000}
               value={data.minProjectSize}
               onChange={(e) =>
-                onUpdate({ ...data, minProjectSize: parseInt(e.target.value) })
+                onUpdate({ ...data, minProjectSize: parseInt(e.target.value) || 0 })
               }
               className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="10000"
@@ -156,35 +391,22 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
           </div>
           <p className="text-sm text-gray-500 mt-1">
             Smallest project you&apos;ll consider
-            Smallest project you&apos;ll consider
           </p>
         </div>
       </div>
 
-      {/* Secondary Skills */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Additional Technical Skills
-        </label>
-        <textarea
-          value={data.secondarySkills.join(", ")}
-          onChange={(e) =>
-            onUpdate({...data, 
-              secondarySkills: e.target.value
-                .split(",")
-                .map((skill) => skill.trim())
-                .filter(Boolean),
-            })
-          }
-          rows={3}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Python, TensorFlow, AWS, Kubernetes, Docker, React, Node.js..."
-        />
-        <p className="text-sm text-gray-500 mt-1">
-          Separate skills with commas
-        </p>
-      </div>
+      {/* Secondary Skills - UPDATED WITH TAG INPUT */}
+      <TagInputField
+        label="Additional Technical Skills"
+        tags={data.secondarySkills}
+        onTagsChange={handleSecondarySkillsChange}
+        allOptions={[]} // Empty array allows free-form input only
+        placeholder="Add technical skills (Python, TensorFlow, AWS...)"
+        required={false}
+        helperText="Type skills and press Enter to add. No autocomplete available for custom skills."
+      />
 
+      {/* Navigation Buttons - UNCHANGED */}
       <div className="flex justify-between pt-6">
         <button
           type="button"
@@ -195,7 +417,9 @@ export default function StepExpertise({ data, onUpdate, onNext, onBack }: StepEx
         </button>
         <button
           type="submit"
-          className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          // OPTIONAL: Add disabled state based on validation
+          // disabled={data.primaryExpertise.length === 0 || data.industries.length === 0 || data.projectTypes.length === 0}
         >
           Continue to Availability
         </button>

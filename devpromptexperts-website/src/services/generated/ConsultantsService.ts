@@ -20,7 +20,7 @@ export class ConsultantsService {
     const { data, error } = await supabase
       .from('consultants')
       .select('*')
-      .eq('user_id', id)
+      .eq('id', id)
       .single()
     
     if (error) throw error
@@ -65,7 +65,7 @@ export class ConsultantsService {
     const { error } = await supabase
       .from('consultants')
       .delete()
-      .eq('user_id', id)
+      .eq('id', id)
     
     if (error) throw error
   }
@@ -79,7 +79,7 @@ export class ConsultantsService {
         *,
         users (*)
       `)
-      .eq('user_id', id)
+      .eq('id', id)
       .single()
     
     if (error) throw error
@@ -97,7 +97,7 @@ export class ConsultantsService {
         users (*),
         projects (*)
       `)
-      .eq('user_id', id)
+      .eq('id', id)
       .single()
     
     if (error) throw error
@@ -123,6 +123,6 @@ export type ConsultantsWithUsers = Consultants & {
 }
 
 // Comprehensive consultant profile type
-export type ConsultantFullProfile = Consultants & {
+export type ConsultantsFullProfile = Consultants & {
   users: Database['public']['Tables']['users']['Row']
 }

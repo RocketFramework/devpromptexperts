@@ -7,10 +7,10 @@ import {
   LinkedInProfile,
   GoogleProfile,
   FacebookProfile,
-  ENGAGEMENT_TYPES,
+  ENGAGEMENT_TYPES_DATA,
   Projects_Types,
   Industries,
-  TierTypes,
+  TierTypesData,
   NoticePeriodTypes
 } from "./";
 
@@ -36,8 +36,8 @@ export type ConsultantStage =
   (typeof ConsultantStages)[keyof typeof ConsultantStages];
 export type UserRole = (typeof UserRoles)[keyof typeof UserRoles];
 export type ClientState = (typeof ClientStates)[keyof typeof ClientStates];
-export type EngagementType = typeof ENGAGEMENT_TYPES[number]['value'];
+export type EngagementType = typeof ENGAGEMENT_TYPES_DATA[number]['value'];
 export type ProjectType = (typeof Projects_Types)[number];
 export type Industry = (typeof Industries)[number];
-export type TierType = (typeof TierTypes)[number]['label'];
+export type TierType = (typeof TierTypesData)[number]['label'];
 export type NoticePeriodType = (typeof NoticePeriodTypes)[keyof typeof NoticePeriodTypes];

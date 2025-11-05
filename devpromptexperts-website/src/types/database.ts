@@ -274,52 +274,6 @@ export type Database = {
           },
         ]
       }
-      consultant_industries: {
-        Row: {
-          consultant_id: string
-          industry: string
-        }
-        Insert: {
-          consultant_id: string
-          industry: string
-        }
-        Update: {
-          consultant_id?: string
-          industry?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consultant_industries_consultant_id_fkey"
-            columns: ["consultant_id"]
-            isOneToOne: false
-            referencedRelation: "consultants"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      consultant_project_types: {
-        Row: {
-          consultant_id: string
-          project_type: string
-        }
-        Insert: {
-          consultant_id: string
-          project_type: string
-        }
-        Update: {
-          consultant_id?: string
-          project_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consultant_project_types_consultant_id_fkey"
-            columns: ["consultant_id"]
-            isOneToOne: false
-            referencedRelation: "consultants"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       consultant_referrals: {
         Row: {
           created_at: string | null
@@ -363,7 +317,6 @@ export type Database = {
       }
       consultants: {
         Row: {
-          active_referrals_count: number | null
           advisory_interest: boolean | null
           approval_status: string | null
           assigned_free_consultation_count: number | null
@@ -376,12 +329,9 @@ export type Database = {
           expertise: string[] | null
           featured: boolean | null
           founder_number: number | null
-          free_consultations_completed: number | null
-          free_consultations_required: number | null
           hourly_rate: number | null
           hours_per_week: number | null
           industries: string[] | null
-          is_approved: boolean | null
           linkedinUrl: string | null
           min_project_size: number | null
           notice_period: string | null
@@ -395,7 +345,6 @@ export type Database = {
           projects_completed: number | null
           publications: string[] | null
           rating: number | null
-          referral_contacts: string | null
           referred_by: string | null
           skills: string[] | null
           special_requests: string | null
@@ -403,13 +352,11 @@ export type Database = {
           start_date: string | null
           time_slots: string[] | null
           title: string | null
-          total_commission_earned: number | null
           updated_at: string | null
           user_id: string
           work_experience: number | null
         }
         Insert: {
-          active_referrals_count?: number | null
           advisory_interest?: boolean | null
           approval_status?: string | null
           assigned_free_consultation_count?: number | null
@@ -422,12 +369,9 @@ export type Database = {
           expertise?: string[] | null
           featured?: boolean | null
           founder_number?: number | null
-          free_consultations_completed?: number | null
-          free_consultations_required?: number | null
           hourly_rate?: number | null
           hours_per_week?: number | null
           industries?: string[] | null
-          is_approved?: boolean | null
           linkedinUrl?: string | null
           min_project_size?: number | null
           notice_period?: string | null
@@ -441,7 +385,6 @@ export type Database = {
           projects_completed?: number | null
           publications?: string[] | null
           rating?: number | null
-          referral_contacts?: string | null
           referred_by?: string | null
           skills?: string[] | null
           special_requests?: string | null
@@ -449,13 +392,11 @@ export type Database = {
           start_date?: string | null
           time_slots?: string[] | null
           title?: string | null
-          total_commission_earned?: number | null
           updated_at?: string | null
           user_id: string
           work_experience?: number | null
         }
         Update: {
-          active_referrals_count?: number | null
           advisory_interest?: boolean | null
           approval_status?: string | null
           assigned_free_consultation_count?: number | null
@@ -468,12 +409,9 @@ export type Database = {
           expertise?: string[] | null
           featured?: boolean | null
           founder_number?: number | null
-          free_consultations_completed?: number | null
-          free_consultations_required?: number | null
           hourly_rate?: number | null
           hours_per_week?: number | null
           industries?: string[] | null
-          is_approved?: boolean | null
           linkedinUrl?: string | null
           min_project_size?: number | null
           notice_period?: string | null
@@ -487,7 +425,6 @@ export type Database = {
           projects_completed?: number | null
           publications?: string[] | null
           rating?: number | null
-          referral_contacts?: string | null
           referred_by?: string | null
           skills?: string[] | null
           special_requests?: string | null
@@ -495,7 +432,6 @@ export type Database = {
           start_date?: string | null
           time_slots?: string[] | null
           title?: string | null
-          total_commission_earned?: number | null
           updated_at?: string | null
           user_id?: string
           work_experience?: number | null
@@ -514,6 +450,111 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultants_with_ob_partners: {
+        Row: {
+          assigned_by: string | null
+          assignment_notes: string | null
+          consultant_feedback: string | null
+          consultant_id: string
+          created_at: string | null
+          id: string
+          interview_date: string | null
+          interview_slot_id: string | null
+          interview_status: string | null
+          meeting_id: string | null
+          meeting_passcode: string | null
+          meeting_platform: string | null
+          meeting_url: string | null
+          ob_partner_id: string
+          original_interview_slot_id: string | null
+          partner_feedback: string | null
+          partnership_status: string
+          reschedule_count: number | null
+          reschedule_reason: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assignment_notes?: string | null
+          consultant_feedback?: string | null
+          consultant_id: string
+          created_at?: string | null
+          id?: string
+          interview_date?: string | null
+          interview_slot_id?: string | null
+          interview_status?: string | null
+          meeting_id?: string | null
+          meeting_passcode?: string | null
+          meeting_platform?: string | null
+          meeting_url?: string | null
+          ob_partner_id: string
+          original_interview_slot_id?: string | null
+          partner_feedback?: string | null
+          partnership_status?: string
+          reschedule_count?: number | null
+          reschedule_reason?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assignment_notes?: string | null
+          consultant_feedback?: string | null
+          consultant_id?: string
+          created_at?: string | null
+          id?: string
+          interview_date?: string | null
+          interview_slot_id?: string | null
+          interview_status?: string | null
+          meeting_id?: string | null
+          meeting_passcode?: string | null
+          meeting_platform?: string | null
+          meeting_url?: string | null
+          ob_partner_id?: string
+          original_interview_slot_id?: string | null
+          partner_feedback?: string | null
+          partnership_status?: string
+          reschedule_count?: number | null
+          reschedule_reason?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultants_with_ob_partners_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultants_with_ob_partners_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "consultants_with_ob_partners_interview_slot_id_fkey"
+            columns: ["interview_slot_id"]
+            isOneToOne: false
+            referencedRelation: "interview_slots"
+            referencedColumns: ["uuid_id"]
+          },
+          {
+            foreignKeyName: "consultants_with_ob_partners_ob_partner_id_fkey"
+            columns: ["ob_partner_id"]
+            isOneToOne: false
+            referencedRelation: "ob_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultants_with_ob_partners_original_interview_slot_id_fkey"
+            columns: ["original_interview_slot_id"]
+            isOneToOne: false
+            referencedRelation: "interview_slots"
+            referencedColumns: ["uuid_id"]
           },
         ]
       }
@@ -581,6 +622,104 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "consulting_ambassadors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_slots: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          start_time: string | null
+          uuid_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          start_time?: string | null
+          uuid_id?: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          start_time?: string | null
+          uuid_id?: string
+        }
+        Relationships: []
+      }
+      ob_partners: {
+        Row: {
+          activated_at: string | null
+          average_satisfaction_rating: number | null
+          created_at: string
+          id: string
+          introduction_message: string | null
+          is_accepting_new_consultants: boolean | null
+          max_concurrent_consultants: number | null
+          overall_engagement_score: number | null
+          partner_bio: string | null
+          partner_status: string
+          partner_type: string
+          special_notes: string | null
+          timezone: string | null
+          total_partnerings: number | null
+          typical_response_hours: number | null
+          unavailable_dates: string[] | null
+          updated_at: string
+          user_id: string
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          average_satisfaction_rating?: number | null
+          created_at?: string
+          id?: string
+          introduction_message?: string | null
+          is_accepting_new_consultants?: boolean | null
+          max_concurrent_consultants?: number | null
+          overall_engagement_score?: number | null
+          partner_bio?: string | null
+          partner_status?: string
+          partner_type?: string
+          special_notes?: string | null
+          timezone?: string | null
+          total_partnerings?: number | null
+          typical_response_hours?: number | null
+          unavailable_dates?: string[] | null
+          updated_at?: string
+          user_id: string
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          average_satisfaction_rating?: number | null
+          created_at?: string
+          id?: string
+          introduction_message?: string | null
+          is_accepting_new_consultants?: boolean | null
+          max_concurrent_consultants?: number | null
+          overall_engagement_score?: number | null
+          partner_bio?: string | null
+          partner_status?: string
+          partner_type?: string
+          special_notes?: string | null
+          timezone?: string | null
+          total_partnerings?: number | null
+          typical_response_hours?: number | null
+          unavailable_dates?: string[] | null
+          updated_at?: string
+          user_id?: string
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ob_partner_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users"
@@ -827,7 +966,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_one_slot_per_day: {
+        Args: { partner_id: string }
+        Returns: {
+          day_of_week: string
+          end_time: string
+          slot_date: string
+          slot_id: string
+          start_time: string
+        }[]
+      }
+      get_random_available_partner_with_workload: {
+        Args: never
+        Returns: {
+          id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

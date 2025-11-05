@@ -1,4 +1,4 @@
-import { Tier } from "./interfaces";  
+import { Tier } from "./interfaces";
 
 export const AuthProviders = {
   LINKEDIN: "linkedin" as const,
@@ -27,6 +27,8 @@ export const UserRoles = {
   CLIENT: "client" as const,
   CONSULTANT: "consultant" as const,
   PUBLIC: "public" as const,
+  OB_PARTNER: "ob_partner" as const,
+  AC_PARTNER: "ac_partner" as const,
 } as const;
 
 export const ClientStates = {
@@ -70,11 +72,29 @@ export const ExpertiseOptions = [
 ];
 
 export const AiSkills = [
-  'Python', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'Keras', 'OpenCV', 'NLTK', 'spaCy',
-  'Hugging Face', 'LangChain', 'AWS SageMaker', 'Azure ML', 'Google AI', 'Docker', 'Kubernetes'
+  "Python",
+  "TensorFlow",
+  "PyTorch",
+  "Scikit-learn",
+  "Keras",
+  "OpenCV",
+  "NLTK",
+  "spaCy",
+  "Hugging Face",
+  "LangChain",
+  "AWS SageMaker",
+  "Azure ML",
+  "Google AI",
+  "Docker",
+  "Kubernetes",
 ];
 
-export const Availabilities = ['Full-time', 'Part-time', 'Contract', 'Freelance'];
+export const Availabilities = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Freelance",
+];
 
 export const Industries = [
   "Technology/SaaS",
@@ -89,6 +109,7 @@ export const Industries = [
   "Government",
   "Startups & Venture Capital",
   "Consulting & Professional Services",
+  "Other",
 ];
 
 export const Projects_Types = [
@@ -167,26 +188,34 @@ export const Countries = [
   { code: "VN", name: "Vietnam" },
 ];
 
-export const ENGAGEMENT_TYPES = [
+export const EngagementTypes = {
+  ADVISORY: "advisory" as const,
+  IMPLEMENTATION: "implementation" as const,
+  MENTORING: "mentoring" as const,
+  ASSESSMENT: "assessment" as const,
+} as const;
+
+export const ENGAGEMENT_TYPES_DATA = [
   {
-    value: 'advisory',
-    label: 'Strategic Advisory',
-    description: 'High-level guidance, board-level consulting, strategy sessions',
+    value: "advisory",
+    label: "Strategic Advisory",
+    description:
+      "High-level guidance, board-level consulting, strategy sessions",
   },
   {
-    value: 'implementation',
-    label: 'Hands-on Implementation',
-    description: 'Technical development, coding, system architecture',
+    value: "implementation",
+    label: "Hands-on Implementation",
+    description: "Technical development, coding, system architecture",
   },
   {
-    value: 'assessment',
-    label: 'Technical Assessment',
-    description: 'Code reviews, architecture evaluation, due diligence',
+    value: "assessment",
+    label: "Technical Assessment",
+    description: "Code reviews, architecture evaluation, due diligence",
   },
   {
-    value: 'mentoring',
-    label: 'Team Mentoring',
-    description: 'Training, coaching, team development',
+    value: "mentoring",
+    label: "Team Mentoring",
+    description: "Training, coaching, team development",
   },
 ] as const;
 
@@ -197,38 +226,45 @@ export const ENGAGEMENT_TYPES = [
 // ] as const;
 
 export const NoticePeriodTypes = {
-  IMMEDIATE: 'immediately' as const,
-  ONE_WEEK: '1 week' as const,
-  TWO_WEEKS: '2 weeks' as const,
-  ONE_MONTH: '1 month' as const,
-  TWO_MONTHS: '2 months' as const,
-  UNDEFINED: undefined
-}
+  IMMEDIATE: "immediately" as const,
+  ONE_WEEK: "1 week" as const,
+  TWO_WEEKS: "2 weeks" as const,
+  ONE_MONTH: "1 month" as const,
+  TWO_MONTHS: "2 months" as const,
+  UNDEFINED: undefined,
+};
 
-export const TierTypes: Tier[] = [
+export const TierTypes = {
+  FOUNDER_100: "founder_100" as const,
+  REFERRED: "referred" as const,
+  GENERAL: "general" as const,
+  UNDEFINED: undefined,
+};
+
+export const TierTypesData: Tier[] = [
   {
-    id: 'founder_100',
-    name: 'Founder 100 Elite',
-    label: 'Founder 100',
+    id: "founder_100",
+    name: "Founder 100 Elite",
+    label: "Founder 100",
     available: true, // Would check if spots remaining
-    description: 'Join our exclusive founding cohort',
+    description: "Join our exclusive founding cohort",
     benefits: [
       "Immediate paid project access",
-      "No probation period", 
+      "No probation period",
       "Referral commission rights (10% forever)",
       "Platform advisory opportunities",
       "Equity consideration",
     ],
     requirements: [
       "Proven AI expertise",
-      "Executive-level experience", 
+      "Executive-level experience",
       "Commitment to platform growth",
     ],
   },
   {
-    id: 'referred',
-    name: 'Referred Expert', 
-    label: 'Referred',
+    id: "referred",
+    name: "Referred Expert",
+    label: "Referred",
     available: false, // Default to false, will be set dynamically
     description: "Skip probation via Founder 100 referral",
     benefits: [
@@ -238,22 +274,22 @@ export const TierTypes: Tier[] = [
     ],
     requirements: [
       "Referral from Founder 100 member",
-      "Meet platform quality standards", 
+      "Meet platform quality standards",
     ],
   },
   {
-    id: 'general',
-    name: 'Standard Application',
-    label: 'General',
+    id: "general",
+    name: "Standard Application",
+    label: "General",
     available: true,
-    description: "Standard onboarding process", 
+    description: "Standard onboarding process",
     benefits: [
       "Access to premium AI projects",
       "Growing expert community",
       "Competitive earning potential",
     ],
     requirements: [
-      "2 free consultation projects", 
+      "2 free consultation projects",
       "Quality and performance review",
       "Platform approval required",
     ],

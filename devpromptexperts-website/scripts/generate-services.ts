@@ -241,10 +241,8 @@ function generateTypeDefinitions(tableName: string, pascalCase: string, joins: s
     return `${joinTypeDefinitions}
 
 // Comprehensive consultant profile type
-export type ConsultantFullProfile = Consultant & {
+export type ConsultantsFullProfile = Consultants & {
   users: Database['public']['Tables']['users']['Row']
-  projects: Database['public']['Tables']['projects']['Row'][]
-  consultant_skills?: Database['public']['Tables']['consultant_skills']['Row'][]
 }`
   }
 
@@ -295,12 +293,13 @@ function getTablesFromFallback(): string[] {
     'commission_payouts',
     'consultant_applications',
     'consultant_availability',
-    'consultant_industries',
-    'consultant_project_types',
     'consultant_referrals',
     'consultants',
+    'consultants_with_ob_partners',
     'consultations',
     'consulting_ambassadors',
+    'interview_slots',
+    'ob_partners',
     'payments',
     'provider_accounts',
     'referral_commissions',
@@ -340,7 +339,7 @@ async function main() {
     const pascalCase = tableName.replace(/(^\w|_\w)/g, (match) => 
       match.replace(/_/, '').toUpperCase()
     )
-    return `export { ${pascalCase}Service } from './${pascalCase}Service'`
+    return `export * from './${pascalCase}Service'`
   }).join('\n')
 
   fs.writeFileSync(path.join(servicesDir, 'index.ts'), indexContent)
