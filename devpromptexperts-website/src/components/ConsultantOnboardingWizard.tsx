@@ -18,6 +18,7 @@ import {
   TierTypesData,
   EngagementTypes,
   UserRoles,
+  PartnershipData,
 } from "@/types/";
 
 export default function ConsultantOnboardingWizard() {
@@ -25,6 +26,8 @@ export default function ConsultantOnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [partnershipData, setObPartnershipId] =
+    useState<PartnershipData | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null); // Add error state
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     personalInfo: {
@@ -130,6 +133,11 @@ export default function ConsultantOnboardingWizard() {
         );
 
       if (result.success) {
+        const newPartnershipData: PartnershipData = {
+          PartnershipId: result.partnershipId ?? null,
+          PartnerId: result.partnerId ?? null,
+        };
+        setObPartnershipId(newPartnershipData ?? null);
         setCurrentStep(totalSteps); // Success step
       } else {
         throw new Error(result.error || "Submission failed");
@@ -150,7 +158,6 @@ export default function ConsultantOnboardingWizard() {
     try {
       const existingData =
         await ConsultantsBusinessService.getCompleteOnboardingData(userId);
-      console.log("Mapped existingData: %", existingData);
       return existingData;
     } catch (error) {
       console.error("Error fetching existing data:", error);
@@ -270,7 +277,11 @@ export default function ConsultantOnboardingWizard() {
         );
       case 8:
         return (
-          <StepSuccess data={onboardingData} referralToken={referralToken} />
+          <StepSuccess
+            data={onboardingData}
+            partnershipData={partnershipData}
+            referralToken={referralToken}
+          />
         );
       default:
         return null;

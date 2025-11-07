@@ -42,6 +42,11 @@ export interface ProfessionalBackground {
   bio: string;
 }
 
+export interface PartnershipData {
+  PartnershipId: string | null;
+  PartnerId: string | null;
+}
+
 export interface AvailableSlot {
   slot_id: string;
   start_time: string;

@@ -182,63 +182,6 @@ export type Database = {
           },
         ]
       }
-      consultant_applications: {
-        Row: {
-          application_data: Json
-          applied_at: string | null
-          founder_cohort: string | null
-          id: string
-          notes: string | null
-          onboarding_tier: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          skip_probation: boolean | null
-          status: string | null
-          user_id: string | null
-        }
-        Insert: {
-          application_data: Json
-          applied_at?: string | null
-          founder_cohort?: string | null
-          id?: string
-          notes?: string | null
-          onboarding_tier?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          skip_probation?: boolean | null
-          status?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          application_data?: Json
-          applied_at?: string | null
-          founder_cohort?: string | null
-          id?: string
-          notes?: string | null
-          onboarding_tier?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          skip_probation?: boolean | null
-          status?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consultant_applications_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "consultant_applications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       consultant_availability: {
         Row: {
           consultant_id: string | null

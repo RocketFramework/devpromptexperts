@@ -291,7 +291,6 @@ function getTablesFromFallback(): string[] {
     'auth_audit',
     'clients',
     'commission_payouts',
-    'consultant_applications',
     'consultant_availability',
     'consultant_referrals',
     'consultants',

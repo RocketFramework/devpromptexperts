@@ -238,7 +238,24 @@ export const TierTypes = {
   FOUNDER_100: "founder_100" as const,
   REFERRED: "referred" as const,
   GENERAL: "general" as const,
+  NA: "N/A" as const,
   UNDEFINED: undefined,
+};
+
+export const InterviewStatusTypes = {
+  SCHEDULED: "scheduled" as const,
+  COMPLETED: "completed" as const,
+  CANCELLED: "cancelled" as const,
+  RESCHEDULED: "rescheduled" as const,
+  NOSHOW: "no_show" as const,
+};
+
+export const PartnershipStatusTypes = {
+  ACTIVE: "active" as const,
+  COMPLETED: "completed" as const,
+  PAUSED: "paused" as const,
+  TRANSFERRED: "transferred" as const,
+  ENDED_EARLY: "ended_early" as const,
 };
 
 export const TierTypesData: Tier[] = [

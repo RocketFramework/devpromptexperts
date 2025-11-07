@@ -1,11 +1,15 @@
 // components/onboarding/steps/SuccessStep.tsx
 import { MouseEvent, useState, useEffect } from "react";
-import { OnboardingSubmissionData as OnboardingData } from "@/types/";
+import {
+  OnboardingSubmissionData as OnboardingData,
+  PartnershipData,
+} from "@/types/";
 import { ConsultantsBusinessService } from "@/services/business/ConsultantBusinessService";
 import { RpcBusinessService } from "@/services/extended/RpcBusinessService";
 
 interface StepSuccessProps {
   data: OnboardingData;
+  partnershipData: PartnershipData | null;
   referralToken?: string | null;
 }
 
@@ -17,10 +21,14 @@ interface AvailableSlot {
   day_of_week: string;
 }
 
-export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
+export default function StepSuccess({
+  data,
+  partnershipData,
+  referralToken,
+}: StepSuccessProps) {
   const [founderNumber] = useState<number>(Math.floor(Math.random() * 100) + 1);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<[string, Date] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [timezone, setTimezone] = useState<string>("UTC");
@@ -28,19 +36,19 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
     type: "success" | "error";
     text: string;
   } | null>(null);
-
+  const partnerId = partnershipData?.PartnerId ?? "";
   // FETCH AVAILABLE INTERVIEW SLOTS ON COMPONENT MOUNT
   useEffect(() => {
+    if (!partnerId) return;
+
     const fetchAvailableSlots = async () => {
       try {
         setIsLoading(true);
         // Using the provided RpcBusinessService
         const slots: AvailableSlot[] =
-          await RpcBusinessService.getFormattedPartnerSlots(
-            "abaf1a26-278f-44ac-be44-3b7b77560a11"
-          );
+          await RpcBusinessService.getFormattedPartnerSlots(partnerId);
         console.log("slots ", slots);
-        setAvailableSlots(slots);
+        setAvailableSlots(slots ?? []);
         // Assuming timezone might come from the API or we can use local timezone
         setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
       } catch (error) {
@@ -55,10 +63,10 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
     };
 
     fetchAvailableSlots();
-  }, ["abaf1a26-278f-44ac-be44-3b7b77560a11"]);
+  }, [partnerId]);
 
-  const handleSlotSelection = (slotId: string) => {
-    setSelectedSlot(slotId);
+  const handleSlotSelection = (slotId: string, slotDate: Date) => {
+    setSelectedSlot([slotId, slotDate]);
     setMessage(null); // Clear any previous messages
   };
 
@@ -75,13 +83,14 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
 
     try {
       setIsSubmitting(true);
-
+      const [selectedSlotId, selectedSlotDate] = selectedSlot ?? [];
       // IMPORTANT: ASSUMING ConsultantBusinessService.scheduleInterview() EXISTS
       await ConsultantsBusinessService.scheduleInterview({
-        slotId: selectedSlot,
+        slotId: selectedSlotId,
         consultantId: data.personalInfo.Id, // ASSUMING ID IS AVAILABLE IN DATA
-        consultantName: `${data.personalInfo.fullName}`,
-        consultantEmail: data.personalInfo.email,
+        partnerId : partnershipData?.PartnerId??"",
+        partnershipId: partnershipData?.PartnershipId??"",
+        interviewDate: selectedSlotDate,
       });
 
       setMessage({
@@ -91,7 +100,7 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
 
       // Optionally refresh available slots to update UI
       const updatedSlots = await RpcBusinessService.getFormattedPartnerSlots(
-        "abaf1a26-278f-44ac-be44-3b7b77560a11"
+        partnerId
       );
       setAvailableSlots(updatedSlots);
     } catch (error) {
@@ -237,7 +246,7 @@ export default function StepSuccess({ data, referralToken }: StepSuccessProps) {
                     ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
                     : "border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-25"
                 }`}
-                onClick={() => handleSlotSelection(slot.slot_id)}
+                onClick={() => handleSlotSelection(slot.slot_id, slot.slot_date)}
               >
                 <div className="font-semibold text-gray-900">
                   {formatSlotDate(slot.slot_date)}
