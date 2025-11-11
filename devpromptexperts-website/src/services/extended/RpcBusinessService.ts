@@ -2,6 +2,45 @@ import { AvailableSlot } from "@/types";
 import { supabase } from "@/lib/supabase";
 
 export class RpcBusinessService {
+  /**
+   * Returns the count of consultants matching:
+   * onboarding_tier = 'founder_100',
+   * stage = 'professional',
+   * approval_status = 'approved',
+   * availability != 'none'
+   */
+  static async getNextFounderProfessionalCount(): Promise<number | null> {
+    try {
+      const { data, error } = await supabase.rpc(
+        "get_founder_professional_count"
+      );
+
+      if (error) {
+        console.error("DB RPC error:", error.message);
+        return null;
+      }
+
+      // Supabase returns scalar values from RPC as `data` directly
+      if (data === null || data === undefined) {
+        console.warn("RPC returned no data");
+        return null;
+      }
+
+      // Ensure it's a number
+      const count = Number(data);
+      if (isNaN(count)) {
+        console.error("RPC returned non-numeric data:", data);
+        return null;
+      }
+
+      console.log("✅ Founder Professional Count:", count);
+      return count + 1;
+    } catch (err) {
+      console.error("❌ getFounderProfessionalCount error:", err);
+      return null;
+    }
+  }
+
   static async assignRandomPartnerToConsultant(
     consultantId: string,
     assignedBy?: string

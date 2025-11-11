@@ -10,7 +10,7 @@ import {
   ENGAGEMENT_TYPES_DATA,
   Projects_Types,
   Industries,
-  TierTypesData,
+  OnboardingTierTypeData,
   NoticePeriodTypes
 } from "./";
 
@@ -39,5 +39,5 @@ export type ClientState = (typeof ClientStates)[keyof typeof ClientStates];
 export type EngagementType = typeof ENGAGEMENT_TYPES_DATA[number]['value'];
 export type ProjectType = (typeof Projects_Types)[number];
 export type Industry = (typeof Industries)[number];
-export type TierType = (typeof TierTypesData)[number]['label'];
+export type TierType = (typeof OnboardingTierTypeData)[number]['label'];
 export type NoticePeriodType = (typeof NoticePeriodTypes)[keyof typeof NoticePeriodTypes];

@@ -11,6 +11,7 @@ import {
   Consultants,
   ConsultantsService,
   ConsultantsUpdate,
+  ConsultantsFullProfile,
   ConsultantsWithObPartnersService,
   ConsultantsWithObPartnersUpdate,
 } from "../generated";
@@ -24,23 +25,27 @@ import {
   Industry,
   EngagementType,
   TierType,
-  TierTypesData,
+  OnboardingTierTypeData,
   UserRoles,
   NoticePeriodTypes,
   EngagementTypes,
   ConsultantStages,
-  TierTypes,
+  OnboardingTierTypes,
   InterviewStatusTypes,
   PartnershipStatusTypes,
+  ApprovalStatusTypes,
 } from "@/types/";
 import { UUID } from "crypto";
 
 interface ScheduleInterviewParams {
   slotId: string;
+  slotDate: string;
   consultantId: string;
   partnerId: string;
   partnershipId: string;
   interviewDate: Date;
+  start_Time: string;
+  end_Time: string;
 }
 // TOBE CHECKED THIS CODE | just notice that slotID actually can be duplicating so need to combine that ID withthe date
 // ALSO WE NEED TO SEE HOW THE OVERALL NAVIGATION NOW GOING TO WORK
@@ -48,7 +53,7 @@ export class ConsultantsBusinessService {
   static async scheduleInterview(
     params: ScheduleInterviewParams
   ): Promise<void> {
-    const { interviewDate, partnershipId, partnerId, consultantId, slotId } =
+    const { interviewDate, partnershipId, partnerId, consultantId, slotId, start_Time, end_Time } =
       params;
 
     if (!interviewDate) {
@@ -76,6 +81,8 @@ export class ConsultantsBusinessService {
       reschedule_count: 0,
       reschedule_reason: null,
       updated_at: new Date().toISOString(),
+      start_time: start_Time,
+      end_time: end_Time,
     };
 
     await ConsultantsWithObPartnersService.update(partnershipId, updateData);
@@ -174,6 +181,8 @@ export class ConsultantsBusinessService {
       onboardingTier,
     } = onboardingData;
 
+    const count = await RpcBusinessService.getNextFounderProfessionalCount();
+
     const consultantData: ConsultantsUpdate = {
       user_id: personalInfo.Id,
 
@@ -204,13 +213,12 @@ export class ConsultantsBusinessService {
       probation_completed:
         existingConsultant?.stage === ConsultantStages.PROBATION_DONE ||
         existingConsultant?.stage === ConsultantStages.PROFESSIONAL,
-
       // Preserve non-editable fields from existing record
       availability:
         availability.hoursPerWeek + "-" + availability.timeSlots.join(", "),
       probation_required:
         existingConsultant?.probation_required ??
-        onboardingTier?.selectedTier === TierTypes.GENERAL,
+        onboardingTier?.selectedTier === OnboardingTierTypes.GENERAL,
       onboarding_completed_at:
         existingConsultant?.onboarding_completed_at ?? new Date().toISOString(),
       approval_status: existingConsultant?.approval_status ?? "pending",
@@ -224,16 +232,20 @@ export class ConsultantsBusinessService {
       rating: existingConsultant?.rating ?? 0,
       assigned_free_consultation_count:
         existingConsultant?.assigned_free_consultation_count ??
-        (onboardingTier?.selectedTier == TierTypes.GENERAL ? 3 : 0),
+        (onboardingTier?.selectedTier == OnboardingTierTypes.GENERAL ? 3 : 0),
       direct_access_granted:
         existingConsultant?.direct_access_granted ??
-        (onboardingTier?.selectedTier == TierTypes.GENERAL ? false : true),
+        (onboardingTier?.selectedTier == OnboardingTierTypes.GENERAL
+          ? false
+          : true),
       completed_free_consultation_count:
         existingConsultant?.completed_free_consultation_count ?? 0,
       featured: existingConsultant?.featured ?? false,
       founder_number:
         existingConsultant?.founder_number ??
-        (onboardingTier?.selectedTier == TierTypes.FOUNDER_100 ? 1 : 0),
+        (onboardingTier?.selectedTier === OnboardingTierTypes.FOUNDER_100
+          ? count
+          : null),
       notice_period:
         existingConsultant?.notice_period ?? NoticePeriodTypes.ONE_WEEK,
       updated_at: new Date().toISOString().split("T")[0],
@@ -254,19 +266,22 @@ export class ConsultantsBusinessService {
   ): Promise<OnboardingSubmissionData | null> {
     try {
       // Fetch all related data in parallel for better performance
-      const [user, consultant] = await Promise.all([
-        UsersService.findById(userId).catch(() => null),
-        ExtendedConsultantsService.findByUser_Id(userId).catch(() => null),
-      ]);
-
+      const consultantFull =
+        await ExtendedConsultantsService.findFullProfileByUser_Id(userId).catch(
+          () => null
+        );
       // Return null if no user or consultant data exists (new onboarding)
-      if (!user || !consultant) return null;
+      if (!consultantFull) return null;
 
-      consultant.linkedinUrl = "https://www.linkedin.com/in/";
-      ExtendedConsultantsService.updateByUser_Id(userId, consultant);
-
+      consultantFull.linkedinUrl = "https://www.linkedin.com/in/";
+      //ExtendedConsultantsService.updateByUser_Id(userId, consultantFull);
+      if (
+        consultantFull.users == null ||
+        consultantFull.consultants_with_ob_partners == null
+      )
+        return null;
       // Transform database records into onboarding data structure
-      return this.transformToOnboardingData(user, consultant);
+      return this.transformToOnboardingData(consultantFull);
     } catch (error) {
       console.error("Error retrieving complete onboarding data:", error);
       return null;
@@ -310,35 +325,48 @@ export class ConsultantsBusinessService {
       onboarding_tier: onboardingData.onboardingTier?.selectedTier,
       skip_probation:
         (onboardingData.onboardingTier?.selectedTier as TierType) !==
-        TierTypesData[0].id,
+        OnboardingTierTypeData[0].id,
       status: "submitted",
       applied_at: new Date().toISOString(),
     };
   }
 
   private static transformToOnboardingData(
-    user: Users,
-    consultant: Consultants
-  ): OnboardingSubmissionData {
+    consultant: ConsultantsFullProfile
+  ): OnboardingSubmissionData | null {
+    if (
+      consultant.users == null ||
+      consultant.consultants_with_ob_partners == null
+    )
+      return null;
+    const partner = consultant.consultants_with_ob_partners;
     return {
       personalInfo: {
-        userId: user.id,
-        Id: user.id,
-        joinedAt: (consultant.onboarding_completed_at || user.created_at) ?? "",
+        userId: consultant.users.id,
+        Id: consultant.users.id,
+        joinedAt:
+          (consultant.onboarding_completed_at || consultant.users.created_at) ??
+          "",
         founderCohort:
-          consultant.onboarding_tier === TierTypes.FOUNDER_100
-            ? TierTypes.FOUNDER_100
-            : TierTypes.NA,
-        fullName: user.full_name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        country: user.country || "",
-        company: user.company || "",
+          consultant.onboarding_tier === OnboardingTierTypes.FOUNDER_100
+            ? OnboardingTierTypes.FOUNDER_100
+            : OnboardingTierTypes.NA,
+        fullName: consultant.users.full_name || "",
+        email: consultant.users.email || "",
+        phone: consultant.users.phone || "",
+        country: consultant.users.country || "",
+        company: consultant.users.company || "",
         timezone:
-          user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+          consultant.users.timezone ||
+          Intl.DateTimeFormat().resolvedOptions().timeZone,
         linkedinUrl: consultant.linkedinUrl || "",
-        image: user.profile_image_url || "",
-        role: user.role || UserRoles.CONSULTANT,
+        image: consultant.users.profile_image_url || "",
+        role: consultant.users.role || UserRoles.CONSULTANT,
+        founderNumber: consultant.founder_number ?? 0,
+        interviewSlotId: partner.interview_slot_id ?? "",
+        interviewDate: partner.interview_date?.toString() ?? "",
+        interviewStartTime: partner.start_time ?? "",
+        interviewEndTime: partner.end_time ?? "",
       },
       professionalBackground: {
         currentRole: consultant.title || "",
@@ -382,7 +410,8 @@ export class ConsultantsBusinessService {
       },
       onboardingTier: {
         selectedTier:
-          (consultant.onboarding_tier as TierType) ?? TierTypesData[0].id,
+          (consultant.onboarding_tier as TierType) ??
+          OnboardingTierTypeData[0].id,
       },
       probation: {
         agreedToTerms: consultant.probation_completed || false,
@@ -553,7 +582,7 @@ export class ConsultantsBusinessService {
       // Additional fields
       //founder_cohort: onboardingData.founderCohort??null,
       onboarding_completed_at: onboardingData.personalInfo.joinedAt,
-      approval_status: "pending",
+      approval_status: ApprovalStatusTypes.PENDING,
       is_approved: false,
       stage: "onboarding_completed",
 

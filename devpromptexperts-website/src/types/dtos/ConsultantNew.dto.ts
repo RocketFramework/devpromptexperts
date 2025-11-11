@@ -1,7 +1,5 @@
 import { ConsultantStage } from "@/types/";
-
-export interface ConsultantDTO {
-  id: string;
+export interface ConsultantNewDTO {
   user_id: string;
   title: string | null;
   stage: ConsultantStage | null;
@@ -11,15 +9,23 @@ export interface ConsultantDTO {
   skills: string[] | null;
   linkedinUrl: string | null;
   publications: string[] | null;
-  projectsCompleted: number | null; // Changed from projects_completed
   rating: number | null;
   featured: boolean | null;
-  bioSummary: string; // Changed from bio_summary
   email: string;
   name: string;
   role: string;
   image: string;
   country: string | null;
   created_at?: string;
-}
 
+  bio_summary: string;
+  hourly_rate: number;
+  hours_per_week: number;
+  projects_completed: number;
+  min_project_size: number;
+  preferred_engagement_type: string[];
+  portfolio_url: string;
+  certifications: string[];
+  industries: string[];
+
+}

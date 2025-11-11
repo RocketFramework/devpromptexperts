@@ -4,6 +4,21 @@ import { RpcBusinessService } from "./RpcBusinessService";
 
 export class ExtendedConsultantsService {
 
+    static async findFullProfileByUser_Id(user_id: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*),
+        consultants_with_ob_partners (*)
+      `)
+      .eq('user_id', user_id)
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  }
+
   static async findByUser_Id(user_id: string) {
     const { data, error } = await supabase
       .from("consultants")

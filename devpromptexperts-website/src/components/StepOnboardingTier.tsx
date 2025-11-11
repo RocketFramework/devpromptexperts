@@ -1,5 +1,5 @@
 import { OnboardingSubmissionData as OnboardingData } from "@/types";
-import { TierTypesData, type Tier } from "@/types/";
+import { OnboardingTierTypeData, type Tier } from "@/types/";
 import React from "react";
 // components/onboarding/steps/OnboardingTierStep.tsx
 interface StepOnboardingTierProps {
@@ -17,7 +17,7 @@ export default function StepOnboardingTier({
   onBack,
   referralToken,
 }: StepOnboardingTierProps) {
-  const availableTiers = TierTypesData;
+  const availableTiers = OnboardingTierTypeData;
 
   const handleTierSelect = (tierId: Tier['id']) => {
     onUpdate({...data, selectedTier: tierId });

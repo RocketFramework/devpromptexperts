@@ -15,7 +15,7 @@ import { ConsultantsBusinessService } from "@/services/business/ConsultantBusine
 import {
   NoticePeriodTypes,
   OnboardingSubmissionData as OnboardingData,
-  TierTypesData,
+  OnboardingTierTypeData,
   EngagementTypes,
   UserRoles,
   PartnershipData,
@@ -45,6 +45,11 @@ export default function ConsultantOnboardingWizard() {
       linkedinUrl: "",
       image: session?.user?.image || "",
       role: session?.user?.role || UserRoles.CONSULTANT,
+      founderNumber: 0,
+      interviewSlotId: "",  
+      interviewDate: "",
+      interviewEndTime: "",
+      interviewStartTime: "",
     },
     professionalBackground: {
       currentRole: "",
@@ -77,7 +82,7 @@ export default function ConsultantOnboardingWizard() {
     },
     // Initialize optional fields
     onboardingTier: {
-      selectedTier: TierTypesData[0].label,
+      selectedTier: OnboardingTierTypeData[0].label,
     },
     probation: {
       agreedToTerms: false,
@@ -136,6 +141,7 @@ export default function ConsultantOnboardingWizard() {
         const newPartnershipData: PartnershipData = {
           PartnershipId: result.partnershipId ?? null,
           PartnerId: result.partnerId ?? null,
+          interviewSlotId: result.consultantId ?? null,
         };
         setObPartnershipId(newPartnershipData ?? null);
         setCurrentStep(totalSteps); // Success step
@@ -241,7 +247,7 @@ export default function ConsultantOnboardingWizard() {
         // Show different step based on selected tier
         const selectedTier = onboardingData.onboardingTier?.selectedTier;
 
-        if (selectedTier === TierTypesData[0].label) {
+        if (selectedTier === OnboardingTierTypeData[0].label) {
           return (
             <StepProbationAgreement
               data={onboardingData.probation}
@@ -250,7 +256,7 @@ export default function ConsultantOnboardingWizard() {
               onBack={prevStep}
             />
           );
-        } else if (selectedTier === TierTypesData[1].label) {
+        } else if (selectedTier === OnboardingTierTypeData[1].label) {
           return (
             <StepFounderBenefits
               data={onboardingData.founderBenefits}

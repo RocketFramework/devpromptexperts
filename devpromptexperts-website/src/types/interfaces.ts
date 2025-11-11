@@ -45,6 +45,7 @@ export interface ProfessionalBackground {
 export interface PartnershipData {
   PartnershipId: string | null;
   PartnerId: string | null;
+  interviewSlotId: string | null;
 }
 
 export interface AvailableSlot {
@@ -164,7 +165,12 @@ export interface OnboardingSubmissionData {
     linkedinUrl: string;
     image: string;
     role: string;
-  };
+    founderNumber: number;
+    interviewSlotId: string,
+    interviewDate: string,
+    interviewStartTime: string,
+    interviewEndTime: string,
+  }
   professionalBackground: {
     currentRole: string;
     yearsExperience: number;
@@ -311,4 +317,91 @@ export interface Tier {
   description: string;
   benefits: string[];
   requirements: string[];
+}
+
+
+
+
+// types/dashboard.ts
+export interface Consultant {
+  user_id: string;
+  title: string;
+  rating?: number;
+  projects_completed?: number;
+  work_experience?: number;
+  featured?: boolean;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  client_name: string;
+  status: "completed" | "upcoming" | "in-progress";
+  deadline: string;
+  project_value: number;
+  platform_commission: number;
+  your_earnings: number;
+  payment_status: "pending" | "paid" | "processing";
+  commission_type: "direct" | "team" | "sales";
+}
+
+export interface Invoice {
+  id: string;
+  invoice_number: string;
+  project_name: string;
+  amount: number;
+  due_date: string;
+  status: "draft" | "sent" | "paid" | "overdue";
+  project_value: number;
+  commission_rate: number;
+  commission_type: "platform" | "team" | "sales";
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  projects_completed: number;
+  total_earnings: number;
+  your_commission: number;
+  level: number;
+}
+
+export interface SalesCommission {
+  id: string;
+  client_name: string;
+  project_value: number;
+  commission_amount: number;
+  commission_rate: number;
+  status: "pending" | "paid";
+}
+
+export interface CommissionSummary {
+  direct_earnings: number;
+  direct_commission_due: number;
+  team_commissions_earned: number;
+  team_members_count: number;
+  team_levels: { level: number; amount: number }[];
+  sales_commissions: number;
+  sales_referrals_count: number;
+  total_gross_earnings: number;
+  total_commission_owed: number;
+  net_earnings: number;
+}
+
+export interface DashboardStats {
+  completedProjects: number;
+  upcomingProjects: number;
+  directEarnings: number;
+  directCommissionDue: number;
+  teamCommissionEarned: number;
+  teamMembers: number;
+  salesCommissions: number;
+  salesReferrals: number;
+  totalGrossEarnings: number;
+  totalCommissionOwed: number;
+  netEarnings: number;
+  hasPersonalProjects: boolean;
+  hasTeamEarnings: boolean;
+  hasSalesCommissions: boolean;
 }

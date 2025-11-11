@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 // Define common joins for each table (you can customize this)
 const TABLE_JOINS: Record<string, string[]> = {
   users: ['consultants'],
-  consultants: ['users'],
+  consultants: ['users', 'consultants_with_ob_partners'],
   clients: ['users'],
   // Add more tables and their joins as needed
 }
@@ -162,14 +162,14 @@ ${generateTypeDefinitions(tableName, pascalCase, joins)}
 function generateCustomJoinMethods(tableName: string, joins: string[]): string {
   if (tableName === 'consultants') {
     return `
-  // Get consultant with user details and projects
+  // Get consultant with consultants_with_ob_partners details 
   static async findFullProfile(id: string) {
     const { data, error } = await supabase
       .from('${tableName}')
       .select(\`
         *,
         users (*),
-        projects (*)
+        consultants_with_ob_partners (*)
       \`)
       .eq('id', id)
       .single()
@@ -178,13 +178,14 @@ function generateCustomJoinMethods(tableName: string, joins: string[]): string {
     return data
   }
 
-  // Get all consultants with user details
-  static async findAllWithUsers() {
+  // Get all consultants with consultants_with_ob_partners details
+  static async findAllWithConsultants_with_ob_partners() {
     const { data, error } = await supabase
       .from('${tableName}')
       .select(\`
         *,
-        users (*)
+        users (*),
+        consultants_with_ob_partners (*)
       \`)
     
     if (error) throw error
@@ -242,7 +243,8 @@ function generateTypeDefinitions(tableName: string, pascalCase: string, joins: s
 
 // Comprehensive consultant profile type
 export type ConsultantsFullProfile = Consultants & {
-  users: Database['public']['Tables']['users']['Row']
+  users?: Database['public']['Tables']['users']['Row'] | null
+  consultants_with_ob_partners?: Database['public']['Tables']['consultants_with_ob_partners']['Row'] | null
 }`
   }
 

@@ -403,6 +403,7 @@ export type Database = {
           consultant_feedback: string | null
           consultant_id: string
           created_at: string | null
+          end_time: string | null
           id: string
           interview_date: string | null
           interview_slot_id: string | null
@@ -417,6 +418,7 @@ export type Database = {
           partnership_status: string
           reschedule_count: number | null
           reschedule_reason: string | null
+          start_time: string | null
           updated_at: string | null
         }
         Insert: {
@@ -425,6 +427,7 @@ export type Database = {
           consultant_feedback?: string | null
           consultant_id: string
           created_at?: string | null
+          end_time?: string | null
           id?: string
           interview_date?: string | null
           interview_slot_id?: string | null
@@ -439,6 +442,7 @@ export type Database = {
           partnership_status?: string
           reschedule_count?: number | null
           reschedule_reason?: string | null
+          start_time?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -447,6 +451,7 @@ export type Database = {
           consultant_feedback?: string | null
           consultant_id?: string
           created_at?: string | null
+          end_time?: string | null
           id?: string
           interview_date?: string | null
           interview_slot_id?: string | null
@@ -461,6 +466,7 @@ export type Database = {
           partnership_status?: string
           reschedule_count?: number | null
           reschedule_reason?: string | null
+          start_time?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -474,7 +480,7 @@ export type Database = {
           {
             foreignKeyName: "consultants_with_ob_partners_consultant_id_fkey"
             columns: ["consultant_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "consultants"
             referencedColumns: ["user_id"]
           },
@@ -909,6 +915,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_available_interview_slots: {
+        Args: { target_partner_id: string }
+        Returns: {
+          day_of_week: string
+          end_time: string
+          slot_date: string
+          slot_id: string
+          start_time: string
+        }[]
+      }
+      get_founder_professional_count: { Args: never; Returns: number }
       get_one_slot_per_day: {
         Args: { partner_id: string }
         Returns: {
@@ -923,6 +940,17 @@ export type Database = {
         Args: never
         Returns: {
           id: string
+        }[]
+      }
+      insert_partner_only_if_none: {
+        Args: {
+          assigned_by_param: string
+          consultant_id_param: string
+          ob_partner_id_param: string
+        }
+        Returns: {
+          id: string
+          ob_partner_id: string
         }[]
       }
     }

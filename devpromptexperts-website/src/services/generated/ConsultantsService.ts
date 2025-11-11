@@ -86,25 +86,6 @@ export class ConsultantsService {
     return data
   }
 
-  // Custom join methods for complex queries
-  
-  // Get consultant with user details and projects
-  static async findFullProfile(id: string) {
-    const { data, error } = await supabase
-      .from('consultants')
-      .select(`
-        *,
-        users (*),
-        projects (*)
-      `)
-      .eq('id', id)
-      .single()
-    
-    if (error) throw error
-    return data
-  }
-
-  // Get all consultants with user details
   static async findAllWithUsers() {
     const { data, error } = await supabase
       .from('consultants')
@@ -116,13 +97,77 @@ export class ConsultantsService {
     if (error) throw error
     return data
   }
+
+
+  // One-to-many relationship with consultants_with_ob_partners
+  static async findWithConsultantsWithObPartners(id: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        consultants_with_ob_partners (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWithConsultantsWithObPartners() {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        consultants_with_ob_partners (*)
+      `)
+    
+    if (error) throw error
+    return data
+  }
+
+  // Custom join methods for complex queries
+  
+  // Get consultant with consultants_with_ob_partners details 
+  static async findFullProfile(id: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*),
+        consultants_with_ob_partners (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  // Get all consultants with consultants_with_ob_partners details
+  static async findAllWithConsultants_with_ob_partners() {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*),
+        consultants_with_ob_partners (*)
+      `)
+    
+    if (error) throw error
+    return data
+  }
 }
 
 export type ConsultantsWithUsers = Consultants & {
   users: Database['public']['Tables']['users']['Row'][]
 }
+export type ConsultantsWithConsultantsWithObPartners = Consultants & {
+  consultants_with_ob_partners: Database['public']['Tables']['consultants_with_ob_partners']['Row'][]
+}
 
 // Comprehensive consultant profile type
 export type ConsultantsFullProfile = Consultants & {
-  users: Database['public']['Tables']['users']['Row']
+  users?: Database['public']['Tables']['users']['Row'] | null
+  consultants_with_ob_partners?: Database['public']['Tables']['consultants_with_ob_partners']['Row'] | null
 }

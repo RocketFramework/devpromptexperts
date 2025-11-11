@@ -219,11 +219,12 @@ export const ENGAGEMENT_TYPES_DATA = [
   },
 ] as const;
 
-// export const TierTypes = [
-//   { id: 'general', label: 'General' },
-//   { id: 'founder_100', label: 'Founder 100' },
-//   { id: 'referred', label: 'Referred' },
-// ] as const;
+export const ApprovalStatusTypes = {
+  PENDING:"pending" as const,
+  APPROVED: "approved" as const,
+  REJECTED: "rejected" as const,
+  HOLD: "hold" as const
+} as const;
 
 export const NoticePeriodTypes = {
   IMMEDIATE: "immediately" as const,
@@ -234,7 +235,7 @@ export const NoticePeriodTypes = {
   UNDEFINED: undefined,
 };
 
-export const TierTypes = {
+export const OnboardingTierTypes = {
   FOUNDER_100: "founder_100" as const,
   REFERRED: "referred" as const,
   GENERAL: "general" as const,
@@ -258,7 +259,7 @@ export const PartnershipStatusTypes = {
   ENDED_EARLY: "ended_early" as const,
 };
 
-export const TierTypesData: Tier[] = [
+export const OnboardingTierTypeData: Tier[] = [
   {
     id: "founder_100",
     name: "Founder 100 Elite",

@@ -26,9 +26,12 @@ export default function StepSuccess({
   partnershipData,
   referralToken,
 }: StepSuccessProps) {
-  const [founderNumber] = useState<number>(Math.floor(Math.random() * 100) + 1);
+  const [founderNumber, setFounderNumber] = useState<number | 0>(0);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<[string, Date] | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<{
+    slotId: string;
+    slotDate: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [timezone, setTimezone] = useState<string>("UTC");
@@ -41,32 +44,56 @@ export default function StepSuccess({
   useEffect(() => {
     if (!partnerId) return;
 
-    const fetchAvailableSlots = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Using the provided RpcBusinessService
+        // Set timezone
+        setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+        // 1️⃣ Fetch available slots
         const slots: AvailableSlot[] =
           await RpcBusinessService.getFormattedPartnerSlots(partnerId);
-        console.log("slots ", slots);
+
+        if (data.personalInfo.interviewSlotId) {
+          // adding the already selected slot
+          // if the consultant has it already selected
+          slots.push({
+            slot_id: data.personalInfo.interviewSlotId,
+            start_time: data.personalInfo.interviewStartTime,
+            end_time: data.personalInfo.interviewEndTime,
+            slot_date: data.personalInfo.interviewDate,
+            day_of_week: new Date(
+              data.personalInfo.interviewDate
+            ).toLocaleDateString("en-US", { weekday: "long" }),
+          });
+        }
+
         setAvailableSlots(slots ?? []);
-        // Assuming timezone might come from the API or we can use local timezone
-        setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+        if (data.personalInfo.founderNumber !== null) {
+          setFounderNumber(data.personalInfo.founderNumber);
+        }
+
+        if (data.personalInfo.interviewSlotId) {
+          setSelectedSlot({
+            slotId: data.personalInfo.interviewSlotId,
+            slotDate: data.personalInfo.interviewDate,
+          });
+        }
       } catch (error) {
-        console.error("Failed to fetch interview slots:", error);
+        console.error("Failed to fetch data:", error);
         setMessage({
           type: "error",
-          text: "Failed to load available interview slots. Please refresh the page.",
+          text: "Failed to load data. Please refresh the page.",
         });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchAvailableSlots();
+    fetchData();
   }, [partnerId]);
 
-  const handleSlotSelection = (slotId: string, slotDate: Date) => {
-    setSelectedSlot([slotId, slotDate]);
+  const handleSlotSelection = (slotId: string, slotDate: string) => {
+    setSelectedSlot({ slotId, slotDate });
     setMessage(null); // Clear any previous messages
   };
 
@@ -81,16 +108,29 @@ export default function StepSuccess({
       return;
     }
 
+    if (data.personalInfo.interviewSlotId) {
+      setMessage({
+        type: "error",
+        text: "You have already scheduled an interview.",
+      });
+      return;
+    }
     try {
       setIsSubmitting(true);
-      const [selectedSlotId, selectedSlotDate] = selectedSlot ?? [];
+      const foundSlot = availableSlots.find(
+        (slot) => slot.slot_id === selectedSlot.slotId
+      );
+
       // IMPORTANT: ASSUMING ConsultantBusinessService.scheduleInterview() EXISTS
       await ConsultantsBusinessService.scheduleInterview({
-        slotId: selectedSlotId,
+        slotId: selectedSlot.slotId,
+        slotDate: selectedSlot.slotDate,
         consultantId: data.personalInfo.Id, // ASSUMING ID IS AVAILABLE IN DATA
-        partnerId : partnershipData?.PartnerId??"",
-        partnershipId: partnershipData?.PartnershipId??"",
-        interviewDate: selectedSlotDate,
+        partnerId: partnershipData?.PartnerId ?? "",
+        partnershipId: partnershipData?.PartnershipId ?? "",
+        interviewDate: new Date(selectedSlot.slotDate),
+        start_Time: foundSlot?.start_time ?? "",
+        end_Time: foundSlot?.end_time ?? "",
       });
 
       setMessage({
@@ -240,13 +280,17 @@ export default function StepSuccess({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {availableSlots.map((slot) => (
               <div
-                key={slot.slot_id}
+                key={`${slot.slot_id}-${slot.slot_date}`}
                 className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  selectedSlot === slot.slot_id
-                    ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                  selectedSlot?.slotId === slot.slot_id &&
+                  selectedSlot?.slotDate === slot.slot_date
+                    ? "border-green-500 bg-green-50 ring-2 ring-green-200"
                     : "border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-25"
                 }`}
-                onClick={() => handleSlotSelection(slot.slot_id, slot.slot_date)}
+                onClick={() =>
+                  !data.personalInfo.interviewSlotId &&
+                  handleSlotSelection(slot.slot_id, slot.slot_date)
+                }
               >
                 <div className="font-semibold text-gray-900">
                   {formatSlotDate(slot.slot_date)}
@@ -259,7 +303,12 @@ export default function StepSuccess({
                   {formatSlotTime(slot.end_time)}
                 </div>
                 <div className="text-xs text-green-600 font-medium mt-1">
-                  ✅ Available
+                  {data.personalInfo.interviewSlotId === slot.slot_id &&
+                    data.personalInfo.interviewDate == slot.slot_date &&
+                    "✅ Booked"}
+                  {(data.personalInfo.interviewStartTime !== slot.start_time ||
+                    data.personalInfo.interviewDate !== slot.slot_date) &&
+                    "✅ Available"}
                 </div>
               </div>
             ))}
@@ -291,9 +340,9 @@ export default function StepSuccess({
           <div className="flex justify-center space-x-4">
             <button
               onClick={handleScheduleInterview}
-              disabled={!selectedSlot || isSubmitting}
+              disabled={isSubmitting || !!data.personalInfo.interviewSlotId}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                selectedSlot && !isSubmitting
+                !isSubmitting && !data.personalInfo.interviewSlotId
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
@@ -303,6 +352,8 @@ export default function StepSuccess({
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
                   Scheduling...
                 </>
+              ) : data.personalInfo.interviewSlotId ? (
+                "Interview Already Scheduled"
               ) : (
                 "Confirm Interview Time"
               )}
@@ -404,7 +455,8 @@ export default function StepSuccess({
           {selectedSlot && (
             <p>
               ✅ <strong>Prepare for interview:</strong> Review your application
-              and be ready to discuss your AI expertise
+              and be ready to discuss your AI expertise. You may speak to your onboarding partner for changing the
+                scheduled interview.
             </p>
           )}
         </div>
