@@ -342,7 +342,7 @@ export interface Project {
   platform_commission: number;
   your_earnings: number;
   payment_status: "pending" | "paid" | "processing";
-  commission_type: "direct" | "team" | "sales";
+  commission_type:  "team" | "sales" | "client";
 }
 
 export interface Invoice {

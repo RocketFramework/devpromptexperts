@@ -22,6 +22,17 @@ export const sampleScenarios = {
       work_experience: 6,
       featured: true,
     },
+    /*
+    SELECT 
+      user_id,
+      title,
+      rating,
+      projects_completed,
+      work_experience,
+      featured
+    FROM consultants where user_id = '017b9e8f-8705-40c3-8403-834fd1d93692'
+    
+    */
     commissionSummary: {
       direct_earnings: 1110,
       direct_commission_due: 50,
