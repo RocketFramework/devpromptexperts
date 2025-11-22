@@ -3,6 +3,8 @@
 import {
   ExtendedConsultantsService,
   RpcBusinessService,
+  ExtendedConnectedObPartnerMeetsService,
+  UserWithFullRelations,
 } from "@/services/extended";
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 import {
@@ -12,8 +14,11 @@ import {
   ConsultantsService,
   ConsultantsUpdate,
   ConsultantsFullProfile,
-  ConsultantsWithObPartnersService,
-  ConsultantsWithObPartnersUpdate,
+  ConnectWithObPartnersService,
+  ConnectWithObPartnersUpdate,
+  ConnectedObPartnerMeetsInsert,
+  ConnectedObPartnerMeetsService,
+  ConnectedObPartnerMeets,
 } from "../generated";
 import {
   SearchParams,
@@ -29,13 +34,16 @@ import {
   UserRoles,
   NoticePeriodTypes,
   EngagementTypes,
-  ConsultantStages,
+  UserStages,
   OnboardingTierTypes,
-  InterviewStatusTypes,
   PartnershipStatusTypes,
   ApprovalStatusTypes,
+  UserTypes,
+  InterviewStatusTypes,
+  UserStates,
 } from "@/types/";
 import { UUID } from "crypto";
+import { User } from "next-auth";
 
 interface ScheduleInterviewParams {
   slotId: string;
@@ -53,39 +61,65 @@ export class ConsultantsBusinessService {
   static async scheduleInterview(
     params: ScheduleInterviewParams
   ): Promise<void> {
-    const { interviewDate, partnershipId, partnerId, consultantId, slotId, start_Time, end_Time } =
-      params;
+    const {
+      interviewDate,
+      partnershipId,
+      partnerId,
+      consultantId,
+      slotId,
+      start_Time,
+      end_Time,
+    } = params;
 
     if (!interviewDate) {
       throw new Error("Invalid slot selected");
     }
 
-    const updateData: ConsultantsWithObPartnersUpdate = {
+    const updateData: ConnectWithObPartnersUpdate = {
       id: partnershipId,
       assigned_by: null,
       assignment_notes: null,
-      consultant_feedback: null,
-      consultant_id: consultantId,
+      user_id: consultantId,
       created_at: new Date().toISOString(),
-      interview_date: interviewDate.toDateString(),
-      interview_slot_id: slotId,
-      interview_status: InterviewStatusTypes.SCHEDULED,
-      meeting_id: null,
-      meeting_passcode: null,
-      meeting_platform: "Google Meet",
-      meeting_url: null,
       ob_partner_id: partnerId,
       original_interview_slot_id: slotId,
-      partner_feedback: "",
       partnership_status: PartnershipStatusTypes.ACTIVE,
-      reschedule_count: 0,
-      reschedule_reason: null,
       updated_at: new Date().toISOString(),
-      start_time: start_Time,
-      end_time: end_Time,
+      user_type: UserTypes.FOUNDER_CONSULTANT,
     };
+    await ConnectWithObPartnersService.update(partnershipId, updateData);
 
-    await ConsultantsWithObPartnersService.update(partnershipId, updateData);
+    const partnerInterviews: ConnectedObPartnerMeets[] =
+      await ExtendedConnectedObPartnerMeetsService.findNextActiveInterviews(
+        partnerId,
+        consultantId
+      );
+    if (partnerInterviews && partnerInterviews.length > 0) {
+      console.error(
+        "There are upcoming interviews already scheduled - no need to set another interview"
+      );
+      return;
+    }
+    const addPartnerMeet: ConnectedObPartnerMeetsInsert = {
+      connect_with_ob_partner_id: partnershipId,
+      connected_user_id: consultantId,
+      consultant_feedback: "",
+      created_at: new Date().toISOString(),
+      end_time: end_Time,
+      interview_date: interviewDate.toISOString(),
+      interview_slot_id: slotId,
+      interview_status: InterviewStatusTypes.SCHEDULED,
+      meeting_id: "",
+      meeting_passcode: "",
+      meeting_platform: "google",
+      meeting_url: "",
+      ob_partner_user_id: partnerId,
+      partner_feedback: "",
+      reschedule_count: 1,
+      reschedule_reason: "",
+      start_time: start_Time,
+    };
+    await ConnectedObPartnerMeetsService.create(addPartnerMeet);
   }
   /**
    * Saves complete onboarding data with optimized database operations
@@ -163,6 +197,7 @@ export class ConsultantsBusinessService {
       created_at: existingUser?.created_at ?? new Date().toISOString(),
       profile: existingUser?.profile ?? "",
       metadata: existingUser?.metadata ?? "",
+      state: UserStates.ACTIVE,
     };
 
     await UsersService.upsert(userUpdateData);
@@ -211,8 +246,8 @@ export class ConsultantsBusinessService {
       special_requests: founderBenefits.specialRequests,
       onboarding_tier: onboardingTier?.selectedTier as string,
       probation_completed:
-        existingConsultant?.stage === ConsultantStages.PROBATION_DONE ||
-        existingConsultant?.stage === ConsultantStages.PROFESSIONAL,
+        existingConsultant?.stage === UserStages.PROBATION_DONE ||
+        existingConsultant?.stage === UserStages.PROFESSIONAL,
       // Preserve non-editable fields from existing record
       availability:
         availability.hoursPerWeek + "-" + availability.timeSlots.join(", "),
@@ -223,10 +258,10 @@ export class ConsultantsBusinessService {
         existingConsultant?.onboarding_completed_at ?? new Date().toISOString(),
       approval_status: existingConsultant?.approval_status ?? "pending",
       stage:
-        existingConsultant?.stage === ConsultantStages.BIO ||
-        existingConsultant?.stage === ConsultantStages.BIO_WIP ||
+        existingConsultant?.stage === UserStages.BIO ||
+        existingConsultant?.stage === UserStages.BIO_WIP ||
         existingConsultant?.stage == null
-          ? ConsultantStages.BIO_DONE
+          ? UserStages.BIO_DONE
           : existingConsultant.stage,
       projects_completed: existingConsultant?.projects_completed ?? 0,
       rating: existingConsultant?.rating ?? 0,
@@ -266,22 +301,25 @@ export class ConsultantsBusinessService {
   ): Promise<OnboardingSubmissionData | null> {
     try {
       // Fetch all related data in parallel for better performance
-      const consultantFull =
-        await ExtendedConsultantsService.findFullProfileByUser_Id(userId).catch(
+      console.log("Here user id: ", userId);
+      const userFull =
+        await RpcBusinessService.getFullUser(userId).catch(
           () => null
         );
-      // Return null if no user or consultant data exists (new onboarding)
-      if (!consultantFull) return null;
+      if (userFull && userFull.consultants) {
+        const consultantFull = userFull.consultants;
+        // Return null if no user or consultant data exists (new onboarding)
+        console.log("Here userFull: ", userFull);
+        if (!consultantFull) return null;
 
-      consultantFull.linkedinUrl = "https://www.linkedin.com/in/";
-      //ExtendedConsultantsService.updateByUser_Id(userId, consultantFull);
-      if (
-        consultantFull.users == null ||
-        consultantFull.consultants_with_ob_partners == null
-      )
-        return null;
-      // Transform database records into onboarding data structure
-      return this.transformToOnboardingData(consultantFull);
+        consultantFull.linkedinUrl = "https://www.linkedin.com/in/";
+        //ExtendedConsultantsService.updateByUser_Id(userId, consultantFull);
+        if (consultantFull == null)
+          return null;
+        // Transform database records into onboarding data structure
+        return this.transformToOnboardingData(userFull);
+      }
+      return null;
     } catch (error) {
       console.error("Error retrieving complete onboarding data:", error);
       return null;
@@ -309,6 +347,7 @@ export class ConsultantsBusinessService {
       created_at: new Date().toISOString().split("T")[0],
       profile: "",
       metadata: "",
+      state: UserStates.ACTIVE,
     };
 
     await UsersService.upsert(userUpdateData);
@@ -332,41 +371,43 @@ export class ConsultantsBusinessService {
   }
 
   private static transformToOnboardingData(
-    consultant: ConsultantsFullProfile
+    userFull: UserWithFullRelations
   ): OnboardingSubmissionData | null {
-    if (
-      consultant.users == null ||
-      consultant.consultants_with_ob_partners == null
-    )
+    if (userFull.consultants == null || userFull.consultants.users == null || userFull.connect_with_ob_partners == null)
       return null;
-    const partner = consultant.consultants_with_ob_partners;
+    const partner = userFull.connect_with_ob_partners[0] ?? null;
+    const consultant = userFull.consultants;
     return {
       personalInfo: {
-        userId: consultant.users.id,
-        Id: consultant.users.id,
+        userId: userFull.id,
+        Id: userFull.id,
         joinedAt:
-          (consultant.onboarding_completed_at || consultant.users.created_at) ??
+          (consultant.onboarding_completed_at || userFull.created_at) ??
           "",
         founderCohort:
           consultant.onboarding_tier === OnboardingTierTypes.FOUNDER_100
             ? OnboardingTierTypes.FOUNDER_100
             : OnboardingTierTypes.NA,
-        fullName: consultant.users.full_name || "",
-        email: consultant.users.email || "",
-        phone: consultant.users.phone || "",
-        country: consultant.users.country || "",
-        company: consultant.users.company || "",
+        fullName: userFull.full_name || "",
+        email: userFull.email || "",
+        phone: userFull.phone || "",
+        country: userFull.country || "",
+        company: userFull.company || "",
         timezone:
-          consultant.users.timezone ||
+          userFull.timezone ||
           Intl.DateTimeFormat().resolvedOptions().timeZone,
         linkedinUrl: consultant.linkedinUrl || "",
-        image: consultant.users.profile_image_url || "",
-        role: consultant.users.role || UserRoles.CONSULTANT,
+        image: userFull.profile_image_url || "",
+        role: userFull.role || UserRoles.CONSULTANT,
         founderNumber: consultant.founder_number ?? 0,
-        interviewSlotId: partner.interview_slot_id ?? "",
-        interviewDate: partner.interview_date?.toString() ?? "",
-        interviewStartTime: partner.start_time ?? "",
-        interviewEndTime: partner.end_time ?? "",
+        interviewSlotId:
+          partner?.connected_ob_partner_meets[0]?.interview_slot_id ?? "",
+        interviewDate:
+          partner?.connected_ob_partner_meets[0]?.interview_date?.toString() ??
+          "",
+        interviewStartTime:
+          partner?.connected_ob_partner_meets[0]?.start_time ?? "",
+        interviewEndTime: partner?.connected_ob_partner_meets[0]?.end_time ?? "",
       },
       professionalBackground: {
         currentRole: consultant.title || "",

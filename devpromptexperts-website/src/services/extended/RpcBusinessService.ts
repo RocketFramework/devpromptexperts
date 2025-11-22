@@ -1,7 +1,60 @@
 import { AvailableSlot } from "@/types";
 import { supabase } from "@/lib/supabase";
+import { Database } from '@/types/database';
+import { UserWithFullRelations } from "@/services/extended";
 
 export class RpcBusinessService {
+  static async getFullUser(
+    user_id: string
+  ): Promise<UserWithFullRelations | null> {
+    // Call the RPC
+    const { data, error } = await supabase
+      .rpc("get_full_user_profile", { p_user_id: user_id })
+      .single<{
+        user: Database["public"]["Tables"]["users"]["Row"];
+        consultants?: {
+          consultant: Database["public"]["Tables"]["consultants"]["Row"];
+          user?: Database["public"]["Tables"]["users"]["Row"] | null;
+        };
+        connect_with_ob_partners?: Array<{
+          partner: Database["public"]["Tables"]["connect_with_ob_partners"]["Row"];
+          connected_ob_partner_meets: Database["public"]["Tables"]["connected_ob_partner_meets"]["Row"][];
+        }>;
+      }>();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    const {
+      user: userRow,
+      consultants: consultantData,
+      connect_with_ob_partners: partnersData,
+    } = data;
+
+    // Map consultant
+    const consultants: UserWithFullRelations["consultants"] = consultantData
+      ? { ...consultantData.consultant, users: consultantData.user || null }
+      : null;
+
+    // Map partners
+    const connect_with_ob_partners: UserWithFullRelations["connect_with_ob_partners"] =
+      partnersData?.map((p) => ({
+        ...p.partner,
+        connected_ob_partner_meets: p.connected_ob_partner_meets || [],
+      })) || [];
+
+    // Build final object
+    const mappedUser: UserWithFullRelations = {
+      ...userRow,
+      consultants,
+      connect_with_ob_partners,
+    };
+
+    console.log(data); // optional debug
+
+    return mappedUser;
+  }
+
   /**
    * Returns the count of consultants matching:
    * onboarding_tier = 'founder_100',
@@ -54,7 +107,7 @@ export class RpcBusinessService {
 
       // ✅ Perform atomic insert / fetch existing
       const { data, error } = await supabase.rpc(
-        "insert_partner_only_if_none",
+        "assign_or_get_active_partner",
         {
           consultant_id_param: consultantId,
           ob_partner_id_param: partnerId,
@@ -161,7 +214,7 @@ export class RpcBusinessService {
 
       // Since it returns a table, data should be an array
       if (Array.isArray(data) && data.length > 0) {
-        return data[0].id; // Access the first record's id
+        return data[0].partner_id; // Access the first record's id
       } else {
         console.log("No available partners found");
         return null;

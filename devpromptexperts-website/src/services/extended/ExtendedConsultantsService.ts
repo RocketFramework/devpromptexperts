@@ -1,22 +1,43 @@
 import { supabase } from "@/lib/supabase";
-import { ConsultantsUpdate, Consultants } from "./../generated";
+import { ConsultantsUpdate, Consultants, Users } from "./../generated";
 import { RpcBusinessService } from "./RpcBusinessService";
+import { Database } from "@/types/database";
+
+export type UserWithFullRelations = Users & {
+  consultants?:
+    | (Database["public"]["Tables"]["consultants"]["Row"] & {
+        users?: Database["public"]["Tables"]["users"]["Row"] | null;
+      })
+    | null;
+  connect_with_ob_partners?: (Database["public"]["Tables"]["connect_with_ob_partners"]["Row"] & {
+    connected_ob_partner_meets: Database["public"]["Tables"]["connected_ob_partner_meets"]["Row"][];
+  })[];
+};
 
 export class ExtendedConsultantsService {
-
-    static async findFullProfileByUser_Id(user_id: string) {
+  static async findFullProfileByUser_Id(
+    user_id: string
+  ): Promise<UserWithFullRelations | null> {
     const { data, error } = await supabase
-      .from('consultants')
-      .select(`
-        *,
-        users (*),
-        consultants_with_ob_partners (*)
-      `)
-      .eq('user_id', user_id)
-      .maybeSingle()
-    
-    if (error) throw error
-    return data
+      .from("users")
+      .select(
+        `
+    *,
+    consultants (
+      *,
+      users(*)
+    ),
+    connect_with_ob_partners (
+      *,
+      connected_ob_partner_meets(*)
+    )
+  `
+      )
+      .eq("id", user_id)
+      .maybeSingle<UserWithFullRelations>();
+
+    if (error) throw error;
+    return data;
   }
 
   static async findByUser_Id(user_id: string) {

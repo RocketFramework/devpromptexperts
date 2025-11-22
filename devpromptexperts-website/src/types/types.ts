@@ -1,9 +1,9 @@
 import {
-  ConsultantStages,
+  UserStages,
   RouteConfig,
   UserRoles,
   AuthProviders,
-  ClientStates,
+  UserStates,
   LinkedInProfile,
   GoogleProfile,
   FacebookProfile,
@@ -16,7 +16,7 @@ import {
 
 // Generic route map for stage/state based routing
 export type RouteMap<T extends string> = Record<T, string>;
-export type ConsultantRouteMap = RouteMap<ConsultantStage>;
+export type ConsultantRouteMap = RouteMap<UserStage>;
 export type ClientRouteMap = RouteMap<ClientState>;
 export type PublicRoute = RouteConfig["PUBLIC"][keyof RouteConfig["PUBLIC"]];
 export type AuthRoute = RouteConfig["AUTH"][keyof RouteConfig["AUTH"]];
@@ -32,10 +32,10 @@ export type AppRoute =
   | AdminRoute;
 export type SocialProfile = LinkedInProfile | GoogleProfile | FacebookProfile;
 export type AuthProvider = (typeof AuthProviders)[keyof typeof AuthProviders];
-export type ConsultantStage =
-  (typeof ConsultantStages)[keyof typeof ConsultantStages];
+export type UserStage =
+  (typeof UserStages)[keyof typeof UserStages];
 export type UserRole = (typeof UserRoles)[keyof typeof UserRoles];
-export type ClientState = (typeof ClientStates)[keyof typeof ClientStates];
+export type ClientState = (typeof UserStates)[keyof typeof UserStates];
 export type EngagementType = typeof ENGAGEMENT_TYPES_DATA[number]['value'];
 export type ProjectType = (typeof Projects_Types)[number];
 export type Industry = (typeof Industries)[number];

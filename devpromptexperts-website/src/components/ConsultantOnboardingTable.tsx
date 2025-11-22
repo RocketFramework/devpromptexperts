@@ -1,15 +1,15 @@
 "use client";
 
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto"
-import type { ConsultantStage } from "@/types/";
-import { ConsultantStages } from "@/types/";
+import type { UserStage } from "@/types/";
+import { UserStages } from "@/types/";
 
 interface Props {
   consultants: ConsultantDTO[];
   sortKey: keyof ConsultantDTO;
   sortOrder: "asc" | "desc";
   onSort: (key: keyof ConsultantDTO) => void;
-  onStageUpdate: (id: string, stage: ConsultantStage) => void;
+  onStageUpdate: (id: string, stage: UserStage) => void;
 }
 
 export default function ConsultantOnboardingTable({
@@ -20,18 +20,18 @@ export default function ConsultantOnboardingTable({
   onStageUpdate,
 }: Props) {
   const stageOptions = [
-    ConsultantStages.BIO,
-    ConsultantStages.BIO_DONE,
-    ConsultantStages.BIO_WIP,
-    ConsultantStages.INTV,
-    ConsultantStages.INTV_DONE,
-    ConsultantStages.INTV_DONE_ACCEPT,
-    ConsultantStages.INTV_DONE_REJECT,
-    ConsultantStages.INTV_SCHEDULED,
-    ConsultantStages.PROBATION,
-    ConsultantStages.PROBATION_DONE,
-    ConsultantStages.PROBATION_WIP,
-    ConsultantStages.PROFESSIONAL
+    UserStages.BIO,
+    UserStages.BIO_DONE,
+    UserStages.BIO_WIP,
+    UserStages.INTV,
+    UserStages.INTV_DONE,
+    UserStages.INTV_DONE_ACCEPT,
+    UserStages.INTV_DONE_REJECT,
+    UserStages.INTV_SCHEDULED,
+    UserStages.PROBATION,
+    UserStages.PROBATION_DONE,
+    UserStages.PROBATION_WIP,
+    UserStages.PROFESSIONAL
   ];
 
   const stageColors: Record<string, string> = {
@@ -135,7 +135,7 @@ export default function ConsultantOnboardingTable({
                 <select
                   value={c.stage || ""}
                   onChange={(e) =>
-                    onStageUpdate(c.user_id, e.target.value as ConsultantStage)
+                    onStageUpdate(c.user_id, e.target.value as UserStage)
                   }
                   className={`px-2 py-1 rounded-md ${
                     stageColors[c.stage || "default"]

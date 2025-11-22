@@ -27,6 +27,18 @@ export class ConsultantsService {
     return data
   }
 
+  static async findByEmail(email: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select('*')
+      .eq('email', email)
+      .single()
+    
+    if (error?.code === 'PGRST116') return null
+    if (error) throw error
+    return data
+  }
+
   static async create(data: ConsultantsInsert) {
     const { data: result, error } = await supabase
       .from('consultants')
@@ -86,6 +98,21 @@ export class ConsultantsService {
     return data
   }
 
+  static async findByEmailWithUsers(email: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*)
+      `)
+      .eq('email', email)
+      .single()
+    
+    if (error?.code === 'PGRST116') return null
+    if (error) throw error
+    return data
+  }
+
   static async findAllWithUsers() {
     const { data, error } = await supabase
       .from('consultants')
@@ -99,13 +126,13 @@ export class ConsultantsService {
   }
 
 
-  // One-to-many relationship with consultants_with_ob_partners
-  static async findWithConsultantsWithObPartners(id: string) {
+  // One-to-many relationship with connect_with_ob_partners
+  static async findWithConnectWithObPartners(id: string) {
     const { data, error } = await supabase
       .from('consultants')
       .select(`
         *,
-        consultants_with_ob_partners (*)
+        connect_with_ob_partners (*)
       `)
       .eq('id', id)
       .single()
@@ -114,12 +141,70 @@ export class ConsultantsService {
     return data
   }
 
-  static async findAllWithConsultantsWithObPartners() {
+  static async findByEmailWithConnectWithObPartners(email: string) {
     const { data, error } = await supabase
       .from('consultants')
       .select(`
         *,
-        consultants_with_ob_partners (*)
+        connect_with_ob_partners (*)
+      `)
+      .eq('email', email)
+      .single()
+    
+    if (error?.code === 'PGRST116') return null
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWithConnectWithObPartners() {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        connect_with_ob_partners (*)
+      `)
+    
+    if (error) throw error
+    return data
+  }
+
+
+  // One-to-many relationship with connected_ob_partner_meets
+  static async findWithConnectedObPartnerMeets(id: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        connected_ob_partner_meets (*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findByEmailWithConnectedObPartnerMeets(email: string) {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        connected_ob_partner_meets (*)
+      `)
+      .eq('email', email)
+      .single()
+    
+    if (error?.code === 'PGRST116') return null
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWithConnectedObPartnerMeets() {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        connected_ob_partner_meets (*)
       `)
     
     if (error) throw error
@@ -128,46 +213,76 @@ export class ConsultantsService {
 
   // Custom join methods for complex queries
   
-  // Get consultant with consultants_with_ob_partners details 
+  // Full consultant profile with users, partners, and partner meets
   static async findFullProfile(id: string) {
     const { data, error } = await supabase
       .from('consultants')
       .select(`
         *,
         users (*),
-        consultants_with_ob_partners (*)
+        connect_with_ob_partners (
+          *,
+          connected_ob_partner_meets (*)
+        )
       `)
       .eq('id', id)
       .single()
-    
+
     if (error) throw error
     return data
   }
 
-  // Get all consultants with consultants_with_ob_partners details
-  static async findAllWithConsultants_with_ob_partners() {
+  static async findByEmailFullProfile(email: string) {
     const { data, error } = await supabase
       .from('consultants')
       .select(`
         *,
         users (*),
-        consultants_with_ob_partners (*)
+        connect_with_ob_partners (
+          *,
+          connected_ob_partner_meets (*)
+        )
       `)
-    
+      .eq('email', email)
+      .single()
+
+    if (error?.code === 'PGRST116') return null
     if (error) throw error
     return data
   }
+
+  static async findAllFullProfiles() {
+    const { data, error } = await supabase
+      .from('consultants')
+      .select(`
+        *,
+        users (*),
+        connect_with_ob_partners (
+          *,
+          connected_ob_partner_meets (*)
+        )
+      `)
+
+    if (error) throw error
+    return data
+  }
+  
 }
 
 export type ConsultantsWithUsers = Consultants & {
   users: Database['public']['Tables']['users']['Row'][]
 }
-export type ConsultantsWithConsultantsWithObPartners = Consultants & {
-  consultants_with_ob_partners: Database['public']['Tables']['consultants_with_ob_partners']['Row'][]
+export type ConsultantsWithConnectWithObPartners = Consultants & {
+  connect_with_ob_partners: Database['public']['Tables']['connect_with_ob_partners']['Row'][]
+}
+export type ConsultantsWithConnectedObPartnerMeets = Consultants & {
+  connected_ob_partner_meets: Database['public']['Tables']['connected_ob_partner_meets']['Row'][]
 }
 
 // Comprehensive consultant profile type
 export type ConsultantsFullProfile = Consultants & {
   users?: Database['public']['Tables']['users']['Row'] | null
-  consultants_with_ob_partners?: Database['public']['Tables']['consultants_with_ob_partners']['Row'] | null
+  connect_with_ob_partners?: (Database['public']['Tables']['connect_with_ob_partners']['Row'] & {
+    connected_ob_partner_meets: Database['public']['Tables']['connected_ob_partner_meets']['Row'][]
+  })[]
 }

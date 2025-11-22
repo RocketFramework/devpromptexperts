@@ -2,7 +2,7 @@
 import { 
   RouteConfig, 
   RouteMap, 
-  ConsultantStage, 
+  UserStage, 
   ClientState 
 } from '@/types/';
 
@@ -40,7 +40,8 @@ export const ROUTE_CONFIG: RouteConfig = {
   },
 } as const;
 
-export const CONSULTANT_STAGE_MAP: RouteMap<ConsultantStage> = {
+export const CONSULTANT_STAGE_MAP: RouteMap<UserStage> = {
+  'none': ROUTE_CONFIG.CONSULTANT.ONBOARDING,
   'bio': ROUTE_CONFIG.CONSULTANT.ONBOARDING,
   'bio-wip': ROUTE_CONFIG.CONSULTANT.ONBOARDING,
   'bio-done': ROUTE_CONFIG.CONSULTANT.INTERVIEW,
@@ -61,4 +62,6 @@ export const CLIENT_STATE_MAP: RouteMap<ClientState> = {
   'verification-approved': ROUTE_CONFIG.CLIENT.DASHBOARD,
   'active': ROUTE_CONFIG.CLIENT.DASHBOARD,
   'suspended': ROUTE_CONFIG.CLIENT.VERIFICATION,
+  'inactive': ROUTE_CONFIG.CLIENT.ONBOARDING,
+  'pending': ROUTE_CONFIG.CLIENT.ONBOARDING,
 } as const;

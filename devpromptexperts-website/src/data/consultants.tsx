@@ -1,5 +1,5 @@
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto"
-import { ConsultantStage } from "@/types/";
+import { UserStage } from "@/types/";
 
 export const baseConsultants: ConsultantDTO[] = [
   {
@@ -232,7 +232,7 @@ export const consultants: ConsultantDTO[] = Array.from({ length: 100 }, (_, i) =
     ...base,
     id: (i + 1).toString(),
     user_id: `u${i + 1}`,
-    stage: null as ConsultantStage | null,
+    stage: null as UserStage | null,
     role: 'AI Consultant',
     linkedinUrl: null,
     created_at: '1/1/2000',

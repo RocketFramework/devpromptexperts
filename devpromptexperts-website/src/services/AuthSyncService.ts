@@ -1,18 +1,18 @@
 // src/services/AuthSyncService.ts
-import { Account } from "next-auth";
+import { Account, User } from "next-auth";
 import {
   ExtendedUser,
   SocialProfile,
   AuthProvider,
   LinkedInProfile,
-  ConsultantStage,
-  ConsultantStages,
+  UserStage,
+  UserStages,
   UserRole,
   UserRoles,
 } from "@/types/";
 import { extractProfileData, determineUserRole } from "@/lib/profile-helpers";
 import { AuthAuditService } from "./AuthAuditService";
-import { UsersService } from "./generated/UsersService";
+import { UsersService, UserWithAllRoleData } from "./generated/UsersService";
 import {
   Consultants,
   ConsultantsService,
@@ -26,7 +26,7 @@ import { ProviderAccountsService } from "./generated/ProviderAccountsService";
 import { Json } from "@/types/database";
 
 export class AuthSyncService {
-static async handleUserSync({
+  static async handleUserSync({
     user,
     account,
     profile,
@@ -34,23 +34,32 @@ static async handleUserSync({
     user: ExtendedUser;
     account?: Account | null;
     profile?: SocialProfile | null;
-  }): Promise<{ userId: string; role: UserRole; onboarded?: boolean; consultantStage?: ConsultantStage, country?: string, profileImageUrl?: string | null }> {
-    
-    if (!account) throw new Error('Account required for sync');
+  }): Promise<{
+    userId: string;
+    role: UserRole;
+    onboarded?: boolean;
+    userStage?: UserStage;
+    country?: string;
+    profileImageUrl?: string | null;
+  }> {
+    if (!account) throw new Error("Account required for sync");
 
     try {
       const provider = account.provider as AuthProvider;
       const { fullName, profileImageUrl, email, country } = extractProfileData(
-        user, profile, provider
+        user,
+        profile,
+        provider
       );
 
-      const role = determineUserRole(provider);
-
       // 1️⃣ Find or create user - this is the critical operation
-      const existingUser = await this.findUserByEmail(email);
+      const existingUser = (await UsersService.findByEmailWithAllRoleData(
+        email
+      )) as UserWithAllRoleData | null;
+      const role = (existingUser?.role || UserRoles.ROLE_PENDING) as UserRole; // Default to pending role
 
       let userData;
-      
+
       if (existingUser) {
         userData = await UsersService.update(existingUser.id, {
           full_name: fullName,
@@ -73,14 +82,10 @@ static async handleUserSync({
       const userId = userData.id;
 
       // 2️⃣ Get onboarding status immediately for critical path
-      let onboarded = true;
-      let consultantStage = ConsultantStages.BIO as ConsultantStage;
-      
-      if (role === 'consultant') {
-        const onboardingStatus = await this.getQuickOnboardingStatus(userId);
-        onboarded = onboardingStatus.onboarded;
-        consultantStage = onboardingStatus.stage;
-      }
+      let onboarded = false;
+      let userStage = UserStages.NONE as UserStage;
+
+      ({ onboarded, userStage } = AuthSyncService.setUserStage(role, onboarded, existingUser, userStage));
 
       // 3️⃣ Background operations for non-critical data
       this.queueBackgroundOperations(userId, role, account, profile);
@@ -90,36 +95,67 @@ static async handleUserSync({
         userId,
         role,
         onboarded,
-        consultantStage,
+        userStage: UserStages.NONE ? userStage : undefined ,
         country,
-        profileImageUrl
+        profileImageUrl,
       };
-
     } catch (error: unknown) {
       console.error("❌ Error in AuthSyncService:", error);
       await AuthAuditService.logAuthEvent({
         email: user?.email || null,
         provider: account?.provider || null,
         success: false,
-        notes: `Sync error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        notes: `Sync error: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
       throw error;
     }
   }
 
-  private static async getQuickOnboardingStatus(userId: string): Promise<{ stage: ConsultantStage; onboarded: boolean }> {
-    try {
-      const consultant = await ExtendedConsultantsService.findByUser_Id(userId);
-      return {
-        stage: consultant?.stage || ConsultantStages.BIO,
-        onboarded: consultant?.stage !== ConsultantStages.BIO && consultant?.stage !== null
-      };
-    } catch (error) {
-      return { stage: ConsultantStages.BIO, onboarded: false };
+  private static setUserStage(role: UserRole, onboarded: boolean, existingUser: UserWithAllRoleData | null, userStage: UserStage) {
+    if (role === UserRoles.CONSULTANT) {
+      //const onboardingStatus = await this.getQuickOnboardingStatus(userId);
+      onboarded =
+        existingUser?.consultants?.stage !== UserStages.BIO ||
+        existingUser?.consultants?.stage !== null;
+      userStage = (existingUser?.consultants?.stage ||
+        UserStages.BIO) as UserStage;
+    } else if (role === UserRoles.CLIENT) {
+      onboarded =
+        existingUser?.clients?.stage !== UserStages.BIO ||
+        existingUser?.clients?.stage !== null;
+      userStage = (existingUser?.clients?.stage ||
+        UserStages.BIO) as UserStage;
+    } else if (role === UserRoles.SELLER) {
+      onboarded = true; // Assume sellers are onboarded immediately
+      userStage = (existingUser?.sellers?.stage ||
+        UserStages.BIO) as UserStage;
     }
+    return { onboarded, userStage };
   }
 
-  private static async queueBackgroundOperations(userId: string, role: string, account: Account, profile?: SocialProfile | null) {
+  // private static async getQuickOnboardingStatus(
+  //   userId: string
+  // ): Promise<{ stage: UserStage; onboarded: boolean }> {
+  //   try {
+  //     const consultant = await ExtendedConsultantsService.findByUser_Id(userId);
+  //     return {
+  //       stage: consultant?.stage || UserStages.BIO,
+  //       onboarded:
+  //         consultant?.stage !== UserStages.BIO && consultant?.stage !== null,
+  //     };
+  //   } catch (error) {
+  //     return { stage: UserStages.BIO, onboarded: false };
+  //   }
+  // }
+
+  private static async queueBackgroundOperations(
+    userId: string,
+    role: string,
+    account: Account,
+    profile?: SocialProfile | null
+  ) {
     setTimeout(async () => {
       try {
         // Only non-critical operations here
@@ -130,13 +166,13 @@ static async handleUserSync({
 
         await AuthAuditService.logAuthEvent({
           user_id: userId,
-          email: '', // Will be filled by the event
+          email: "", // Will be filled by the event
           provider: account.provider,
           success: true,
           notes: `Background sync completed for ${account.provider}`,
         });
       } catch (error) {
-        console.error('Background operations failed:', error);
+        console.error("Background operations failed:", error);
       }
     }, 0);
   }
@@ -144,7 +180,7 @@ static async handleUserSync({
   private static async findUserByEmail(email: string) {
     try {
       // Try to find user by email
-      const user = await ExtendedUsersService.findByEmail(email);
+      const user = await UsersService.findByEmailWithConsultants(email);
       return user;
     } catch (error) {
       console.warn("Error finding user by email:", error);
@@ -178,7 +214,7 @@ static async handleUserSync({
             availability: "available",
             projects_completed: 0,
             featured: false,
-            stage: userRole === "consultant" ? ConsultantStages.BIO : "active",
+            stage: userRole === "consultant" ? UserStages.BIO : UserStages.NONE,
           };
           await ConsultantsService.create(consultantData);
         }
@@ -190,6 +226,7 @@ static async handleUserSync({
         );
         console.log("User client called 2 ");
         const clientData = {
+          ...existingClient,
           user_id: userId,
         };
 

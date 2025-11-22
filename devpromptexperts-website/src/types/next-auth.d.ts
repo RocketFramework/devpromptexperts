@@ -16,7 +16,7 @@ declare module "next-auth" {
       founderCohort?: string | null;
       loginContext?: string | null;
       onboarded?: boolean | null;
-      consultantStage?: ConsultantStage| null;
+      stage?: ConsultantStage| null;
       linkedInUrl?: string | null;
       clientState?: ClientState | null;
       providerData?: {
@@ -45,7 +45,7 @@ declare module "next-auth/jwt" {
     role?: string | null;
     country?: string | null;
     image?: string | null;
-    consultantStage?: ConsultantStage| null;
+    userStage?: ConsultantStage| null;
     clientState?: ClientState | null;
   }
 }

@@ -1,10 +1,10 @@
-import { ConsultantStage } from "@/types/";
+import { UserStage } from "@/types/";
 
 export interface ConsultantDTO {
   id: string;
   user_id: string;
   title: string | null;
-  stage: ConsultantStage | null;
+  stage: UserStage | null;
   expertise: string[] | null;
   availability: string | null;
   work_experience: number | null; // Changed from work_experience

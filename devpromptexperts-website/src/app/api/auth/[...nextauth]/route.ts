@@ -2,16 +2,24 @@
 import NextAuth from "next-auth";
 import { getAuthProviders } from "@/lib/auth-providers";
 import { authCallbacks } from "@/lib/auth-callbacks";
-import { AuthSyncService } from "@/services/AuthSyncService";
 
 const handler = NextAuth({
   providers: getAuthProviders(),
   
-  callbacks: authCallbacks,
-
-  events: {
-    async signIn({ user, account, profile }) {
-      console.log(`User signed in: ${user.email}`);
+  callbacks: {
+    async signIn(params) {
+      console.log("🚨 SIGNIN CALLBACK - START");
+      //return true;
+      return authCallbacks.signIn(params);
+    },
+    async jwt(params) {
+      return authCallbacks.jwt(params);
+    },
+    async session(params) {
+      return authCallbacks.session(params);
+    },
+    async redirect(params) {
+      return authCallbacks.redirect(params);
     },
   },
 

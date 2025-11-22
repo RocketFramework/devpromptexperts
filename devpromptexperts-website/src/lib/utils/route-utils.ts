@@ -1,7 +1,7 @@
 // lib/utils/route-utils.ts
 import { 
   AppRoute, 
-  ConsultantStage, 
+  UserStage, 
   ClientState, 
 } from '@/types/';
 
@@ -13,7 +13,7 @@ export class RouteUtils {
   static getTargetRoute(role: string, stageOrState?: string): AppRoute {
     switch (role) {
       case 'consultant':
-        const stage = stageOrState as ConsultantStage;
+        const stage = stageOrState as UserStage;
         if (stage && isConsultantStage(stage)) {
           return CONSULTANT_STAGE_MAP[stage];
         }

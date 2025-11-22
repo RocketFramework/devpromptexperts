@@ -14,66 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      ambassador_clients: {
-        Row: {
-          ambassador_id: string
-          client_id: string
-        }
-        Insert: {
-          ambassador_id: string
-          client_id: string
-        }
-        Update: {
-          ambassador_id?: string
-          client_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ambassador_clients_ambassador_id_fkey"
-            columns: ["ambassador_id"]
-            isOneToOne: false
-            referencedRelation: "sales_ambassadors"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "ambassador_clients_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      ambassador_consultants: {
-        Row: {
-          ambassador_id: string
-          consultant_id: string
-        }
-        Insert: {
-          ambassador_id: string
-          consultant_id: string
-        }
-        Update: {
-          ambassador_id?: string
-          consultant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ambassador_consultants_ambassador_id_fkey"
-            columns: ["ambassador_id"]
-            isOneToOne: false
-            referencedRelation: "consulting_ambassadors"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "ambassador_consultants_consultant_id_fkey"
-            columns: ["consultant_id"]
-            isOneToOne: false
-            referencedRelation: "consultants"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       auth_audit: {
         Row: {
           created_at: string | null
@@ -118,14 +58,132 @@ export type Database = {
           },
         ]
       }
+      client_reviews: {
+        Row: {
+          client_id: string
+          communication_rating: number | null
+          consultant_id: string
+          consultant_responded_at: string | null
+          consultant_response: string | null
+          created_at: string | null
+          delivery_rating: number | null
+          expertise_rating: number | null
+          id: string
+          is_public: boolean | null
+          overall_rating: number
+          project_id: string
+          quality_rating: number | null
+          review_text: string
+          status: string
+          title: string | null
+          updated_at: string | null
+          would_recommend: boolean | null
+        }
+        Insert: {
+          client_id: string
+          communication_rating?: number | null
+          consultant_id: string
+          consultant_responded_at?: string | null
+          consultant_response?: string | null
+          created_at?: string | null
+          delivery_rating?: number | null
+          expertise_rating?: number | null
+          id?: string
+          is_public?: boolean | null
+          overall_rating: number
+          project_id: string
+          quality_rating?: number | null
+          review_text: string
+          status?: string
+          title?: string | null
+          updated_at?: string | null
+          would_recommend?: boolean | null
+        }
+        Update: {
+          client_id?: string
+          communication_rating?: number | null
+          consultant_id?: string
+          consultant_responded_at?: string | null
+          consultant_response?: string | null
+          created_at?: string | null
+          delivery_rating?: number | null
+          expertise_rating?: number | null
+          id?: string
+          is_public?: boolean | null
+          overall_rating?: number
+          project_id?: string
+          quality_rating?: number | null
+          review_text?: string
+          status?: string
+          title?: string | null
+          updated_at?: string | null
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_reviews_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "client_reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
+          avg_consultant_rating: number | null
+          client_tier: string | null
+          client_type: string | null
+          company_name: string
+          company_size: string | null
+          created_at: string | null
+          id: string
+          industry: string | null
+          metadata: Json | null
+          stage: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
+          avg_consultant_rating?: number | null
+          client_tier?: string | null
+          client_type?: string | null
+          company_name: string
+          company_size?: string | null
+          created_at?: string | null
+          id?: string
+          industry?: string | null
+          metadata?: Json | null
+          stage?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
+          avg_consultant_rating?: number | null
+          client_tier?: string | null
+          client_type?: string | null
+          company_name?: string
+          company_size?: string | null
+          created_at?: string | null
+          id?: string
+          industry?: string | null
+          metadata?: Json | null
+          stage?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -138,9 +196,93 @@ export type Database = {
           },
         ]
       }
-      commission_payouts: {
+      commission_calculations: {
         Row: {
-          consultant_id: string | null
+          calculated_at: string | null
+          calculation_base_amount: number
+          commission_amount: number
+          commission_invoice_id: string
+          commission_rate: number
+          commission_type: string
+          id: string
+          period_end: string | null
+          period_start: string | null
+          project_id: string
+          project_milestone_id: string | null
+          referral_relationship_id: string
+          user_id: string | null
+        }
+        Insert: {
+          calculated_at?: string | null
+          calculation_base_amount: number
+          commission_amount: number
+          commission_invoice_id: string
+          commission_rate: number
+          commission_type: string
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          project_id: string
+          project_milestone_id?: string | null
+          referral_relationship_id: string
+          user_id?: string | null
+        }
+        Update: {
+          calculated_at?: string | null
+          calculation_base_amount?: number
+          commission_amount?: number
+          commission_invoice_id?: string
+          commission_rate?: number
+          commission_type?: string
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          project_id?: string
+          project_milestone_id?: string | null
+          referral_relationship_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_calculations_invoice_id_fkey"
+            columns: ["commission_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "commission_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_calculations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_calculations_project_milestone_id_fkey"
+            columns: ["project_milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_calculations_referral_relationship_id_fkey"
+            columns: ["referral_relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commission_referral_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_calculations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_invoice_payouts: {
+        Row: {
+          commission_invoice_id: string | null
           id: string
           paid_at: string | null
           payout_method: string | null
@@ -149,9 +291,10 @@ export type Database = {
           status: string | null
           total_commission: number | null
           transaction_id: string | null
+          user_id: string | null
         }
         Insert: {
-          consultant_id?: string | null
+          commission_invoice_id?: string | null
           id?: string
           paid_at?: string | null
           payout_method?: string | null
@@ -160,9 +303,10 @@ export type Database = {
           status?: string | null
           total_commission?: number | null
           transaction_id?: string | null
+          user_id?: string | null
         }
         Update: {
-          consultant_id?: string | null
+          commission_invoice_id?: string | null
           id?: string
           paid_at?: string | null
           payout_method?: string | null
@@ -171,14 +315,333 @@ export type Database = {
           status?: string | null
           total_commission?: number | null
           transaction_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "commission_payouts_consultant_id_fkey"
-            columns: ["consultant_id"]
+            foreignKeyName: "commission_invoice_payouts_commission_invoice_id_fkey"
+            columns: ["commission_invoice_id"]
             isOneToOne: false
-            referencedRelation: "consultants"
-            referencedColumns: ["user_id"]
+            referencedRelation: "commission_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_invoice_payouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_invoices: {
+        Row: {
+          created_at: string | null
+          currency: string
+          due_date: string
+          from_entity_id: string
+          from_entity_type: string
+          id: string
+          invoice_date: string
+          invoice_items: Json
+          invoice_number: string
+          invoice_type: string
+          notes: string | null
+          paid_at: string | null
+          sent_at: string | null
+          status: string
+          sub_total: number
+          tax_amount: number | null
+          terms_text: string | null
+          time_period_end: string | null
+          time_period_start: string | null
+          to_entity_id: string
+          to_entity_type: string
+          total_amount: number
+          updated_at: string | null
+          user_id: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string
+          due_date: string
+          from_entity_id: string
+          from_entity_type: string
+          id?: string
+          invoice_date?: string
+          invoice_items?: Json
+          invoice_number: string
+          invoice_type: string
+          notes?: string | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string
+          sub_total: number
+          tax_amount?: number | null
+          terms_text?: string | null
+          time_period_end?: string | null
+          time_period_start?: string | null
+          to_entity_id: string
+          to_entity_type: string
+          total_amount: number
+          updated_at?: string | null
+          user_id?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string
+          due_date?: string
+          from_entity_id?: string
+          from_entity_type?: string
+          id?: string
+          invoice_date?: string
+          invoice_items?: Json
+          invoice_number?: string
+          invoice_type?: string
+          notes?: string | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string
+          sub_total?: number
+          tax_amount?: number | null
+          terms_text?: string | null
+          time_period_end?: string | null
+          time_period_start?: string | null
+          to_entity_id?: string
+          to_entity_type?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_referral_relationships: {
+        Row: {
+          calculation_base: string | null
+          commission_frequency: string
+          commission_rate: number
+          created_at: string | null
+          ends_at: string | null
+          id: string
+          referral_code: string | null
+          referred_id: string
+          referred_type: string
+          referrer_id: string
+          referrer_type: string
+          relationship_type: string
+          starts_at: string | null
+          status: string
+        }
+        Insert: {
+          calculation_base?: string | null
+          commission_frequency: string
+          commission_rate: number
+          created_at?: string | null
+          ends_at?: string | null
+          id?: string
+          referral_code?: string | null
+          referred_id: string
+          referred_type: string
+          referrer_id: string
+          referrer_type: string
+          relationship_type: string
+          starts_at?: string | null
+          status?: string
+        }
+        Update: {
+          calculation_base?: string | null
+          commission_frequency?: string
+          commission_rate?: number
+          created_at?: string | null
+          ends_at?: string | null
+          id?: string
+          referral_code?: string | null
+          referred_id?: string
+          referred_type?: string
+          referrer_id?: string
+          referrer_type?: string
+          relationship_type?: string
+          starts_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_referral_relationships_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_referral_relationships_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      connect_with_ob_partners: {
+        Row: {
+          assigned_by: string | null
+          assignment_notes: string | null
+          created_at: string | null
+          id: string
+          ob_partner_id: string
+          original_interview_slot_id: string | null
+          partnership_status: string
+          updated_at: string | null
+          user_id: string
+          user_type: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assignment_notes?: string | null
+          created_at?: string | null
+          id?: string
+          ob_partner_id: string
+          original_interview_slot_id?: string | null
+          partnership_status?: string
+          updated_at?: string | null
+          user_id: string
+          user_type?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assignment_notes?: string | null
+          created_at?: string | null
+          id?: string
+          ob_partner_id?: string
+          original_interview_slot_id?: string | null
+          partnership_status?: string
+          updated_at?: string | null
+          user_id?: string
+          user_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_with_ob_partners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_with_ob_partners_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_with_ob_partners_ob_partner_id_fkey"
+            columns: ["ob_partner_id"]
+            isOneToOne: false
+            referencedRelation: "ob_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_with_ob_partners_original_interview_slot_id_fkey"
+            columns: ["original_interview_slot_id"]
+            isOneToOne: false
+            referencedRelation: "interview_slots"
+            referencedColumns: ["uuid_id"]
+          },
+        ]
+      }
+      connected_ob_partner_meets: {
+        Row: {
+          connect_with_ob_partner_id: string | null
+          connected_user_id: string | null
+          consultant_feedback: string | null
+          created_at: string
+          end_time: string | null
+          id: number
+          interview_date: string | null
+          interview_slot_id: string | null
+          interview_status: string | null
+          meeting_id: string | null
+          meeting_passcode: string | null
+          meeting_platform: string | null
+          meeting_url: string | null
+          ob_partner_user_id: string | null
+          partner_feedback: string | null
+          reschedule_count: number | null
+          reschedule_reason: string | null
+          start_time: string | null
+        }
+        Insert: {
+          connect_with_ob_partner_id?: string | null
+          connected_user_id?: string | null
+          consultant_feedback?: string | null
+          created_at?: string
+          end_time?: string | null
+          id?: number
+          interview_date?: string | null
+          interview_slot_id?: string | null
+          interview_status?: string | null
+          meeting_id?: string | null
+          meeting_passcode?: string | null
+          meeting_platform?: string | null
+          meeting_url?: string | null
+          ob_partner_user_id?: string | null
+          partner_feedback?: string | null
+          reschedule_count?: number | null
+          reschedule_reason?: string | null
+          start_time?: string | null
+        }
+        Update: {
+          connect_with_ob_partner_id?: string | null
+          connected_user_id?: string | null
+          consultant_feedback?: string | null
+          created_at?: string
+          end_time?: string | null
+          id?: number
+          interview_date?: string | null
+          interview_slot_id?: string | null
+          interview_status?: string | null
+          meeting_id?: string | null
+          meeting_passcode?: string | null
+          meeting_platform?: string | null
+          meeting_url?: string | null
+          ob_partner_user_id?: string | null
+          partner_feedback?: string | null
+          reschedule_count?: number | null
+          reschedule_reason?: string | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connected_ob_partner_meets_connect_with_ob_partner_id_fkey"
+            columns: ["connect_with_ob_partner_id"]
+            isOneToOne: false
+            referencedRelation: "connect_with_ob_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connected_ob_partner_meets_connected_user_id_fkey"
+            columns: ["connected_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connected_ob_partner_meets_ob_partner_user_id_fkey"
+            columns: ["ob_partner_user_id"]
+            isOneToOne: false
+            referencedRelation: "ob_partners"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -217,44 +680,82 @@ export type Database = {
           },
         ]
       }
-      consultant_referrals: {
+      consultant_reviews: {
         Row: {
+          clarity_rating: number | null
+          client_id: string
+          collaboration_rating: number | null
+          communication_rating: number | null
+          consultant_id: string
           created_at: string | null
           id: string
-          referred_email: string
-          referred_name: string | null
-          referrer_id: string | null
-          status: string | null
-          token: string | null
+          is_public: boolean | null
+          overall_rating: number
+          payment_rating: number | null
+          project_id: string
+          review_text: string
+          status: string
+          title: string | null
           updated_at: string | null
+          would_work_again: boolean | null
         }
         Insert: {
+          clarity_rating?: number | null
+          client_id: string
+          collaboration_rating?: number | null
+          communication_rating?: number | null
+          consultant_id: string
           created_at?: string | null
           id?: string
-          referred_email: string
-          referred_name?: string | null
-          referrer_id?: string | null
-          status?: string | null
-          token?: string | null
+          is_public?: boolean | null
+          overall_rating: number
+          payment_rating?: number | null
+          project_id: string
+          review_text: string
+          status?: string
+          title?: string | null
           updated_at?: string | null
+          would_work_again?: boolean | null
         }
         Update: {
+          clarity_rating?: number | null
+          client_id?: string
+          collaboration_rating?: number | null
+          communication_rating?: number | null
+          consultant_id?: string
           created_at?: string | null
           id?: string
-          referred_email?: string
-          referred_name?: string | null
-          referrer_id?: string | null
-          status?: string | null
-          token?: string | null
+          is_public?: boolean | null
+          overall_rating?: number
+          payment_rating?: number | null
+          project_id?: string
+          review_text?: string
+          status?: string
+          title?: string | null
           updated_at?: string | null
+          would_work_again?: boolean | null
         }
         Relationships: [
           {
-            foreignKeyName: "consultant_referrals_referrer_id_fkey"
-            columns: ["referrer_id"]
+            foreignKeyName: "consultant_reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultant_reviews_consultant_id_fkey"
+            columns: ["consultant_id"]
             isOneToOne: false
             referencedRelation: "consultants"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "consultant_reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -396,188 +897,6 @@ export type Database = {
           },
         ]
       }
-      consultants_with_ob_partners: {
-        Row: {
-          assigned_by: string | null
-          assignment_notes: string | null
-          consultant_feedback: string | null
-          consultant_id: string
-          created_at: string | null
-          end_time: string | null
-          id: string
-          interview_date: string | null
-          interview_slot_id: string | null
-          interview_status: string | null
-          meeting_id: string | null
-          meeting_passcode: string | null
-          meeting_platform: string | null
-          meeting_url: string | null
-          ob_partner_id: string
-          original_interview_slot_id: string | null
-          partner_feedback: string | null
-          partnership_status: string
-          reschedule_count: number | null
-          reschedule_reason: string | null
-          start_time: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          assigned_by?: string | null
-          assignment_notes?: string | null
-          consultant_feedback?: string | null
-          consultant_id: string
-          created_at?: string | null
-          end_time?: string | null
-          id?: string
-          interview_date?: string | null
-          interview_slot_id?: string | null
-          interview_status?: string | null
-          meeting_id?: string | null
-          meeting_passcode?: string | null
-          meeting_platform?: string | null
-          meeting_url?: string | null
-          ob_partner_id: string
-          original_interview_slot_id?: string | null
-          partner_feedback?: string | null
-          partnership_status?: string
-          reschedule_count?: number | null
-          reschedule_reason?: string | null
-          start_time?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          assigned_by?: string | null
-          assignment_notes?: string | null
-          consultant_feedback?: string | null
-          consultant_id?: string
-          created_at?: string | null
-          end_time?: string | null
-          id?: string
-          interview_date?: string | null
-          interview_slot_id?: string | null
-          interview_status?: string | null
-          meeting_id?: string | null
-          meeting_passcode?: string | null
-          meeting_platform?: string | null
-          meeting_url?: string | null
-          ob_partner_id?: string
-          original_interview_slot_id?: string | null
-          partner_feedback?: string | null
-          partnership_status?: string
-          reschedule_count?: number | null
-          reschedule_reason?: string | null
-          start_time?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consultants_with_ob_partners_assigned_by_fkey"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "consultants_with_ob_partners_consultant_id_fkey"
-            columns: ["consultant_id"]
-            isOneToOne: true
-            referencedRelation: "consultants"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "consultants_with_ob_partners_interview_slot_id_fkey"
-            columns: ["interview_slot_id"]
-            isOneToOne: false
-            referencedRelation: "interview_slots"
-            referencedColumns: ["uuid_id"]
-          },
-          {
-            foreignKeyName: "consultants_with_ob_partners_ob_partner_id_fkey"
-            columns: ["ob_partner_id"]
-            isOneToOne: false
-            referencedRelation: "ob_partners"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "consultants_with_ob_partners_original_interview_slot_id_fkey"
-            columns: ["original_interview_slot_id"]
-            isOneToOne: false
-            referencedRelation: "interview_slots"
-            referencedColumns: ["uuid_id"]
-          },
-        ]
-      }
-      consultations: {
-        Row: {
-          client_id: string | null
-          consultant_id: string | null
-          duration_minutes: number | null
-          id: string
-          rating: number | null
-          review: string | null
-          scheduled_at: string | null
-          status: string
-        }
-        Insert: {
-          client_id?: string | null
-          consultant_id?: string | null
-          duration_minutes?: number | null
-          id?: string
-          rating?: number | null
-          review?: string | null
-          scheduled_at?: string | null
-          status: string
-        }
-        Update: {
-          client_id?: string | null
-          consultant_id?: string | null
-          duration_minutes?: number | null
-          id?: string
-          rating?: number | null
-          review?: string | null
-          scheduled_at?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consultations_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "consultations_consultant_id_fkey"
-            columns: ["consultant_id"]
-            isOneToOne: false
-            referencedRelation: "consultants"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      consulting_ambassadors: {
-        Row: {
-          commission_rate: number | null
-          user_id: string
-        }
-        Insert: {
-          commission_rate?: number | null
-          user_id: string
-        }
-        Update: {
-          commission_rate?: number | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consulting_ambassadors_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       interview_slots: {
         Row: {
           created_at: string
@@ -676,54 +995,450 @@ export type Database = {
           },
         ]
       }
-      payments: {
+      project_communications: {
         Row: {
-          ambassador_id: string | null
-          amount: number
-          client_id: string | null
-          commission: number | null
-          consultant_id: string | null
-          consultation_id: string | null
+          attachments: Json | null
+          created_at: string | null
           id: string
+          is_read: boolean | null
+          message: string
+          message_type: string
+          milestone_id: string | null
+          project_id: string
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          subject: string | null
         }
         Insert: {
-          ambassador_id?: string | null
-          amount: number
-          client_id?: string | null
-          commission?: number | null
-          consultant_id?: string | null
-          consultation_id?: string | null
+          attachments?: Json | null
+          created_at?: string | null
           id?: string
+          is_read?: boolean | null
+          message: string
+          message_type?: string
+          milestone_id?: string | null
+          project_id: string
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          subject?: string | null
         }
         Update: {
-          ambassador_id?: string | null
-          amount?: number
-          client_id?: string | null
-          commission?: number | null
-          consultant_id?: string | null
-          consultation_id?: string | null
+          attachments?: Json | null
+          created_at?: string | null
           id?: string
+          is_read?: boolean | null
+          message?: string
+          message_type?: string
+          milestone_id?: string | null
+          project_id?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          subject?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "payments_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "project_communications_milestone_id_fkey"
+            columns: ["milestone_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["user_id"]
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payments_consultant_id_fkey"
+            foreignKeyName: "project_communications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_milestones: {
+        Row: {
+          client_approved: boolean | null
+          client_approved_at: string | null
+          completed_date: string | null
+          completion_proof: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string
+          id: string
+          milestone: string
+          payment_percentage: number
+          project_id: string
+          project_payment_id: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_approved?: boolean | null
+          client_approved_at?: string | null
+          completed_date?: string | null
+          completion_proof?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          milestone: string
+          payment_percentage: number
+          project_id: string
+          project_payment_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_approved?: boolean | null
+          client_approved_at?: string | null
+          completed_date?: string | null
+          completion_proof?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          milestone?: string
+          payment_percentage?: number
+          project_id?: string
+          project_payment_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestones_project_payment_id_fkey"
+            columns: ["project_payment_id"]
+            isOneToOne: false
+            referencedRelation: "project_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_payments: {
+        Row: {
+          amount: number
+          consultant_id: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          paid_date: string | null
+          payment_method: string | null
+          payment_type: string
+          platform_commission_rate: number | null
+          project_id: string
+          status: string
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          consultant_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          payment_type?: string
+          platform_commission_rate?: number | null
+          project_id: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          consultant_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          payment_type?: string
+          platform_commission_rate?: number | null
+          project_id?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_payments_consultant_id_fkey"
             columns: ["consultant_id"]
             isOneToOne: false
             referencedRelation: "consultants"
             referencedColumns: ["user_id"]
           },
           {
-            foreignKeyName: "payments_consultation_id_fkey"
-            columns: ["consultation_id"]
+            foreignKeyName: "project_payments_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "consultations"
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_requests: {
+        Row: {
+          assigned_at: string | null
+          budget_range: string
+          client_availability: string | null
+          client_id: string
+          completed_at: string | null
+          created_at: string | null
+          deadline: string | null
+          description: string
+          id: string
+          location_preference: string | null
+          preferred_contact_method: string | null
+          preferred_engagement_types: string[] | null
+          preferred_industries: string[] | null
+          project_type: string
+          published_at: string | null
+          required_skills: string[] | null
+          shortlisted_responses: number | null
+          specific_location: string | null
+          status: string
+          timeline: string
+          title: string
+          total_responses: number | null
+          updated_at: string | null
+          urgency_level: string | null
+          views_count: number | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          budget_range: string
+          client_availability?: string | null
+          client_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          description: string
+          id?: string
+          location_preference?: string | null
+          preferred_contact_method?: string | null
+          preferred_engagement_types?: string[] | null
+          preferred_industries?: string[] | null
+          project_type: string
+          published_at?: string | null
+          required_skills?: string[] | null
+          shortlisted_responses?: number | null
+          specific_location?: string | null
+          status?: string
+          timeline: string
+          title: string
+          total_responses?: number | null
+          updated_at?: string | null
+          urgency_level?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          assigned_at?: string | null
+          budget_range?: string
+          client_availability?: string | null
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string
+          id?: string
+          location_preference?: string | null
+          preferred_contact_method?: string | null
+          preferred_engagement_types?: string[] | null
+          preferred_industries?: string[] | null
+          project_type?: string
+          published_at?: string | null
+          required_skills?: string[] | null
+          shortlisted_responses?: number | null
+          specific_location?: string | null
+          status?: string
+          timeline?: string
+          title?: string
+          total_responses?: number | null
+          updated_at?: string | null
+          urgency_level?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_responses: {
+        Row: {
+          attachments: Json | null
+          client_feedback: string | null
+          client_rating: number | null
+          consultant_id: string
+          cover_letter: string
+          created_at: string | null
+          estimated_hours: number | null
+          id: string
+          project_request_id: string
+          proposed_budget: number
+          proposed_solution: string | null
+          proposed_timeline: string
+          responded_at: string | null
+          shortlisted_at: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          client_feedback?: string | null
+          client_rating?: number | null
+          consultant_id: string
+          cover_letter: string
+          created_at?: string | null
+          estimated_hours?: number | null
+          id?: string
+          project_request_id: string
+          proposed_budget: number
+          proposed_solution?: string | null
+          proposed_timeline: string
+          responded_at?: string | null
+          shortlisted_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          client_feedback?: string | null
+          client_rating?: number | null
+          consultant_id?: string
+          cover_letter?: string
+          created_at?: string | null
+          estimated_hours?: number | null
+          id?: string
+          project_request_id?: string
+          proposed_budget?: number
+          proposed_solution?: string | null
+          proposed_timeline?: string
+          responded_at?: string | null
+          shortlisted_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_responses_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "project_responses_project_request_id_fkey"
+            columns: ["project_request_id"]
+            isOneToOne: false
+            referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          actual_duration: number | null
+          actual_hours: number | null
+          client_id: string
+          consultant_id: string
+          contract_value: number
+          created_at: string | null
+          end_date: string | null
+          estimated_duration: string | null
+          id: string
+          payment_terms: string
+          project_request_id: string
+          project_response_id: string
+          start_date: string
+          status: string
+          total_hours_estimated: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_duration?: number | null
+          actual_hours?: number | null
+          client_id: string
+          consultant_id: string
+          contract_value: number
+          created_at?: string | null
+          end_date?: string | null
+          estimated_duration?: string | null
+          id?: string
+          payment_terms: string
+          project_request_id: string
+          project_response_id: string
+          start_date: string
+          status?: string
+          total_hours_estimated?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_duration?: number | null
+          actual_hours?: number | null
+          client_id?: string
+          consultant_id?: string
+          contract_value?: number
+          created_at?: string | null
+          end_date?: string | null
+          estimated_duration?: string | null
+          id?: string
+          payment_terms?: string
+          project_request_id?: string
+          project_response_id?: string
+          start_date?: string
+          status?: string
+          total_hours_estimated?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "projects_project_request_id_fkey"
+            columns: ["project_request_id"]
+            isOneToOne: false
+            referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_project_response_id_fkey"
+            columns: ["project_response_id"]
+            isOneToOne: false
+            referencedRelation: "project_responses"
             referencedColumns: ["id"]
           },
         ]
@@ -778,85 +1493,119 @@ export type Database = {
           },
         ]
       }
-      referral_commissions: {
+      seller_clients: {
         Row: {
-          commission_amount: number | null
-          commission_percentage: number | null
-          ended_at: string | null
-          id: string
-          notes: string | null
-          referral_id: string | null
-          referred_consultant_id: string | null
-          referrer_id: string | null
-          started_at: string | null
-          status: string | null
+          client_id: string
+          created_at: string
+          id: number
+          satiscation_score: number | null
+          seller_id: string | null
         }
         Insert: {
-          commission_amount?: number | null
-          commission_percentage?: number | null
-          ended_at?: string | null
-          id?: string
-          notes?: string | null
-          referral_id?: string | null
-          referred_consultant_id?: string | null
-          referrer_id?: string | null
-          started_at?: string | null
-          status?: string | null
+          client_id?: string
+          created_at?: string
+          id?: number
+          satiscation_score?: number | null
+          seller_id?: string | null
         }
         Update: {
-          commission_amount?: number | null
-          commission_percentage?: number | null
-          ended_at?: string | null
-          id?: string
-          notes?: string | null
-          referral_id?: string | null
-          referred_consultant_id?: string | null
-          referrer_id?: string | null
-          started_at?: string | null
-          status?: string | null
+          client_id?: string
+          created_at?: string
+          id?: number
+          satiscation_score?: number | null
+          seller_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "referral_commissions_referral_id_fkey"
-            columns: ["referral_id"]
+            foreignKeyName: "seller_clients_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "consultant_referrals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referral_commissions_referred_consultant_id_fkey"
-            columns: ["referred_consultant_id"]
-            isOneToOne: false
-            referencedRelation: "consultants"
+            referencedRelation: "clients"
             referencedColumns: ["user_id"]
           },
           {
-            foreignKeyName: "referral_commissions_referrer_id_fkey"
-            columns: ["referrer_id"]
+            foreignKeyName: "seller_clients_seller_id_fkey"
+            columns: ["seller_id"]
             isOneToOne: false
-            referencedRelation: "consultants"
+            referencedRelation: "sellers"
             referencedColumns: ["user_id"]
           },
         ]
       }
-      sales_ambassadors: {
+      sellers: {
         Row: {
-          commission_rate: number | null
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          seller_type: string | null
+          stage: string | null
           user_id: string
+          verified_at: string | null
         }
         Insert: {
-          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          seller_type?: string | null
+          stage?: string | null
           user_id: string
+          verified_at?: string | null
         }
         Update: {
-          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          seller_type?: string | null
+          stage?: string | null
           user_id?: string
+          verified_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "sales_ambassadors_user_id_fkey"
+            foreignKeyName: "sales_people_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          client_ob_commission_rate: number | null
+          consultant_ob_commission_rate: number | null
+          created_at: string
+          id: number
+          platform_commission_rate: number | null
+          sales_ob_commission_rate: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          client_ob_commission_rate?: number | null
+          consultant_ob_commission_rate?: number | null
+          created_at?: string
+          id?: number
+          platform_commission_rate?: number | null
+          sales_ob_commission_rate?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          client_ob_commission_rate?: number | null
+          consultant_ob_commission_rate?: number | null
+          created_at?: string
+          id?: number
+          platform_commission_rate?: number | null
+          sales_ob_commission_rate?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -876,6 +1625,7 @@ export type Database = {
           profile: Json | null
           profile_image_url: string | null
           role: string
+          state: string | null
           timezone: string | null
         }
         Insert: {
@@ -891,6 +1641,7 @@ export type Database = {
           profile?: Json | null
           profile_image_url?: string | null
           role: string
+          state?: string | null
           timezone?: string | null
         }
         Update: {
@@ -906,15 +1657,149 @@ export type Database = {
           profile?: Json | null
           profile_image_url?: string | null
           role?: string
+          state?: string | null
           timezone?: string | null
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      consultant_dashboard_summary: {
+        Row: {
+          active_projects_count: number | null
+          active_projects_next_month: number | null
+          active_projects_this_month: number | null
+          average_project_contract_value: number | null
+          average_project_contract_value_last_month: number | null
+          average_project_contract_value_this_month: number | null
+          avg_project_duration_days: number | null
+          client_commissions: number | null
+          client_commissions_count: number | null
+          client_commissions_count_last_month: number | null
+          client_commissions_count_this_month: number | null
+          client_commissions_last_month: number | null
+          client_commissions_this_month: number | null
+          client_retention_rate_percent: number | null
+          clients_team_count: number | null
+          clients_team_count_last_month: number | null
+          clients_team_count_this_month: number | null
+          completed_projects_count: number | null
+          completed_projects_count_last_month: number | null
+          completed_projects_count_this_month: number | null
+          consultant_commissions: number | null
+          consultant_commissions_count: number | null
+          consultant_commissions_count_last_month: number | null
+          consultant_commissions_count_this_month: number | null
+          consultant_commissions_last_month: number | null
+          consultant_commissions_this_month: number | null
+          consultant_id: string | null
+          consultants_team_count: number | null
+          consultants_team_count_last_month: number | null
+          consultants_team_count_this_month: number | null
+          direct_earnings: number | null
+          direct_earnings_last_month: number | null
+          direct_earnings_my_earnings: number | null
+          direct_earnings_overdue: number | null
+          direct_earnings_overdue_last_month: number | null
+          direct_earnings_overdue_this_month: number | null
+          direct_earnings_platform_commissions: number | null
+          direct_earnings_this_month: number | null
+          earnings_consulting_services: number | null
+          earnings_ecommerce_retail: number | null
+          earnings_education: number | null
+          earnings_energy_utilities: number | null
+          earnings_financial_services: number | null
+          earnings_government: number | null
+          earnings_healthcare: number | null
+          earnings_manufacturing: number | null
+          earnings_media_entertainment: number | null
+          earnings_other: number | null
+          earnings_startups_vc: number | null
+          earnings_technology_saas: number | null
+          earnings_telecommunications: number | null
+          my_direct_earnings_this_month: number | null
+          net_earnings: number | null
+          net_earnings_last_month: number | null
+          net_earnings_this_month: number | null
+          one_time_clients_count: number | null
+          pending_projects_count: number | null
+          platform_commissions_count: number | null
+          platform_commissions_count_last_month: number | null
+          platform_commissions_count_this_month: number | null
+          platform_commissions_this_month: number | null
+          project_success_rate: number | null
+          repeating_clients_count: number | null
+          responses_submitted_last_month: number | null
+          responses_submitted_this_month: number | null
+          sales_commissions: number | null
+          sales_commissions_count: number | null
+          sales_commissions_last_month: number | null
+          sales_commissions_this_month: number | null
+          sales_team_count: number | null
+          sales_team_count_last_month: number | null
+          sales_team_count_this_month: number | null
+          summary_generated_at: string | null
+          total_contract_value: number | null
+          total_contract_value_last_month: number | null
+          total_contract_value_this_month: number | null
+          total_leads_count: number | null
+          total_leads_count_last_month: number | null
+          total_leads_count_this_month: number | null
+          total_projects_count: number | null
+          total_projects_count_last_month: number | null
+          total_projects_count_this_month: number | null
+          total_responses_submitted: number | null
+        }
+        Relationships: []
+      }
+      seller_dashboard_summary: {
+        Row: {
+          active_client_projects_count: number | null
+          active_clients_count: number | null
+          average_client_satisfaction_score: number | null
+          client_projects_earnings: number | null
+          client_projects_earnings_last_month: number | null
+          client_projects_earnings_overdue: number | null
+          client_projects_earnings_this_month: number | null
+          clients_team_count: number | null
+          completed_client_projects_count: number | null
+          consultants_team_count: number | null
+          direct_sales_commissions: number | null
+          direct_sales_commissions_last_month: number | null
+          direct_sales_commissions_this_month: number | null
+          net_earnings: number | null
+          net_earnings_last_month: number | null
+          net_earnings_this_month: number | null
+          sales_team_count: number | null
+          satisfied_clients_count: number | null
+          seller_id: string | null
+          summary_generated_at: string | null
+          team_consultant_commissions: number | null
+          team_consultant_commissions_last_month: number | null
+          team_consultant_commissions_this_month: number | null
+          team_sales_commissions: number | null
+          team_sales_commissions_last_month: number | null
+          team_sales_commissions_this_month: number | null
+          total_client_projects_count: number | null
+          total_clients_count: number | null
+          total_clients_count_last_month: number | null
+          total_clients_count_this_month: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      assign_or_get_active_partner: {
+        Args: {
+          assigned_by_param: string
+          consultant_id_param: string
+          ob_partner_id_param: string
+        }
+        Returns: {
+          id: string
+          ob_partner_id: string
+        }[]
+      }
       get_available_interview_slots: {
         Args: { target_partner_id: string }
         Returns: {
@@ -926,6 +1811,7 @@ export type Database = {
         }[]
       }
       get_founder_professional_count: { Args: never; Returns: number }
+      get_full_user_profile: { Args: { p_user_id: string }; Returns: Json }
       get_one_slot_per_day: {
         Args: { partner_id: string }
         Returns: {
@@ -939,7 +1825,7 @@ export type Database = {
       get_random_available_partner_with_workload: {
         Args: never
         Returns: {
-          id: string
+          partner_id: string
         }[]
       }
       insert_partner_only_if_none: {

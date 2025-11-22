@@ -7,7 +7,8 @@ export const AuthProviders = {
   CREDENTIALS: "credentials" as const,
 } as const;
 
-export const ConsultantStages = {
+export const UserStages = {
+  NONE: "none" as const,
   BIO: "bio" as const,
   BIO_WIP: "bio-wip" as const,
   BIO_DONE: "bio-done" as const,
@@ -25,18 +26,28 @@ export const ConsultantStages = {
 export const UserRoles = {
   ADMIN: "admin" as const,
   CLIENT: "client" as const,
+  SELLER: "seller" as const,
   CONSULTANT: "consultant" as const,
   PUBLIC: "public" as const,
   OB_PARTNER: "ob_partner" as const,
   AC_PARTNER: "ac_partner" as const,
+  ROLE_PENDING: "role_pending" as const,
 } as const;
 
-export const ClientStates = {
+export const ClientSellerTypes = {
+  INDIVIDUAL: "individual" as const,
+  AGENCY: "agency" as const,
+  ENTERPRISE : "enterprise" as const,
+} as const;
+
+export const UserStates = {
   ONBOARDING: "onboarding" as const,
+  PENDING: "pending" as const,
   VERIFICATION_PENDING: "verification-pending" as const,
   VERIFICATION_APPROVED: "verification-approved" as const,
   ACTIVE: "active" as const,
   SUSPENDED: "suspended" as const,
+  INACTIVE: "inactive" as const,
 } as const;
 
 export const ExpertiseOptions = [
@@ -95,6 +106,17 @@ export const Availabilities = [
   "Contract",
   "Freelance",
 ];
+
+export const UserTypes = {
+  FOUNDER_CONSULTANT: "founder-consultant" as const,
+  FOUNDER_SELEER: "founder-seller" as const,
+  FOUNDER_CLIENT: "founder-client" as const,
+  CONSULTANT: "consultant" as const,
+  SELLER: "seller" as const,
+  CLIENT: "client" as const,
+} as const;
+
+export type UserType = keyof typeof UserTypes;
 
 export const Industries = [
   "Technology/SaaS",
@@ -220,10 +242,10 @@ export const ENGAGEMENT_TYPES_DATA = [
 ] as const;
 
 export const ApprovalStatusTypes = {
-  PENDING:"pending" as const,
+  PENDING: "pending" as const,
   APPROVED: "approved" as const,
   REJECTED: "rejected" as const,
-  HOLD: "hold" as const
+  HOLD: "hold" as const,
 } as const;
 
 export const NoticePeriodTypes = {

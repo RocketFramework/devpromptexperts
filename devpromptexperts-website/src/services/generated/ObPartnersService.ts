@@ -27,6 +27,18 @@ export class ObPartnersService {
     return data
   }
 
+  static async findByEmail(email: string) {
+    const { data, error } = await supabase
+      .from('ob_partners')
+      .select('*')
+      .eq('email', email)
+      .single()
+    
+    if (error?.code === 'PGRST116') return null
+    if (error) throw error
+    return data
+  }
+
   static async create(data: ObPartnersInsert) {
     const { data: result, error } = await supabase
       .from('ob_partners')

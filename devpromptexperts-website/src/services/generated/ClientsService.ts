@@ -27,6 +27,18 @@ export class ClientsService {
     return data
   }
 
+  static async findByEmail(email: string) {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('email', email)
+      .single()
+    
+    if (error?.code === 'PGRST116') return null
+    if (error) throw error
+    return data
+  }
+
   static async create(data: ClientsInsert) {
     const { data: result, error } = await supabase
       .from('clients')
@@ -82,6 +94,21 @@ export class ClientsService {
       .eq('id', id)
       .single()
     
+    if (error) throw error
+    return data
+  }
+
+  static async findByEmailWithUsers(email: string) {
+    const { data, error } = await supabase
+      .from('clients')
+      .select(`
+        *,
+        users (*)
+      `)
+      .eq('email', email)
+      .single()
+    
+    if (error?.code === 'PGRST116') return null
     if (error) throw error
     return data
   }

@@ -1,7 +1,7 @@
 // src/services/extended/ExtendedUsersService.ts
 import { supabase } from "@/lib/supabase";
 import { UsersService } from "../generated/UsersService";
-import { UsersInsert, UsersUpdate } from "../generated/UsersService";
+import { UsersInsert, UsersUpdate, UsersWithConsultants } from "../generated/UsersService";
 
 export class ExtendedUsersService {
   static async findByEmail(email: string) {
@@ -30,5 +30,22 @@ export class ExtendedUsersService {
     await UsersService.update(userId, {
       last_sign_in: new Date().toISOString(),
     });
+  }
+
+  static async findWithConsultantsByEmail(email: string)
+  : Promise<UsersWithConsultants | null> {
+    const { data, error } = await supabase
+      .from("users")
+      .select(
+        `
+        *,
+        consultants (*)
+      `
+      )
+      .eq("email", email)
+      .maybeSingle<UsersWithConsultants>();
+
+    if (error) throw error;
+    return data;
   }
 }

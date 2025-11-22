@@ -1,620 +1,253 @@
+import { ConsultantData } from "@/types";
+
 // lib/sampleData.ts
-export interface DashboardData {
-  consultant: any;
-  commissionSummary: any;
-  marketInsights: string[];
-  teamData: any[];
-  profileScore: number;
-  dueInvoices: any[];
-  completedProjects: any[];
-  upcomingProjects: any[];
-  salesCommissions: any[];
-}
+export type ScenarioType = 
+  | 'highPerformer' 
+  | 'teamEarningsOnly' 
+  | 'growingConsultant' 
+  | 'enterpriseFocus'
+  | 'startupSpecialist'
+  | 'balancedPortfolio';
 
-export const sampleScenarios = {
-  // Scenario 1: Only earning from team, no personal projects
-  teamEarningsOnly: {
-    consultant: {
-      user_id: "consultant_123",
-      title: "Team Leader Consultant",
-      rating: 4.9,
-      projects_completed: 2,
-      work_experience: 6,
-      featured: true,
-    },
-    /*
-    SELECT 
-      user_id,
-      title,
-      rating,
-      projects_completed,
-      work_experience,
-      featured
-    FROM consultants where user_id = '017b9e8f-8705-40c3-8403-834fd1d93692'
-    
-    */
-    commissionSummary: {
-      direct_earnings: 1110,
-      direct_commission_due: 50,
-      team_commissions_earned: 28750,
-      team_members_count: 5,
-      team_levels: [
-        { level: 1, amount: 18500 },
-        { level: 2, amount: 7500 },
-        { level: 3, amount: 3000 },
-      ],
-      sales_commissions: 80,
-      sales_referrals_count: 1,
-      total_gross_earnings: 28750,
-      total_commission_owed: 50,
-      net_earnings: 28750,
-    },
-    marketInsights: [
-      "Team leadership roles in high demand",
-      "Consultants earning 5% from team networks",
-      "Multi-level commission structures trending",
-    ],
-    teamData: [
-      {
-        id: "1",
-        name: "Sarah Chen",
-        role: "AI Specialist",
-        projects_completed: 8,
-        total_earnings: 85000,
-        your_commission: 4250,
-        level: 3,
-      },
-      {
-        id: "2",
-        name: "Mike Rodriguez",
-        role: "ML Engineer",
-        projects_completed: 12,
-        total_earnings: 120000,
-        your_commission: 6000,
-        level: 1,
-      },
-      {
-        id: "3",
-        name: "Emily Watson",
-        role: "Data Scientist",
-        projects_completed: 6,
-        total_earnings: 65000,
-        your_commission: 3250,
-        level: 1,
-      },
-      {
-        id: "4",
-        name: "David Kim",
-        role: "AI Consultant",
-        projects_completed: 4,
-        total_earnings: 45000,
-        your_commission: 2250,
-        level: 1,
-      },
-      {
-        id: "5",
-        name: "Lisa Thompson",
-        role: "Team Lead",
-        projects_completed: 15,
-        total_earnings: 150000,
-        your_commission: 2750,
-        level: 2,
-      },
-    ],
-    profileScore: 92,
-    dueInvoices: [
-      {
-        id: "1",
-        invoice_number: "INV-2024-003",
-        project_name: "AI Automation System",
-        amount: 8750,
-        due_date: "2024-03-05",
-        status: "sent",
-        project_value: 43750,
-        commission_rate: 20,
-        commission_type: "platform",
-      },
-    ],
-    completedProjects: [
-      {
-        id: "1",
-        title: "AI Customer Service",
-        client_name: "ServiceCorp",
-        status: "completed",
-        deadline: "2024-01-20",
-        project_value: 28000,
-        platform_commission: 5600,
-        your_earnings: 22400,
-        payment_status: "paid",
-        commission_type: "direct",
-      },
-      {
-        id: "2",
-        title: "Predictive Analytics",
-        client_name: "FinancePlus",
-        status: "completed",
-        deadline: "2024-02-05",
-        project_value: 36500,
-        platform_commission: 7300,
-        your_earnings: 29200,
-        payment_status: "paid",
-        commission_type: "direct",
-      },
-    ],
-    upcomingProjects: [
-      {
-        id: "4",
-        title: "AI Analytics Dashboard",
-        client_name: "InnovateLabs",
-        status: "upcoming",
-        deadline: "2024-03-15",
-        project_value: 42000,
-        platform_commission: 8400,
-        your_earnings: 33600,
-        payment_status: "pending",
-        commission_type: "direct",
-      },
-    ],
-    salesCommissions: [
-      {
-        id: "1",
-        client_name: "Enterprise Solutions",
-        project_value: 40000,
-        commission_amount: 5600,
-        commission_rate: 14,
-        status: "paid",
-      },
-    ],
-  },
 
-  // Scenario 2: Only personal projects, no team earnings
-  // personalProjectsOnly: {
-  //   consultant: {
-  //     user_id: "consultant_456",
-  //     title: "Senior AI Consultant",
-  //     rating: 4.7,
-  //     projects_completed: 8,
-  //     work_experience: 5,
-  //     featured: false,
-  //   },
-  //   commissionSummary: {
-  //     direct_earnings: 87500,
-  //     direct_commission_due: 17500,
-  //     team_commissions_earned: 0,
-  //     team_members_count: 0,
-  //     team_levels: [],
-  //     sales_commissions: 0,
-  //     sales_referrals_count: 0,
-  //     total_gross_earnings: 87500,
-  //     total_commission_owed: 17500,
-  //     net_earnings: 70000,
-  //   },
-  //   marketInsights: [
-  //     "Direct client projects increased by 30%",
-  //     "AI implementation services in high demand",
-  //     "Consultants earning $150-300/hour",
-  //   ],
-  //   teamData: [],
-  //   profileScore: 78,
-  //   dueInvoices: [
-  //     {
-  //       id: "1",
-  //       invoice_number: "INV-2024-003",
-  //       project_name: "AI Automation System",
-  //       amount: 8750,
-  //       due_date: "2024-03-05",
-  //       status: "sent",
-  //       project_value: 43750,
-  //       commission_rate: 20,
-  //       commission_type: "platform",
-  //     },
-  //   ],
-  //   completedProjects: [
-  //     {
-  //       id: "1",
-  //       title: "AI Chatbot Implementation",
-  //       client_name: "TechCorp Inc",
-  //       status: "completed",
-  //       deadline: "2024-01-15",
-  //       project_value: 25000,
-  //       platform_commission: 5000,
-  //       your_earnings: 20000,
-  //       payment_status: "paid",
-  //       commission_type: "direct",
-  //     },
-  //     {
-  //       id: "2",
-  //       title: "Machine Learning Model",
-  //       client_name: "DataSystems LLC",
-  //       status: "completed",
-  //       deadline: "2024-01-25",
-  //       project_value: 35000,
-  //       platform_commission: 7000,
-  //       your_earnings: 28000,
-  //       payment_status: "paid",
-  //       commission_type: "direct",
-  //     },
-  //     {
-  //       id: "3",
-  //       title: "Process Automation",
-  //       client_name: "Enterprise Solutions",
-  //       status: "completed",
-  //       deadline: "2024-02-10",
-  //       project_value: 27500,
-  //       platform_commission: 5500,
-  //       your_earnings: 22000,
-  //       payment_status: "processing",
-  //       commission_type: "direct",
-  //     },
-  //   ],
-  //   upcomingProjects: [
-  //     {
-  //       id: "4",
-  //       title: "AI Analytics Dashboard",
-  //       client_name: "InnovateLabs",
-  //       status: "upcoming",
-  //       deadline: "2024-03-15",
-  //       project_value: 42000,
-  //       platform_commission: 8400,
-  //       your_earnings: 33600,
-  //       payment_status: "pending",
-  //       commission_type: "direct",
-  //     },
-  //   ],
-  //   salesCommissions: [],
-  // },
+const generateBaseData = (): Omit<ConsultantData, 'consultant_id'> => {
+  const baseValue = Math.random() * 100000 + 50000;
+  const monthlyVariation = (base: number) => base * (0.8 + Math.random() * 0.4);
+  
+  const totalContractValue = baseValue * 12;
+  const thisMonthValue = monthlyVariation(baseValue);
+  const lastMonthValue = monthlyVariation(baseValue);
+  
+  const totalProjects = Math.floor(Math.random() * 50) + 20;
+  const completedProjects = Math.floor(totalProjects * (0.6 + Math.random() * 0.3));
+  
+  return {
+    total_projects_count: totalProjects,
+    total_projects_count_this_month: Math.floor(Math.random() * 8) + 3,
+    total_projects_count_last_month: Math.floor(Math.random() * 8) + 3,
+    total_contract_value: totalContractValue,
+    total_contract_value_this_month: thisMonthValue,
+    total_contract_value_last_month: lastMonthValue,
+    average_project_contract_value: totalContractValue / totalProjects,
+    average_project_contract_value_this_month: thisMonthValue / 6,
+    average_project_contract_value_last_month: lastMonthValue / 6,
+    completed_projects_count: completedProjects,
+    completed_projects_count_this_month: Math.floor(Math.random() * 6) + 2,
+    completed_projects_count_last_month: Math.floor(Math.random() * 6) + 2,
+    pending_projects_count: Math.floor(Math.random() * 10) + 5,
+    active_projects_count: Math.floor(Math.random() * 15) + 8,
+    active_projects_this_month: Math.floor(Math.random() * 5) + 3,
+    active_projects_next_month: Math.floor(Math.random() * 7) + 4,
+    project_success_rate: completedProjects / totalProjects,
+    repeating_clients_count: Math.floor(Math.random() * 15) + 8,
+    one_time_clients_count: Math.floor(Math.random() * 25) + 10,
+    client_retention_rate_percent: 70 + Math.random() * 25,
+    avg_project_duration_days: 45 + Math.random() * 60,
 
-  // // Scenario 3: Both personal projects and team earnings, net positive
-  // bothNetPositive: {
-  //   consultant: {
-  //     user_id: "consultant_789",
-  //     title: "Lead AI Consultant",
-  //     rating: 4.9,
-  //     projects_completed: 15,
-  //     work_experience: 8,
-  //     featured: true,
-  //   },
-  //   commissionSummary: {
-  //     direct_earnings: 64500,
-  //     direct_commission_due: 12900,
-  //     team_commissions_earned: 18750,
-  //     team_members_count: 8,
-  //     team_levels: [
-  //       { level: 1, amount: 12500 },
-  //       { level: 2, amount: 4500 },
-  //       { level: 3, amount: 1750 },
-  //     ],
-  //     sales_commissions: 5600,
-  //     sales_referrals_count: 2,
-  //     total_gross_earnings: 88850,
-  //     total_commission_owed: 12900,
-  //     net_earnings: 75950,
-  //   },
-  //   marketInsights: [
-  //     "Hybrid consulting models trending",
-  //     "Team leaders earning 25% more than solo consultants",
-  //     "Sales referrals becoming significant income source",
-  //   ],
-  //   teamData: [
-  //     {
-  //       id: "1",
-  //       name: "Alex Johnson",
-  //       role: "AI Developer",
-  //       projects_completed: 6,
-  //       total_earnings: 55000,
-  //       your_commission: 2750,
-  //       level: 1,
-  //     },
-  //     {
-  //       id: "2",
-  //       name: "Maria Garcia",
-  //       role: "ML Specialist",
-  //       projects_completed: 9,
-  //       total_earnings: 85000,
-  //       your_commission: 4250,
-  //       level: 1,
-  //     },
-  //     {
-  //       id: "3",
-  //       name: "James Wilson",
-  //       role: "Team Lead",
-  //       projects_completed: 12,
-  //       total_earnings: 110000,
-  //       your_commission: 2250,
-  //       level: 2,
-  //     },
-  //   ],
-  //   profileScore: 95,
-  //   dueInvoices: [
-  //     {
-  //       id: "1",
-  //       invoice_number: "INV-2024-004",
-  //       project_name: "Q1 Commission",
-  //       amount: 6450,
-  //       due_date: "2024-03-10",
-  //       status: "sent",
-  //       project_value: 32250,
-  //       commission_rate: 20,
-  //       commission_type: "platform",
-  //     },
-  //   ],
-  //   completedProjects: [
-  //     {
-  //       id: "1",
-  //       title: "AI Customer Service",
-  //       client_name: "ServiceCorp",
-  //       status: "completed",
-  //       deadline: "2024-01-20",
-  //       project_value: 28000,
-  //       platform_commission: 5600,
-  //       your_earnings: 22400,
-  //       payment_status: "paid",
-  //       commission_type: "direct",
-  //     },
-  //     {
-  //       id: "2",
-  //       title: "Predictive Analytics",
-  //       client_name: "FinancePlus",
-  //       status: "completed",
-  //       deadline: "2024-02-05",
-  //       project_value: 36500,
-  //       platform_commission: 7300,
-  //       your_earnings: 29200,
-  //       payment_status: "paid",
-  //       commission_type: "direct",
-  //     },
-  //   ],
-  //   upcomingProjects: [
-  //     {
-  //       id: "3",
-  //       title: "AI Integration Project",
-  //       client_name: "TechGlobal",
-  //       status: "upcoming",
-  //       deadline: "2024-04-01",
-  //       project_value: 50000,
-  //       platform_commission: 10000,
-  //       your_earnings: 40000,
-  //       payment_status: "pending",
-  //       commission_type: "direct",
-  //     },
-  //   ],
-  //   salesCommissions: [
-  //     {
-  //       id: "1",
-  //       client_name: "Enterprise Solutions",
-  //       project_value: 40000,
-  //       commission_amount: 5600,
-  //       commission_rate: 14,
-  //       status: "paid",
-  //     },
-  //   ],
-  // },
+    total_leads_count: Math.floor(Math.random() * 100) + 50,
+    total_leads_count_this_month: Math.floor(Math.random() * 15) + 8,
+    total_leads_count_last_month: Math.floor(Math.random() * 15) + 8,
+    total_responses_submitted: Math.floor(Math.random() * 80) + 40,
+    responses_submitted_this_month: Math.floor(Math.random() * 12) + 6,
+    responses_submitted_last_month: Math.floor(Math.random() * 12) + 6,
 
-  // // Scenario 4: Both personal projects and team earnings, net negative (owing platform)
-  // bothNetNegative: {
-  //   consultant: {
-  //     user_id: "consultant_101",
-  //     title: "AI Consultant",
-  //     rating: 4.5,
-  //     projects_completed: 3,
-  //     work_experience: 3,
-  //     featured: false,
-  //   },
-  //   commissionSummary: {
-  //     direct_earnings: 32500,
-  //     direct_commission_due: 6500,
-  //     team_commissions_earned: 2750,
-  //     team_members_count: 2,
-  //     team_levels: [{ level: 1, amount: 2750 }],
-  //     sales_commissions: 0,
-  //     sales_referrals_count: 0,
-  //     total_gross_earnings: 35250,
-  //     total_commission_owed: 6500,
-  //     net_earnings: 28750,
-  //   },
-  //   marketInsights: [
-  //     "New consultants building their networks",
-  //     "Focus on direct projects initially recommended",
-  //     "Team building takes 3-6 months to show returns",
-  //   ],
-  //   teamData: [
-  //     {
-  //       id: "1",
-  //       name: "Tom Baker",
-  //       role: "Junior AI Dev",
-  //       projects_completed: 2,
-  //       total_earnings: 18000,
-  //       your_commission: 900,
-  //       level: 1,
-  //     },
-  //     {
-  //       id: "2",
-  //       name: "Sarah Lewis",
-  //       role: "AI Specialist",
-  //       projects_completed: 3,
-  //       total_earnings: 37000,
-  //       your_commission: 1850,
-  //       level: 1,
-  //     },
-  //   ],
-  //   profileScore: 65,
-  //   dueInvoices: [
-  //     {
-  //       id: "1",
-  //       invoice_number: "INV-2024-005",
-  //       project_name: "Platform Commission",
-  //       amount: 6500,
-  //       due_date: "2024-03-05",
-  //       status: "sent",
-  //       project_value: 32500,
-  //       commission_rate: 20,
-  //       commission_type: "platform",
-  //     },
-  //   ],
-  //   completedProjects: [
-  //     {
-  //       id: "1",
-  //       title: "Basic AI Setup",
-  //       client_name: "StartupTech",
-  //       status: "completed",
-  //       deadline: "2024-01-10",
-  //       project_value: 15000,
-  //       platform_commission: 3000,
-  //       your_earnings: 12000,
-  //       payment_status: "paid",
-  //       commission_type: "direct",
-  //     },
-  //     {
-  //       id: "2",
-  //       title: "Data Analysis",
-  //       client_name: "SmallBiz Inc",
-  //       status: "completed",
-  //       deadline: "2024-02-15",
-  //       project_value: 17500,
-  //       platform_commission: 3500,
-  //       your_earnings: 14000,
-  //       payment_status: "processing",
-  //       commission_type: "direct",
-  //     },
-  //   ],
-  //   upcomingProjects: [
-  //     {
-  //       id: "3",
-  //       title: "AI Consultation",
-  //       client_name: "LocalEnterprise",
-  //       status: "upcoming",
-  //       deadline: "2024-03-20",
-  //       project_value: 12000,
-  //       platform_commission: 2400,
-  //       your_earnings: 9600,
-  //       payment_status: "pending",
-  //       commission_type: "direct",
-  //     },
-  //   ],
-  //   salesCommissions: [],
-  // },
+    // Earnings will be calculated per scenario
+    net_earnings: 0,
+    net_earnings_this_month: 0,
+    net_earnings_last_month: 0,
+    direct_earnings: 0,
+    sales_commissions: 0,
+    consultant_commissions: 0,
+    direct_earnings_platform_commissions: 0,
+    direct_earnings_my_earnings: 0,
+    direct_earnings_overdue: 0,
+    direct_earnings_this_month: 0,
+    direct_earnings_overdue_this_month: 0,
+    direct_earnings_last_month: 0,
+    direct_earnings_overdue_last_month: 0,
+    platform_commissions_this_month: 0,
+    my_direct_earnings_this_month: 0,
+    sales_commissions_this_month: 0,
+    sales_commissions_last_month: 0,
+    consultant_commissions_this_month: 0,
+    consultant_commissions_last_month: 0,
+    client_commissions: 0,
+    client_commissions_this_month: 0,
+    client_commissions_last_month: 0,
 
-  // // Scenario 5: Sales referral focus with minimal direct work
-  // salesFocus: {
-  //   consultant: {
-  //     user_id: "consultant_202",
-  //     title: "Sales & Partnerships Lead",
-  //     rating: 4.8,
-  //     projects_completed: 2,
-  //     work_experience: 4,
-  //     featured: true,
-  //   },
-  //   commissionSummary: {
-  //     direct_earnings: 18000,
-  //     direct_commission_due: 3600,
-  //     team_commissions_earned: 4200,
-  //     team_members_count: 3,
-  //     team_levels: [{ level: 1, amount: 4200 }],
-  //     sales_commissions: 24500,
-  //     sales_referrals_count: 4,
-  //     total_gross_earnings: 46700,
-  //     total_commission_owed: 3600,
-  //     net_earnings: 43100,
-  //   },
-  //   marketInsights: [
-  //     "Sales referrals becoming major revenue stream",
-  //     "Partnership networks driving growth",
-  //     "10-15% commission rates on referred business",
-  //   ],
-  //   teamData: [
-  //     {
-  //       id: "1",
-  //       name: "Rachel Green",
-  //       role: "AI Consultant",
-  //       projects_completed: 5,
-  //       total_earnings: 42000,
-  //       your_commission: 2100,
-  //       level: 1,
-  //     },
-  //     {
-  //       id: "2",
-  //       name: "Kevin Martinez",
-  //       role: "ML Engineer",
-  //       projects_completed: 7,
-  //       total_earnings: 63000,
-  //       your_commission: 2100,
-  //       level: 1,
-  //     },
-  //   ],
-  //   profileScore: 88,
-  //   dueInvoices: [
-  //     {
-  //       id: "1",
-  //       invoice_number: "INV-2024-006",
-  //       project_name: "Direct Work Commission",
-  //       amount: 3600,
-  //       due_date: "2024-03-08",
-  //       status: "sent",
-  //       project_value: 18000,
-  //       commission_rate: 20,
-  //       commission_type: "platform",
-  //     },
-  //   ],
-  //   completedProjects: [
-  //     {
-  //       id: "1",
-  //       title: "Initial Consultation",
-  //       client_name: "FirstClient Co",
-  //       status: "completed",
-  //       deadline: "2024-01-08",
-  //       project_value: 8000,
-  //       platform_commission: 1600,
-  //       your_earnings: 6400,
-  //       payment_status: "paid",
-  //       commission_type: "direct",
-  //     },
-  //     {
-  //       id: "2",
-  //       title: "Strategy Session",
-  //       client_name: "BusinessCorp",
-  //       status: "completed",
-  //       deadline: "2024-02-12",
-  //       project_value: 10000,
-  //       platform_commission: 2000,
-  //       your_earnings: 8000,
-  //       payment_status: "paid",
-  //       commission_type: "direct",
-  //     },
-  //   ],
-  //   upcomingProjects: [],
-  //   salesCommissions: [
-  //     {
-  //       id: "1",
-  //       client_name: "Enterprise Global",
-  //       project_value: 75000,
-  //       commission_amount: 11250,
-  //       commission_rate: 15,
-  //       status: "paid",
-  //     },
-  //     {
-  //       id: "2",
-  //       client_name: "Tech Solutions Inc",
-  //       project_value: 45000,
-  //       commission_amount: 5850,
-  //       commission_rate: 13,
-  //       status: "paid",
-  //     },
-  //     {
-  //       id: "3",
-  //       client_name: "Data Analytics Pro",
-  //       project_value: 60000,
-  //       commission_amount: 8400,
-  //       commission_rate: 14,
-  //       status: "pending",
-  //     },
-  //   ],
-  // },
+    sales_commissions_count: Math.floor(Math.random() * 20) + 5,
+    consultant_commissions_count: Math.floor(Math.random() * 15) + 3,
+    consultant_commissions_count_last_month: Math.floor(Math.random() * 8) + 2,
+    consultant_commissions_count_this_month: Math.floor(Math.random() * 8) + 2,
+    client_commissions_count: Math.floor(Math.random() * 25) + 8,
+    client_commissions_count_last_month: Math.floor(Math.random() * 10) + 3,
+    client_commissions_count_this_month: Math.floor(Math.random() * 10) + 3,
+    platform_commissions_count: Math.floor(Math.random() * 30) + 10,
+    platform_commissions_count_last_month: Math.floor(Math.random() * 15) + 5,
+    platform_commissions_count_this_month: Math.floor(Math.random() * 15) + 5,
+
+    // Industry breakdown - will be adjusted per scenario
+    earnings_technology_saas: 0,
+    earnings_financial_services: 0,
+    earnings_healthcare: 0,
+    earnings_ecommerce_retail: 0,
+    earnings_manufacturing: 0,
+    earnings_energy_utilities: 0,
+    earnings_telecommunications: 0,
+    earnings_media_entertainment: 0,
+    earnings_education: 0,
+    earnings_government: 0,
+    earnings_startups_vc: 0,
+    earnings_consulting_services: 0,
+    earnings_other: 0,
+
+    consultants_team_count: Math.floor(Math.random() * 10) + 3,
+    consultants_team_count_last_month: Math.floor(Math.random() * 8) + 2,
+    consultants_team_count_this_month: Math.floor(Math.random() * 8) + 2,
+    sales_team_count: Math.floor(Math.random() * 8) + 2,
+    sales_team_count_last_month: Math.floor(Math.random() * 6) + 1,
+    sales_team_count_this_month: Math.floor(Math.random() * 6) + 1,
+    clients_team_count: Math.floor(Math.random() * 30) + 15,
+    clients_team_count_last_month: Math.floor(Math.random() * 25) + 10,
+    clients_team_count_this_month: Math.floor(Math.random() * 25) + 10,
+
+    summary_generated_at: new Date().toISOString(),
+  };
 };
 
-export type ScenarioType = keyof typeof sampleScenarios;
+const applyScenario = (baseData: Omit<ConsultantData, 'consultant_id'>, scenario: ScenarioType): Omit<ConsultantData, 'consultant_id'> => {
+  const data = { ...baseData };
+  const totalValue = data.total_contract_value;
 
-export function getSampleData(
-  scenario: ScenarioType = "teamEarningsOnly"
-): DashboardData {
-  return sampleScenarios[scenario];
-}
+  switch (scenario) {
+    case 'highPerformer':
+      data.total_contract_value = totalValue * 2.5;
+      data.total_contract_value_this_month = data.total_contract_value_this_month * 2;
+      data.client_retention_rate_percent = 92;
+      data.project_success_rate = 0.94;
+      data.consultants_team_count += 8;
+      data.sales_team_count += 4;
+      
+      // High performer earnings mix
+      data.direct_earnings = totalValue * 1.8;
+      data.consultant_commissions = totalValue * 0.4;
+      data.sales_commissions = totalValue * 0.2;
+      data.client_commissions = totalValue * 0.1;
+      break;
+
+    case 'teamEarningsOnly':
+      // Minimal direct earnings, mostly from team
+      data.direct_earnings = totalValue * 0.2;
+      data.consultant_commissions = totalValue * 0.6;
+      data.sales_commissions = totalValue * 0.15;
+      data.client_commissions = totalValue * 0.05;
+      
+      data.consultants_team_count = 25;
+      data.consultants_team_count_this_month = 28;
+      data.sales_team_count = 12;
+      data.consultant_commissions_count = 45;
+      break;
+
+    case 'growingConsultant':
+      data.total_contract_value_this_month = data.total_contract_value_this_month * 1.8;
+      data.total_projects_count_this_month += 5;
+      data.active_projects_next_month = data.active_projects_count + 6;
+      
+      data.direct_earnings = totalValue * 0.9;
+      data.consultant_commissions = totalValue * 0.05;
+      data.sales_commissions = totalValue * 0.03;
+      data.client_commissions = totalValue * 0.02;
+      break;
+
+    case 'enterpriseFocus':
+      data.average_project_contract_value = 85000;
+      data.average_project_contract_value_this_month = 92000;
+      data.total_projects_count = 12;
+      data.total_projects_count_this_month = 2;
+      
+      data.earnings_financial_services = totalValue * 0.4;
+      data.earnings_healthcare = totalValue * 0.3;
+      data.earnings_energy_utilities = totalValue * 0.2;
+      break;
+
+    case 'startupSpecialist':
+      data.average_project_contract_value = 25000;
+      data.total_projects_count = 35;
+      data.total_projects_count_this_month = 8;
+      
+      data.earnings_technology_saas = totalValue * 0.6;
+      data.earnings_startups_vc = totalValue * 0.3;
+      data.repeating_clients_count = 5; // Startups often one-time
+      break;
+
+    case 'balancedPortfolio':
+      // Balanced across all metrics - good all-rounder
+      data.direct_earnings = totalValue * 0.7;
+      data.consultant_commissions = totalValue * 0.15;
+      data.sales_commissions = totalValue * 0.1;
+      data.client_commissions = totalValue * 0.05;
+      
+      // Balanced industry mix
+      data.earnings_technology_saas = totalValue * 0.2;
+      data.earnings_financial_services = totalValue * 0.2;
+      data.earnings_healthcare = totalValue * 0.15;
+      data.earnings_ecommerce_retail = totalValue * 0.15;
+      data.earnings_manufacturing = totalValue * 0.1;
+      data.earnings_other = totalValue * 0.2;
+      break;
+  }
+
+  // Calculate derived fields
+  data.direct_earnings_platform_commissions = data.direct_earnings * 0.2;
+  data.direct_earnings_my_earnings = data.direct_earnings * 0.8;
+  data.direct_earnings_overdue = data.direct_earnings * 0.1;
+  
+  data.direct_earnings_this_month = data.direct_earnings * 0.1;
+  data.direct_earnings_last_month = data.direct_earnings * 0.09;
+  data.direct_earnings_overdue_this_month = data.direct_earnings_this_month * 0.1;
+  data.direct_earnings_overdue_last_month = data.direct_earnings_last_month * 0.1;
+  
+  data.sales_commissions_this_month = data.sales_commissions * 0.1;
+  data.sales_commissions_last_month = data.sales_commissions * 0.09;
+  data.consultant_commissions_this_month = data.consultant_commissions * 0.1;
+  data.consultant_commissions_last_month = data.consultant_commissions * 0.09;
+  data.client_commissions_this_month = data.client_commissions * 0.1;
+  data.client_commissions_last_month = data.client_commissions * 0.09;
+  
+  data.platform_commissions_this_month = data.direct_earnings_this_month * 0.2;
+  data.my_direct_earnings_this_month = data.direct_earnings_this_month * 0.8;
+  
+  // Net earnings calculation
+  data.net_earnings = data.direct_earnings_my_earnings + data.sales_commissions + data.consultant_commissions + data.client_commissions;
+  data.net_earnings_this_month = (data.direct_earnings_this_month * 0.8) + data.sales_commissions_this_month + data.consultant_commissions_this_month + data.client_commissions_this_month;
+  data.net_earnings_last_month = (data.direct_earnings_last_month * 0.8) + data.sales_commissions_last_month + data.consultant_commissions_last_month + data.client_commissions_last_month;
+
+  return data;
+};
+
+export const getSampleData = (scenario: ScenarioType, consultantId: string = 'demo_consultant'): ConsultantData => {
+  const baseData = generateBaseData();
+  const scenarioData = applyScenario(baseData, scenario);
+  
+  return {
+    consultant_id: consultantId,
+    ...scenarioData
+  };
+};
+
+// Helper to get all scenarios for testing
+export const getAllScenarios = (consultantId: string = 'demo_consultant'): Record<ScenarioType, ConsultantData> => {
+  const scenarios: ScenarioType[] = [
+    'highPerformer', 
+    'teamEarningsOnly', 
+    'growingConsultant', 
+    'enterpriseFocus',
+    'startupSpecialist',
+    'balancedPortfolio'
+  ];
+  
+  return scenarios.reduce((acc, scenario) => {
+    acc[scenario] = getSampleData(scenario, consultantId);
+    return acc;
+  }, {} as Record<ScenarioType, ConsultantData>);
+};

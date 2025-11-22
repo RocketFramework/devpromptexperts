@@ -1,316 +1,688 @@
-// components/dashboard/ConsultantDashboard.tsx
+// components/consultant/ConsultantDashboard.tsx
 "use client";
 
+import { MetricCard, RevenueStream, IndustryChart } from "@/components/ui";
+import { formatCurrency, formatPercent, calculateTrend } from "@/utils/general";
+import { ConsultantData } from "@/types";
+import {
+  getEarningsStatus,
+  getProjectHealthStatus,
+  getSuccessRateStatus,
+  getRetentionStatus,
+  getEarningsComposition,
+  calculateMonthlyGrowth,
+  calculateOverallGrowth,
+  calculateTargetAchievement,
+} from "@/utils/general";
+import ProfileCompleteness from "@/components/consultant/ProfileCompleteness";
 import { useState } from "react";
-import DashboardStats from "./DashboardStats";
-import ProjectsSection from "./ProjectsSection";
-import MarketInsights from "./MarketInsights";
-import TeamNetwork from "./TeamNetwork";
-import ProfileCompleteness from "./ProfileCompleteness";
-import QuickActions from "./QuickActions";
-import DueInvoices from "./DueInvoice";
-import EnhancedNetSettlement from "./EnhancedNetSettlement";
-import CommissionBreakdown from "./CommissionBreakdown";
-import CommissionEarnings from "./CommissionEarnings";
-import Link from "next/link";
-import type { 
-  Consultant, 
-  Project, 
-  Invoice, 
-  TeamMember, 
-  SalesCommission, 
-  CommissionSummary,
-  DashboardStats as DashboardStatsType 
-} from "@/types/interfaces";
 
-interface ConsultantDashboardProps {
-  consultant: Consultant;
-  commissionSummary?: CommissionSummary;
-  marketInsights: string[];
-  teamData: TeamMember[];
-  profileScore: number;
-  dueInvoices: Invoice[];
-  completedProjects: Project[];
-  upcomingProjects: Project[];
-  salesCommissions: SalesCommission[];
-}
-
-// Safe default commission summary
-const defaultCommissionSummary: CommissionSummary = {
-  direct_earnings: 0,
-  direct_commission_due: 0,
-  team_commissions_earned: 0,
-  team_members_count: 0,
-  team_levels: [],
-  sales_commissions: 0,
-  sales_referrals_count: 0,
-  total_gross_earnings: 0,
-  total_commission_owed: 0,
-  net_earnings: 0,
-};
-
-export default function ConsultantDashboard({
-  consultant,
-  commissionSummary,
-  marketInsights = [],
-  teamData = [],
-  profileScore = 0,
-  dueInvoices = [],
-  completedProjects = [],
-  upcomingProjects = [],
-  salesCommissions = [],
-}: ConsultantDashboardProps) {
-
-  const [activeView, setActiveView] = useState<
-    "overview" | "projects" | "team" | "earnings" | "commissions"
-  >("overview");
-
-  // Safe defaults for all data
-  const safeCommissionSummary = commissionSummary || defaultCommissionSummary;
-  const safeConsultant = consultant || { user_id: 'unknown', title: 'Consultant' };
-
-  // Calculate totals from actual project data if commission summary is not provided
-  const calculatedDirectEarnings = completedProjects.reduce((sum, project) => sum + project.your_earnings, 0);
-  const calculatedDirectCommission = completedProjects.reduce((sum, project) => sum + project.platform_commission, 0);
-
-  // Use provided commission summary or calculate from projects
-  const effectiveCommissionSummary: CommissionSummary = commissionSummary ? safeCommissionSummary : {
-    ...defaultCommissionSummary,
-    direct_earnings: calculatedDirectEarnings,
-    direct_commission_due: calculatedDirectCommission,
-    team_commissions_earned: teamData.reduce((sum, member) => sum + member.your_commission, 0),
-    team_members_count: teamData.length,
-    sales_commissions: salesCommissions.reduce((sum, sale) => sum + sale.commission_amount, 0),
-    sales_referrals_count: salesCommissions.length,
-    total_gross_earnings: calculatedDirectEarnings + 
-      teamData.reduce((sum, member) => sum + member.your_commission, 0) +
-      salesCommissions.reduce((sum, sale) => sum + sale.commission_amount, 0),
-    total_commission_owed: calculatedDirectCommission,
-    net_earnings: calculatedDirectEarnings + 
-      teamData.reduce((sum, member) => sum + member.your_commission, 0) +
-      salesCommissions.reduce((sum, sale) => sum + sale.commission_amount, 0) -
-      calculatedDirectCommission,
-  };
-
-  // Transform for DashboardStats component
-  const transformedStats: DashboardStatsType = {
-    // Direct work stats
-    completedProjects: completedProjects.length,
-    upcomingProjects: upcomingProjects.length,
-    directEarnings: effectiveCommissionSummary.direct_earnings,
-    directCommissionDue: effectiveCommissionSummary.direct_commission_due,
-    
-    // Team commission stats
-    teamCommissionEarned: effectiveCommissionSummary.team_commissions_earned,
-    teamMembers: effectiveCommissionSummary.team_members_count,
-    
-    // Sales commission stats
-    salesCommissions: effectiveCommissionSummary.sales_commissions,
-    salesReferrals: effectiveCommissionSummary.sales_referrals_count,
-    
-    // Totals
-    totalGrossEarnings: effectiveCommissionSummary.total_gross_earnings,
-    totalCommissionOwed: effectiveCommissionSummary.total_commission_owed,
-    netEarnings: effectiveCommissionSummary.net_earnings,
-    
-    // Flags for display logic
-    hasPersonalProjects: completedProjects.length > 0,
-    hasTeamEarnings: effectiveCommissionSummary.team_commissions_earned > 0,
-    hasSalesCommissions: effectiveCommissionSummary.sales_commissions > 0,
-  };
+// Tooltip Component
+const Tooltip = ({
+  content,
+  children,
+}: {
+  content: string;
+  children: React.ReactNode;
+}) => {
+  const [showTooltip, setShowTooltip] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600 mt-1">
-                Welcome back, {safeConsultant.title}!
+    <div className="relative inline-block">
+      <div
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        className="cursor-help"
+      >
+        {children}
+      </div>
+      {showTooltip && (
+        <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-sm rounded-lg shadow-lg w-80">
+          {content}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default function ConsultantDashboard(data: ConsultantData) {
+  // Calculate dynamic percentages for revenue streams
+  const earningsComposition = getEarningsComposition(data);
+
+  // Industry data for the chart
+  const industryData = {
+    "Technology SaaS": data.earnings_technology_saas,
+    "Financial Services": data.earnings_financial_services,
+    Healthcare: data.earnings_healthcare,
+    "E-commerce": data.earnings_ecommerce_retail,
+    Manufacturing: data.earnings_manufacturing,
+    "Energy & Utilities": data.earnings_energy_utilities,
+    Telecommunications: data.earnings_telecommunications,
+    "Media & Entertainment": data.earnings_media_entertainment,
+    Education: data.earnings_education,
+    Government: data.earnings_government,
+    "Startups & VC": data.earnings_startups_vc,
+    "Consulting Services": data.earnings_consulting_services,
+    Other: data.earnings_other,
+  };
+
+  // Filter industries with significant earnings
+  const significantIndustries = Object.entries(industryData)
+    .filter(([_, amount]) => amount > 1000)
+    .sort(([_, a], [__, b]) => (b as number) - (a as number))
+    .slice(0, 6)
+    .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+
+  // Calculate profile completeness score based on data completeness
+  const calculateProfileScore = () => {
+    let score = 70; // Base score
+
+    // Add points for having significant industry earnings
+    if (Object.keys(significantIndustries).length >= 3) score += 10;
+
+    // Add points for good client retention
+    if (data.client_retention_rate_percent > 75) score += 10;
+
+    // Add points for having team members
+    if (data.consultants_team_count > 0) score += 5;
+    if (data.sales_team_count > 0) score += 5;
+
+    return Math.min(100, score);
+  };
+
+  const profileScore = calculateProfileScore();
+
+  return (
+    <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              Performance Dashboard
+            </h1>
+            <Tooltip content="Real-time updates of your business performance metrics">
+              <p className="text-slate-600 mt-1 flex items-center text-sm">
+                <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                Live business insights
               </p>
-              <div className="flex space-x-4 mt-2">
-                <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">
-                  Direct Projects: {completedProjects.length}
-                </span>
-                <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                  Team Members: {effectiveCommissionSummary.team_members_count}
-                </span>
-                <span className="text-sm text-purple-600 bg-purple-100 px-2 py-1 rounded">
-                  Sales Referrals: {effectiveCommissionSummary.sales_referrals_count}
-                </span>
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-4">
+            <Tooltip content="Your unique consultant identifier">
+              <div className="text-right">
+                <p className="text-xs text-slate-500">Consultant ID</p>
+                <p className="font-semibold text-slate-900 text-sm">
+                  {data.consultant_id}
+                </p>
               </div>
-            </div>
-            <div className="flex space-x-3">
-              <Link
-                href="/settings"
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Settings
-              </Link>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                New Project
-              </button>
-            </div>
+            </Tooltip>
+            <Tooltip content="Last data refresh time">
+              <div className="text-right">
+                <p className="text-xs text-slate-500">Last updated</p>
+                <p className="font-semibold text-slate-900 text-sm">
+                  {new Date().toLocaleTimeString()}
+                </p>
+              </div>
+            </Tooltip>
           </div>
         </div>
-      </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
-            {[
-              { id: "overview", name: "Overview", count: null },
-              { id: "projects", name: "Projects", count: completedProjects.length + upcomingProjects.length },
-              { id: "team", name: "Team", count: effectiveCommissionSummary.team_members_count },
-              { id: "commissions", name: "Commissions", count: null },
-              { id: "earnings", name: "Earnings", count: null },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveView(tab.id as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeView === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          {/* Net Earnings */}
+          <MetricCard
+            title={
+              <Tooltip content="Total earnings after all expenses and commissions">
+                Net Earnings
+              </Tooltip>
+            }
+            value={
+              <Tooltip
+                content={`Cumulative net income: ${formatCurrency(
+                  data.net_earnings
+                )}`}
               >
-                {tab.name}
-                {tab.count !== null && (
-                  <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Show loading state if no data */}
-        {!commissionSummary && completedProjects.length === 0 && teamData.length === 0 && salesCommissions.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Dashboard...</h3>
-            <p className="text-gray-500">We're preparing your commission data</p>
-          </div>
-        ) : (
-          <>
-            {/* Overview Tab */}
-            {activeView === "overview" && (
-              <div className="space-y-8">
-                <DashboardStats stats={transformedStats} />
-                
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 space-y-8">
-                    <ProjectsSection
-                      completedProjects={completedProjects}
-                      upcomingProjects={upcomingProjects}
-                    />
-                    
-                    <EnhancedNetSettlement
-                      commissionSummary={effectiveCommissionSummary}
-                    />
-
-                    {dueInvoices.length > 0 && <DueInvoices invoices={dueInvoices} />}
-                  </div>
-
-                  <div className="space-y-8">
-                    <ProfileCompleteness
-                      score={profileScore}
-                      consultantId={safeConsultant.user_id}
-                    />
-                    <QuickActions />
-                    <MarketInsights insights={marketInsights} />
-                  </div>
+                {formatCurrency(data.net_earnings)}
+              </Tooltip>
+            }
+            trend={calculateTrend(
+              data.net_earnings_this_month,
+              data.net_earnings_last_month
+            )}
+            subtitle={
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Earnings for current month">
+                    <span className="text-slate-500">This Month</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Current month: ${formatCurrency(
+                      data.net_earnings_this_month
+                    )}`}
+                  >
+                    <span className="font-semibold text-green-700">
+                      {formatCurrency(data.net_earnings_this_month)}
+                    </span>
+                  </Tooltip>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Earnings from previous month">
+                    <span className="text-slate-500">Last Month</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Previous month: ${formatCurrency(
+                      data.net_earnings_last_month
+                    )}`}
+                  >
+                    <span className="font-semibold text-blue-700">
+                      {formatCurrency(data.net_earnings_last_month)}
+                    </span>
+                  </Tooltip>
                 </div>
               </div>
+            }
+            icon="💎"
+            gradient="from-purple-500 to-pink-500"
+            status={getEarningsStatus(
+              data.net_earnings_this_month,
+              data.net_earnings_last_month
             )}
+          />
 
-            {/* Projects Tab */}
-            {activeView === "projects" && (
-              <div className="space-y-8">
-                <ProjectsSection
-                  completedProjects={completedProjects}
-                  upcomingProjects={upcomingProjects}
-                />
-
+          {/* Active Projects */}
+          <MetricCard
+            title={
+              <Tooltip content="Currently running and upcoming projects">
+                Project Pipeline
+              </Tooltip>
+            }
+            value={
+              <Tooltip
+                content={`Total active projects: ${data.active_projects_count}`}
+              >
+                {data.active_projects_count}
+              </Tooltip>
+            }
+            trend={calculateTrend(
+              data.active_projects_this_month,
+              data.active_projects_next_month
+            )}
+            subtitle={
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Projects started this month">
+                    <span className="text-slate-500">This Month</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Started this month: ${data.active_projects_this_month}`}
+                  >
+                    <span className="font-semibold text-blue-700">
+                      {data.active_projects_this_month}
+                    </span>
+                  </Tooltip>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Projects scheduled for next month">
+                    <span className="text-slate-500">Next Month</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Starting next month: ${data.active_projects_next_month}`}
+                  >
+                    <span className="font-semibold text-cyan-700">
+                      {data.active_projects_next_month}
+                    </span>
+                  </Tooltip>
+                </div>
               </div>
+            }
+            icon="🚀"
+            gradient="from-blue-500 to-cyan-500"
+            status={getProjectHealthStatus(
+              data.active_projects_count,
+              data.completed_projects_count
             )}
+          />
 
-            {/* Team Tab */}
-            {activeView === "team" && (
-              <div className="space-y-8">
-                <TeamNetwork
-                  teamData={teamData}
-                  commissionSummary={effectiveCommissionSummary}
-                />
-                <CommissionBreakdown
-                  commissionSummary={effectiveCommissionSummary}
-                  type="team"
-                />
+          {/* Success Rate */}
+          <MetricCard
+            title={
+              <Tooltip content="Percentage of projects completed successfully">
+                Project Success
+              </Tooltip>
+            }
+            value={
+              <Tooltip
+                content={`Success rate: ${formatPercent(
+                  data.project_success_rate
+                )}`}
+              >
+                {formatPercent(data.project_success_rate)}
+              </Tooltip>
+            }
+            trend={calculateTrend(
+              data.completed_projects_count_this_month /
+                (data.total_projects_count_this_month || 1),
+              data.completed_projects_count_last_month /
+                (data.total_projects_count_last_month || 1)
+            )}
+            subtitle={
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Success rate for current month">
+                    <span className="text-slate-500">This Month</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Current month: ${formatPercent(
+                      data.completed_projects_count_this_month /
+                        (data.total_projects_count_this_month || 1)
+                    )}`}
+                  >
+                    <span className="font-semibold text-green-700">
+                      {formatPercent(
+                        data.completed_projects_count_this_month /
+                          (data.total_projects_count_this_month || 1)
+                      )}
+                    </span>
+                  </Tooltip>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Success rate from previous month">
+                    <span className="text-slate-500">Last Month</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Previous month: ${formatPercent(
+                      data.completed_projects_count_last_month /
+                        (data.total_projects_count_last_month || 1)
+                    )}`}
+                  >
+                    <span className="font-semibold text-emerald-700">
+                      {formatPercent(
+                        data.completed_projects_count_last_month /
+                          (data.total_projects_count_last_month || 1)
+                      )}
+                    </span>
+                  </Tooltip>
+                </div>
               </div>
-            )}
+            }
+            icon="🎯"
+            gradient="from-green-500 to-emerald-500"
+            status={getSuccessRateStatus(data.project_success_rate)}
+          />
 
-            {/* Commissions Tab */}
-            {activeView === "commissions" && (
-              <div className="space-y-8">
-                <CommissionBreakdown
-                  commissionSummary={effectiveCommissionSummary}
-                  type="all"
-                />
-                
-                {/* Sales Commissions Section */}
-                {salesCommissions.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Sales Referral Commissions
-                    </h3>
-                    <div className="space-y-4">
-                      {salesCommissions.map((sale) => (
-                        <div key={sale.id} className="flex justify-between items-center p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-900">{sale.client_name}</p>
-                            <p className="text-sm text-gray-600">
-                              Project Value: ${sale.project_value.toLocaleString()} 
-                              • Commission: {sale.commission_rate}%
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-green-600">
-                              +${sale.commission_amount.toLocaleString()}
-                            </p>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              sale.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {sale.status === 'paid' ? 'Paid' : 'Pending'}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+          {/* Client Retention */}
+          <MetricCard
+            title={
+              <Tooltip content="Percentage of clients who return for additional projects">
+                Client Loyalty
+              </Tooltip>
+            }
+            value={
+              <Tooltip
+                content={`Retention rate: ${data.client_retention_rate_percent}%`}
+              >
+                {formatPercent(data.client_retention_rate_percent / 100)}
+              </Tooltip>
+            }
+            trend={calculateTrend(
+              data.repeating_clients_count / (data.clients_team_count || 1),
+              (
+                data.repeating_clients_count) /
+                (data.clients_team_count - data.clients_team_count_this_month ||
+                  1)
+            )}
+            subtitle={
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Clients with multiple projects">
+                    <span className="text-slate-500">Loyal Clients</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Returning clients: ${data.repeating_clients_count}`}
+                  >
+                    <span className="font-semibold text-purple-700">
+                      {data.repeating_clients_count}
+                    </span>
+                  </Tooltip>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <Tooltip content="Clients with single project">
+                    <span className="text-slate-500">One-time Clients</span>
+                  </Tooltip>
+                  <Tooltip
+                    content={`Single project clients: ${data.one_time_clients_count}`}
+                  >
+                    <span className="font-semibold text-pink-700">
+                      {data.one_time_clients_count}
+                    </span>
+                  </Tooltip>
+                </div>
+              </div>
+            }
+            icon="🔄"
+            gradient="from-purple-500 to-pink-500"
+            status={getRetentionStatus(data.client_retention_rate_percent)}
+          />
+        </div>
+
+        {/* Earnings Breakdown */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Revenue Streams
+                </h3>
+                <Tooltip content="Breakdown of all income sources with growth trends">
+                  <p className="text-slate-600 text-sm">
+                    Income sources overview
+                  </p>
+                </Tooltip>
+              </div>
+              <Tooltip content="Data updates in real-time">
+                <div className="flex items-center space-x-2 text-xs">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-slate-500">Live</span>
+                </div>
+              </Tooltip>
+            </div>
+
+            {/* Revenue Streams Section */}
+            <div className="space-y-3">
+              <RevenueStream
+                name={
+                  <Tooltip content="Income from your direct client projects and consulting work">
+                    Direct Projects
+                  </Tooltip>
+                }
+                amount={
+                  <Tooltip
+                    content={`Total direct earnings: ${formatCurrency(
+                      data.direct_earnings_my_earnings
+                    )}`}
+                  >
+                    {formatCurrency(data.direct_earnings_my_earnings)}
+                  </Tooltip>
+                }
+                percentage={
+                  <Tooltip
+                    content={`${Math.round(
+                      earningsComposition.direct.percentage
+                    )}% of total revenue comes from direct projects`}
+                  >
+                    {Math.round(earningsComposition.direct.percentage)}
+                  </Tooltip>
+                }
+                color="bg-gradient-to-r from-blue-500 to-cyan-500"
+                trend={calculateTrend(
+                  data.direct_earnings_this_month,
+                  data.direct_earnings_last_month
                 )}
-              </div>
-            )}
+                description={
+                  <Tooltip content="Your core consulting work with direct client engagements">
+                    Your core consulting work
+                  </Tooltip>
+                }
+                growthRate={
+                  <Tooltip
+                    content={`Monthly growth rate: ${calculateMonthlyGrowth(
+                      data.direct_earnings_this_month,
+                      data.direct_earnings_last_month
+                    )}%`}
+                  >
+                    {calculateMonthlyGrowth(
+                      data.direct_earnings_this_month,
+                      data.direct_earnings_last_month
+                    )}
+                  </Tooltip>
+                }
+                targetAmount={
+                  <Tooltip
+                    content={`Target for this revenue stream: ${formatCurrency(
+                      data.direct_earnings_last_month * 1.2
+                    )}`}
+                  >
+                    {formatCurrency(data.direct_earnings_last_month * 1.2)}
+                  </Tooltip>
+                }
+              />
 
-            {/* Earnings Tab */}
-            {activeView === "earnings" && (
-              <div className="space-y-8">
-                <CommissionEarnings commissionSummary={effectiveCommissionSummary} />
-                {dueInvoices.length > 0 && <DueInvoices invoices={dueInvoices} />}
-                <EnhancedNetSettlement commissionSummary={effectiveCommissionSummary} />
+              <RevenueStream
+                name={
+                  <Tooltip content="Commissions earned from your consultant team network">
+                    Team Commissions
+                  </Tooltip>
+                }
+                amount={
+                  <Tooltip
+                    content={`Total team commissions: ${formatCurrency(
+                      data.consultant_commissions
+                    )}`}
+                  >
+                    {formatCurrency(data.consultant_commissions)}
+                  </Tooltip>
+                }
+                percentage={
+                  <Tooltip
+                    content={`${Math.round(
+                      earningsComposition.team.percentage
+                    )}% of total revenue comes from team commissions`}
+                  >
+                    {Math.round(earningsComposition.team.percentage)}
+                  </Tooltip>
+                }
+                color="bg-gradient-to-r from-green-500 to-emerald-500"
+                trend={calculateTrend(
+                  data.consultant_commissions_this_month,
+                  data.consultant_commissions_last_month
+                )}
+                description={
+                  <Tooltip content="Passive income from consultants in your network">
+                    From your consultant network
+                  </Tooltip>
+                }
+                growthRate={
+                  <Tooltip
+                    content={`Monthly growth rate: ${calculateMonthlyGrowth(
+                      data.consultant_commissions_this_month,
+                      data.consultant_commissions_last_month
+                    )}%`}
+                  >
+                    {calculateMonthlyGrowth(
+                      data.consultant_commissions_this_month,
+                      data.consultant_commissions_last_month
+                    )}
+                  </Tooltip>
+                }
+                targetAmount={
+                  <Tooltip
+                    content={`Target for this revenue stream: ${formatCurrency(
+                      data.consultant_commissions_last_month * 1.3
+                    )}`}
+                  >
+                    {formatCurrency(data.consultant_commissions_last_month * 1.3)}
+                  </Tooltip>
+                }
+              />
+
+              <RevenueStream
+                name={
+                  <Tooltip content="Commissions from your sales team performance">
+                    Sales Commissions
+                  </Tooltip>
+                }
+                amount={
+                  <Tooltip
+                    content={`Total sales commissions: ${formatCurrency(
+                      data.sales_commissions
+                    )}`}
+                  >
+                    {formatCurrency(data.sales_commissions)}
+                  </Tooltip>
+                }
+                percentage={
+                  <Tooltip
+                    content={`${Math.round(
+                      earningsComposition.sales.percentage
+                    )}% of total revenue comes from sales commissions`}
+                  >
+                    {Math.round(earningsComposition.sales.percentage)}
+                  </Tooltip>
+                }
+                color="bg-gradient-to-r from-purple-500 to-pink-500"
+                trend={calculateTrend(
+                  data.sales_commissions_this_month,
+                  data.sales_commissions_last_month
+                )}
+                description={
+                  <Tooltip content="Income generated by your sales team members">
+                    From your sales team
+                  </Tooltip>
+                }
+                growthRate={
+                  <Tooltip
+                    content={`Monthly growth rate: ${calculateMonthlyGrowth(
+                      data.sales_commissions_this_month,
+                      data.sales_commissions_last_month
+                    )}%`}
+                  >
+                    {calculateMonthlyGrowth(
+                      data.sales_commissions_this_month,
+                      data.sales_commissions_last_month
+                    )}
+                  </Tooltip>
+                }
+                targetAmount={
+                  <Tooltip
+                    content={`Target for this revenue stream: ${formatCurrency(
+                      data.sales_commissions_last_month * 1.4
+                    )}`}
+                  >
+                    {formatCurrency(data.sales_commissions_last_month * 1.4)}
+                  </Tooltip>
+                }
+              />
+
+              <RevenueStream
+                name={
+                  <Tooltip content="Referral commissions from your client network">
+                    Client Referrals
+                  </Tooltip>
+                }
+                amount={
+                  <Tooltip
+                    content={`Total client referral commissions: ${formatCurrency(
+                      data.client_commissions
+                    )}`}
+                  >
+                    {formatCurrency(data.client_commissions)}
+                  </Tooltip>
+                }
+                percentage={
+                  <Tooltip
+                    content={`${Math.round(
+                      earningsComposition.client.percentage
+                    )}% of total revenue comes from client referrals`}
+                  >
+                    {Math.round(earningsComposition.client.percentage)}
+                  </Tooltip>
+                }
+                color="bg-gradient-to-r from-orange-500 to-red-500"
+                trend={calculateTrend(
+                  data.client_commissions_this_month,
+                  data.client_commissions_last_month
+                )}
+                description={
+                  <Tooltip content="Passive income from clients who refer new business">
+                    Client network referrals
+                  </Tooltip>
+                }
+                growthRate={
+                  <Tooltip
+                    content={`Monthly growth rate: ${calculateMonthlyGrowth(
+                      data.client_commissions_this_month,
+                      data.client_commissions_last_month
+                    )}%`}
+                  >
+                    {calculateMonthlyGrowth(
+                      data.client_commissions_this_month,
+                      data.client_commissions_last_month
+                    )}
+                  </Tooltip>
+                }
+                targetAmount={
+                  <Tooltip
+                    content={`Target for this revenue stream: ${formatCurrency(
+                      data.client_commissions_last_month * 1.5
+                    )}`}
+                  >
+                    {formatCurrency(data.client_commissions_last_month * 1.5)}
+                  </Tooltip>
+                }
+              />
+            </div>
+
+            {/* Total Performance Summary */}
+            <div className="mt-4 pt-3 border-t border-slate-200">
+              <div className="flex justify-between items-center mb-1">
+                <Tooltip content="Total revenue after all deductions">
+                  <span className="text-slate-700 font-semibold text-sm">
+                    Total Net Revenue
+                  </span>
+                </Tooltip>
+                <Tooltip
+                  content={`Final net amount: ${formatCurrency(
+                    data.net_earnings
+                  )}`}
+                >
+                  <span className="text-lg font-bold text-slate-900">
+                    {formatCurrency(data.net_earnings)}
+                  </span>
+                </Tooltip>
               </div>
-            )}
-          </>
-        )}
+              <div className="flex flex-col sm:flex-row justify-between text-xs text-slate-600 gap-1">
+                <Tooltip content="Month-over-month growth percentage">
+                  <span>
+                    Monthly Growth:{" "}
+                    <strong className="text-green-600">
+                      +{calculateOverallGrowth(data)}%
+                    </strong>
+                  </span>
+                </Tooltip>
+                <Tooltip content="Progress towards monthly targets">
+                  <span>
+                    Target:{" "}
+                    <strong className="text-blue-600">
+                      {calculateTargetAchievement(data)}%
+                    </strong>
+                  </span>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-4">
+            {/* Industry Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+              <IndustryChart
+                data={significantIndustries}
+                maxItems={6}
+                showPercentages={true}
+                showBarChart={true}
+                title="Industry Distribution"
+              />
+            </div>
+
+            {/* Profile Completeness */}
+            <ProfileCompleteness
+              score={profileScore}
+              consultantId={data.consultant_id}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
