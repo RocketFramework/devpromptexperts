@@ -9,10 +9,11 @@ import {
   FaUser,
   FaChevronDown,
   FaSignOutAlt,
-  FaGraduationCap, // Added for induction icon
+  FaBell,
+  FaGraduationCap,
 } from "react-icons/fa";
 
-// Navigation configuration
+// Navigation configuration - KEEP EXISTING
 const getMainNavigation = (userRole: string) => {
   const baseLinks = [
     { href: "/", label: "Home" },
@@ -21,7 +22,6 @@ const getMainNavigation = (userRole: string) => {
     { href: "/blog", label: "Blog" },
   ];
 
-  // Only show "Become a Consultant" for non-consultant users
   if (userRole !== "consultant") {
     baseLinks.splice(2, 0, {
       href: "/onboarding",
@@ -39,11 +39,6 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         name: "Dashboard",
         href: `/consultant/dashboard`,
         icon: "📊",
-      },
-      {
-        name: "Induction", // ADDED INDUCTION LINK
-        href: `/consultant/induction`,
-        icon: "🎓",
       },
       {
         name: "Projects",
@@ -68,11 +63,6 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         icon: "📋",
       },
       {
-        name: "Induction", // ADDED INDUCTION LINK
-        href: `/client/induction`,
-        icon: "🎓",
-      },
-      {
         name: "Find Consultants",
         href: `/client/consultants`,
         icon: "🔍",
@@ -83,11 +73,6 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         name: "Leads",
         href: `/seller/leads`,
         icon: "🎯",
-      },
-      {
-        name: "Induction", // ADDED INDUCTION LINK
-        href: `/seller/induction`,
-        icon: "🎓",
       },
       {
         name: "Commissions",
@@ -111,16 +96,12 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
   ];
 };
 
-// NEW: Check if user has completed induction
-const hasCompletedInduction = (completedSteps: string[], totalSteps: number) => {
-  return completedSteps.length >= totalSteps;
-};
-
 export default function Navbar() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); 
   const [inductionProgress, setInductionProgress] = useState<{completed: number; total: number} | null>(null);
 
   const userRole = session?.user?.role || "client";
@@ -129,27 +110,13 @@ export default function Navbar() {
   const mainNavigation = getMainNavigation(userRole);
   const dashboardNavigation = getDashboardNavigation(userRole, userId);
 
-  // NEW: Fetch induction progress
+  // Mock induction progress
   useEffect(() => {
     if (session?.user?.id) {
-      // You might want to fetch actual induction progress from your API
-      // For now, we'll use a mock or you can integrate with your InductionService
-      const fetchInductionProgress = async () => {
-        try {
-          // Example: Replace with actual API call
-          // const progress = await InductionService.getInductionProgress(session.user.id, userRole);
-          // setInductionProgress({completed: progress.completed, total: progress.total});
-          
-          // Mock data for demonstration
-          setInductionProgress({completed: 1, total: 4});
-        } catch (error) {
-          console.error("Failed to fetch induction progress:", error);
-        }
-      };
-      
-      fetchInductionProgress();
+      // Mock data - replace with actual API call
+      setInductionProgress({completed: 1, total: 4});
     }
-  }, [session, userRole]);
+  }, [session]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -159,6 +126,7 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
     setIsProfileDropdownOpen(false);
     setIsAuthDropdownOpen(false);
+    setIsNotificationsOpen(false);
   };
 
   const handleSignOut = async () => {
@@ -175,27 +143,9 @@ export default function Navbar() {
       .slice(0, 2);
   };
 
-  // NEW: Get induction badge for desktop
-  const getInductionBadge = () => {
-    if (!inductionProgress) return null;
-    
-    const { completed, total } = inductionProgress;
-    const isCompleted = completed >= total;
-    
-    if (isCompleted) {
-      return (
-        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full ml-2">
-          ✓ Complete
-        </span>
-      );
-    } else {
-      return (
-        <span className="bg-amber-500 text-white text-xs px-2 py-1 rounded-full ml-2">
-          {completed}/{total}
-        </span>
-      );
-    }
-  };
+  // Check if induction is incomplete
+  const hasIncompleteInduction = inductionProgress && 
+    inductionProgress.completed < inductionProgress.total;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -207,11 +157,14 @@ export default function Navbar() {
       if (!target.closest(".auth-dropdown") && isAuthDropdownOpen) {
         setIsAuthDropdownOpen(false);
       }
+      if (!target.closest(".notifications-dropdown") && isNotificationsOpen) {
+        setIsNotificationsOpen(false);
+      }
     };
 
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, [isProfileDropdownOpen, isAuthDropdownOpen]);
+  }, [isProfileDropdownOpen, isAuthDropdownOpen, isNotificationsOpen]);
 
   return (
     <nav className="bg-gradient-to-r from-blue-950 to-black text-white shadow-lg relative">
@@ -250,23 +203,80 @@ export default function Navbar() {
               </div>
             ) : session?.user ? (
               // Logged-in user - Desktop
-              <div className="hidden md:flex items-center">
-                {/* Induction Progress Badge - NEW */}
-                {inductionProgress && !hasCompletedInduction(
-                  Array(inductionProgress.completed).fill('step'), 
-                  inductionProgress.total
-                ) && (
-                  <Link 
-                    href={`/${userRole}/induction`}
-                    className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 px-3 py-2 rounded-lg mr-4 transition"
+              <div className="hidden md:flex items-center space-x-3">
+                {/* Notifications Bell - NEW */}
+                <div className="relative notifications-dropdown">
+                  <button
+                    className="relative p-2 rounded-lg hover:bg-blue-900 transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsNotificationsOpen(!isNotificationsOpen);
+                    }}
                   >
-                    <FaGraduationCap className="text-sm" />
-                    <span className="text-sm font-medium">Complete Induction</span>
-                    <span className="bg-white text-amber-600 text-xs px-2 py-1 rounded-full">
-                      {inductionProgress.completed}/{inductionProgress.total}
-                    </span>
-                  </Link>
-                )}
+                    <FaBell className="text-lg" />
+                    {hasIncompleteInduction && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                        {inductionProgress.total - inductionProgress.completed}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Notifications Dropdown */}
+                  {isNotificationsOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-80 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200">
+                      <div className="p-4 border-b border-slate-200">
+                        <h3 className="font-semibold text-sm">Notifications</h3>
+                      </div>
+                      
+                      {/* Induction Notification */}
+                      {hasIncompleteInduction && (
+                        <div className="p-4 border-b border-slate-100">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center mt-1">
+                              <FaGraduationCap className="text-white text-sm" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="font-semibold text-sm">Complete Your Induction</p>
+                                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">
+                                  {inductionProgress.completed}/{inductionProgress.total}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-600 mb-3">
+                                Finish your induction to unlock all platform features
+                              </p>
+                              <Link
+                                href={`/${userRole}/induction`}
+                                className="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3 py-2 rounded-lg font-medium transition"
+                                onClick={closeAllMenus}
+                              >
+                                Continue Induction
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Empty State */}
+                      {!hasIncompleteInduction && (
+                        <div className="p-8 text-center">
+                          <FaBell className="text-gray-400 text-2xl mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">No new notifications</p>
+                        </div>
+                      )}
+
+                      <div className="p-2 border-t border-slate-200">
+                        <Link
+                          href="/notifications"
+                          className="block text-center text-xs text-blue-600 hover:text-blue-700 py-2"
+                          onClick={closeAllMenus}
+                        >
+                          View All Notifications
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* User Profile Dropdown */}
                 <div className="relative profile-dropdown">
@@ -301,7 +311,7 @@ export default function Navbar() {
 
                   {/* Profile Dropdown Menu */}
                   {isProfileDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-72 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200">
+                    <div className="absolute top-full right-0 mt-2 w-64 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200">
                       {/* User Info */}
                       <div className="p-4 border-b border-slate-200">
                         <div className="flex items-center space-x-3">
@@ -315,7 +325,11 @@ export default function Navbar() {
                             <p className="text-xs text-gray-600 capitalize">
                               {userRole}
                             </p>
-                            {inductionProgress && getInductionBadge()}
+                            {inductionProgress && (
+                              <p className="text-xs text-amber-600 font-medium mt-1">
+                                Induction: {inductionProgress.completed}/{inductionProgress.total}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -334,17 +348,26 @@ export default function Navbar() {
                           >
                             <span className="text-base">{link.icon}</span>
                             <span>{link.name}</span>
-                            {link.name === "Induction" && inductionProgress && (
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                inductionProgress.completed >= inductionProgress.total 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-amber-100 text-amber-800'
-                              }`}>
-                                {inductionProgress.completed}/{inductionProgress.total}
-                              </span>
-                            )}
                           </Link>
                         ))}
+                        {/* Add Induction Link */}
+                        <Link
+                          href={`/${userRole}/induction`}
+                          className="flex items-center space-x-3 px-3 py-2 text-sm hover:bg-slate-100 rounded transition"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <span className="text-base">🎓</span>
+                          <span>Induction</span>
+                          {inductionProgress && (
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              inductionProgress.completed >= inductionProgress.total 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {inductionProgress.completed}/{inductionProgress.total}
+                            </span>
+                          )}
+                        </Link>
                       </div>
 
                       {/* Settings & Sign Out */}
@@ -370,7 +393,7 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              // Not logged in - Desktop
+              // Not logged in - Desktop (unchanged)
               <div className="hidden md:flex items-center space-x-4">
                 <div className="relative auth-dropdown">
                   <button 
@@ -443,11 +466,8 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              {/* Induction Progress for Mobile - NEW */}
-              {session?.user && inductionProgress && !hasCompletedInduction(
-                Array(inductionProgress.completed).fill('step'), 
-                inductionProgress.total
-              ) && (
+              {/* Induction Notification for Mobile */}
+              {hasIncompleteInduction && (
                 <Link
                   href={`/${userRole}/induction`}
                   className="flex items-center justify-between py-3 px-4 bg-amber-500 hover:bg-amber-600 rounded-lg transition"
@@ -455,15 +475,18 @@ export default function Navbar() {
                 >
                   <div className="flex items-center space-x-3">
                     <FaGraduationCap />
-                    <span className="font-medium">Complete Induction</span>
+                    <div>
+                      <p className="font-medium">Complete Induction</p>
+                      <p className="text-xs opacity-90">{inductionProgress.completed}/{inductionProgress.total} steps done</p>
+                    </div>
                   </div>
                   <span className="bg-white text-amber-600 text-xs px-2 py-1 rounded-full font-bold">
-                    {inductionProgress.completed}/{inductionProgress.total}
+                    {inductionProgress.total - inductionProgress.completed}
                   </span>
                 </Link>
               )}
 
-              {/* AUTH LINKS FOR MOBILE */}
+              {/* Rest of mobile menu remains the same */}
               {!session?.user && (
                 <div className="pt-2 border-t border-blue-800">
                   <p className="px-4 py-2 text-blue-300 text-sm font-semibold uppercase">
@@ -506,24 +529,29 @@ export default function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="flex items-center justify-between py-2 px-4 hover:bg-blue-900 rounded-lg transition"
+                      className="flex items-center space-x-3 py-2 px-4 hover:bg-blue-900 rounded-lg transition"
                       onClick={closeAllMenus}
                     >
-                      <div className="flex items-center space-x-3">
-                        <span>{link.icon}</span>
-                        <span>{link.name}</span>
-                      </div>
-                      {link.name === "Induction" && inductionProgress && (
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          inductionProgress.completed >= inductionProgress.total 
-                            ? 'bg-green-500 text-white' 
-                            : 'bg-amber-500 text-white'
-                        }`}>
-                          {inductionProgress.completed}/{inductionProgress.total}
-                        </span>
-                      )}
+                      <span>{link.icon}</span>
+                      <span>{link.name}</span>
                     </Link>
                   ))}
+                  {/* Add Induction Link */}
+                  <Link
+                    href={`/${userRole}/induction`}
+                    className="flex items-center justify-between py-2 px-4 hover:bg-blue-900 rounded-lg transition"
+                    onClick={closeAllMenus}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span>🎓</span>
+                      <span>Induction</span>
+                    </div>
+                    {inductionProgress && (
+                      <span className="bg-amber-500 text-white text-xs px-2 py-1 rounded-full">
+                        {inductionProgress.completed}/{inductionProgress.total}
+                      </span>
+                    )}
+                  </Link>
                 </div>
               )}
 

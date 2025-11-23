@@ -515,3 +515,63 @@ export interface UserInductionProgress {
     percentage: number;
   };
 }
+
+// types/onboarding.ts
+export interface OnboardingStep {
+  id: string;
+  title: string;
+  fields: string[];
+}
+
+export interface OnboardingFormData {
+  company_name?: string;
+  industry?: string;
+  company_size?: string;
+  client_type?: string;
+}
+
+export interface OnboardingSession {
+  id: string;
+  client_id: string;
+  user_id: string;
+  session_token: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'expired' | 'abandoned';
+  current_step: string;
+  completed_steps: string[];
+  data: OnboardingFormData;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Client {
+  id: string;
+  user_id: string;
+  company_name: string;
+  company_size: string | null;
+  industry: string | null;
+  avg_consultant_rating: number | null;
+  client_tier: string;
+  metadata: any;
+  created_at: string;
+  updated_at: string;
+  client_type: string | null;
+  stage: string | null;
+}
+
+export interface ClientUser {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  profile_image_url: string | null;
+  country: string | null;
+  created_at: string;
+  company: string | null;
+  profile: any;
+  metadata: any;
+  last_sign_in: string | null;
+  phone: string | null;
+  timezone: string;
+  state: string | null;
+}

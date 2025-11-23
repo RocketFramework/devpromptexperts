@@ -1,6 +1,6 @@
-import { AvailableSlot } from "@/types";
+import { AvailableSlot, OnboardingFormData } from "@/types";
 import { supabase } from "@/lib/supabase";
-import { Database } from '@/types/database';
+import { Database } from "@/types/database";
 import { UserWithFullRelations } from "@/services/extended";
 
 export class RpcBusinessService {
@@ -53,6 +53,41 @@ export class RpcBusinessService {
     console.log(data); // optional debug
 
     return mappedUser;
+  }
+
+  static async updateOnboardingProgress(
+    userId: string,
+    stepData: OnboardingFormData,
+    nextStep?: string
+  ): Promise<{ success: boolean; data?: any; error?: any }> {
+    try {
+      const { data, error } = await supabase.rpc("update_onboarding_progress", {
+        p_user_id: userId,
+        p_step_data: stepData,
+        p_current_step: nextStep,
+      });
+
+      if (error) {
+        console.error("DB RPC error:", error.message);
+        return { success: false, error };
+      }
+
+      // Supabase returns scalar values from RPC as `data` directly
+      if (data === null || data === undefined) {
+        console.warn("RPC returned no data");
+        return {
+          success: false,
+          error: new Error("No data returned from RPC"),
+        };
+      }
+
+      console.log("✅ Onboarding progress updated:", data);
+
+      return { success: true, data };
+    } catch (err) {
+      console.error("❌ updateOnboardingProgress error:", err);
+      return { success: false, error: err };
+    }
   }
 
   /**
