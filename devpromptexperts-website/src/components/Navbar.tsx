@@ -9,6 +9,7 @@ import {
   FaUser,
   FaChevronDown,
   FaSignOutAlt,
+  FaGraduationCap, // Added for induction icon
 } from "react-icons/fa";
 
 // Navigation configuration
@@ -36,46 +37,61 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
     consultant: [
       {
         name: "Dashboard",
-        href: `/consultant/${userId}/dashboard`,
+        href: `/consultant/dashboard`,
         icon: "📊",
       },
       {
+        name: "Induction", // ADDED INDUCTION LINK
+        href: `/consultant/induction`,
+        icon: "🎓",
+      },
+      {
         name: "Projects",
-        href: `/consultant/${userId}/dashboard/projects`,
+        href: `/consultant/dashboard/projects`,
         icon: "🚀",
       },
       {
         name: "Earnings",
-        href: `/consultant/${userId}/dashboard/earnings`,
+        href: `/consultant/dashboard/earnings`,
         icon: "💰",
       },
       {
         name: "Network",
-        href: `/consultant/${userId}/dashboard/network`,
+        href: `/consultant/dashboard/network`,
         icon: "👥",
       },
     ],
     client: [
       {
         name: "My Projects",
-        href: `/client/${userId}/projects`,
+        href: `/client/projects`,
         icon: "📋",
       },
       {
+        name: "Induction", // ADDED INDUCTION LINK
+        href: `/client/induction`,
+        icon: "🎓",
+      },
+      {
         name: "Find Consultants",
-        href: `/client/${userId}/consultants`,
+        href: `/client/consultants`,
         icon: "🔍",
       },
     ],
     seller: [
       {
         name: "Leads",
-        href: `/seller/${userId}/leads`,
+        href: `/seller/leads`,
         icon: "🎯",
       },
       {
+        name: "Induction", // ADDED INDUCTION LINK
+        href: `/seller/induction`,
+        icon: "🎓",
+      },
+      {
         name: "Commissions",
-        href: `/seller/${userId}/commissions`,
+        href: `/seller/commissions`,
         icon: "💸",
       },
     ],
@@ -95,18 +111,45 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
   ];
 };
 
+// NEW: Check if user has completed induction
+const hasCompletedInduction = (completedSteps: string[], totalSteps: number) => {
+  return completedSteps.length >= totalSteps;
+};
+
 export default function Navbar() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [inductionProgress, setInductionProgress] = useState<{completed: number; total: number} | null>(null);
 
   const userRole = session?.user?.role || "client";
   const userId = session?.user?.id || "";
 
   const mainNavigation = getMainNavigation(userRole);
   const dashboardNavigation = getDashboardNavigation(userRole, userId);
+
+  // NEW: Fetch induction progress
+  useEffect(() => {
+    if (session?.user?.id) {
+      // You might want to fetch actual induction progress from your API
+      // For now, we'll use a mock or you can integrate with your InductionService
+      const fetchInductionProgress = async () => {
+        try {
+          // Example: Replace with actual API call
+          // const progress = await InductionService.getInductionProgress(session.user.id, userRole);
+          // setInductionProgress({completed: progress.completed, total: progress.total});
+          
+          // Mock data for demonstration
+          setInductionProgress({completed: 1, total: 4});
+        } catch (error) {
+          console.error("Failed to fetch induction progress:", error);
+        }
+      };
+      
+      fetchInductionProgress();
+    }
+  }, [session, userRole]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -116,7 +159,6 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
     setIsProfileDropdownOpen(false);
     setIsAuthDropdownOpen(false);
-    setIsSettingsOpen(false);
   };
 
   const handleSignOut = async () => {
@@ -131,6 +173,28 @@ export default function Navbar() {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // NEW: Get induction badge for desktop
+  const getInductionBadge = () => {
+    if (!inductionProgress) return null;
+    
+    const { completed, total } = inductionProgress;
+    const isCompleted = completed >= total;
+    
+    if (isCompleted) {
+      return (
+        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full ml-2">
+          ✓ Complete
+        </span>
+      );
+    } else {
+      return (
+        <span className="bg-amber-500 text-white text-xs px-2 py-1 rounded-full ml-2">
+          {completed}/{total}
+        </span>
+      );
+    }
   };
 
   // Close dropdowns when clicking outside
@@ -187,6 +251,23 @@ export default function Navbar() {
             ) : session?.user ? (
               // Logged-in user - Desktop
               <div className="hidden md:flex items-center">
+                {/* Induction Progress Badge - NEW */}
+                {inductionProgress && !hasCompletedInduction(
+                  Array(inductionProgress.completed).fill('step'), 
+                  inductionProgress.total
+                ) && (
+                  <Link 
+                    href={`/${userRole}/induction`}
+                    className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 px-3 py-2 rounded-lg mr-4 transition"
+                  >
+                    <FaGraduationCap className="text-sm" />
+                    <span className="text-sm font-medium">Complete Induction</span>
+                    <span className="bg-white text-amber-600 text-xs px-2 py-1 rounded-full">
+                      {inductionProgress.completed}/{inductionProgress.total}
+                    </span>
+                  </Link>
+                )}
+
                 {/* User Profile Dropdown */}
                 <div className="relative profile-dropdown">
                   <div
@@ -220,7 +301,7 @@ export default function Navbar() {
 
                   {/* Profile Dropdown Menu */}
                   {isProfileDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-64 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200">
+                    <div className="absolute top-full right-0 mt-2 w-72 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200">
                       {/* User Info */}
                       <div className="p-4 border-b border-slate-200">
                         <div className="flex items-center space-x-3">
@@ -234,6 +315,7 @@ export default function Navbar() {
                             <p className="text-xs text-gray-600 capitalize">
                               {userRole}
                             </p>
+                            {inductionProgress && getInductionBadge()}
                           </div>
                         </div>
                       </div>
@@ -252,6 +334,15 @@ export default function Navbar() {
                           >
                             <span className="text-base">{link.icon}</span>
                             <span>{link.name}</span>
+                            {link.name === "Induction" && inductionProgress && (
+                              <span className={`text-xs px-2 py-1 rounded-full ${
+                                inductionProgress.completed >= inductionProgress.total 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {inductionProgress.completed}/{inductionProgress.total}
+                              </span>
+                            )}
                           </Link>
                         ))}
                       </div>
@@ -259,9 +350,8 @@ export default function Navbar() {
                       {/* Settings & Sign Out */}
                       <div className="p-2">
                         <Link
-                          key="/settings/"
-                          href="/settings/"
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition mt-2"
+                          href="/settings"
+                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-slate-100 rounded transition"
                           onClick={closeAllMenus}
                         >
                           <span>⚙️</span>
@@ -272,7 +362,7 @@ export default function Navbar() {
                           className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition mt-2"
                         >
                           <FaSignOutAlt className="text-xs" />
-                          Sign Out
+                          <span>Sign Out</span>
                         </button>
                       </div>
                     </div>
@@ -280,9 +370,8 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              // Not logged in - Desktop - UPDATED AUTH DROPDOWN
+              // Not logged in - Desktop
               <div className="hidden md:flex items-center space-x-4">
-                {/* Universal Auth Dropdown */}
                 <div className="relative auth-dropdown">
                   <button 
                     className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition flex items-center space-x-2"
@@ -295,7 +384,6 @@ export default function Navbar() {
                     <FaChevronDown className="text-xs" />
                   </button>
                   
-                  {/* Auth Dropdown Menu - WIDER AND WITH PROPER CLOSE */}
                   {isAuthDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 w-72 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200 py-2">
                       <Link 
@@ -355,6 +443,26 @@ export default function Navbar() {
                 </Link>
               ))}
 
+              {/* Induction Progress for Mobile - NEW */}
+              {session?.user && inductionProgress && !hasCompletedInduction(
+                Array(inductionProgress.completed).fill('step'), 
+                inductionProgress.total
+              ) && (
+                <Link
+                  href={`/${userRole}/induction`}
+                  className="flex items-center justify-between py-3 px-4 bg-amber-500 hover:bg-amber-600 rounded-lg transition"
+                  onClick={closeAllMenus}
+                >
+                  <div className="flex items-center space-x-3">
+                    <FaGraduationCap />
+                    <span className="font-medium">Complete Induction</span>
+                  </div>
+                  <span className="bg-white text-amber-600 text-xs px-2 py-1 rounded-full font-bold">
+                    {inductionProgress.completed}/{inductionProgress.total}
+                  </span>
+                </Link>
+              )}
+
               {/* AUTH LINKS FOR MOBILE */}
               {!session?.user && (
                 <div className="pt-2 border-t border-blue-800">
@@ -362,7 +470,7 @@ export default function Navbar() {
                     Sign In As
                   </p>
                   <Link
-                    href="/auth/client-login"
+                    href="/auth/login/client"
                     className="flex items-center space-x-3 py-3 px-4 hover:bg-blue-900 rounded-lg transition"
                     onClick={closeAllMenus}
                   >
@@ -370,7 +478,7 @@ export default function Navbar() {
                     <span className="font-medium">Client</span>
                   </Link>
                   <Link
-                    href="/auth/consultant-login"
+                    href="/auth/login/consultant"
                     className="flex items-center space-x-3 py-3 px-4 hover:bg-blue-900 rounded-lg transition"
                     onClick={closeAllMenus}
                   >
@@ -378,7 +486,7 @@ export default function Navbar() {
                     <span className="font-medium">Consultant</span>
                   </Link>
                   <Link
-                    href="/auth/seller-login"
+                    href="/auth/login/seller"
                     className="flex items-center space-x-3 py-3 px-4 hover:bg-blue-900 rounded-lg transition"
                     onClick={closeAllMenus}
                   >
@@ -398,11 +506,22 @@ export default function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="flex items-center space-x-3 py-2 px-4 hover:bg-blue-900 rounded-lg transition"
+                      className="flex items-center justify-between py-2 px-4 hover:bg-blue-900 rounded-lg transition"
                       onClick={closeAllMenus}
                     >
-                      <span>{link.icon}</span>
-                      <span>{link.name}</span>
+                      <div className="flex items-center space-x-3">
+                        <span>{link.icon}</span>
+                        <span>{link.name}</span>
+                      </div>
+                      {link.name === "Induction" && inductionProgress && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          inductionProgress.completed >= inductionProgress.total 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-amber-500 text-white'
+                        }`}>
+                          {inductionProgress.completed}/{inductionProgress.total}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>
@@ -411,7 +530,6 @@ export default function Navbar() {
               {/* User Section - Mobile */}
               <div className="pt-4 border-t border-blue-800">
                 {status === "loading" ? (
-                  // Loading state
                   <div className="flex items-center space-x-3 animate-pulse p-4">
                     <div className="w-8 h-8 bg-gray-600 rounded-full"></div>
                     <div className="flex-1">
@@ -420,7 +538,6 @@ export default function Navbar() {
                     </div>
                   </div>
                 ) : session?.user ? (
-                  // Logged-in user - Mobile
                   <div className="p-4 bg-blue-900 rounded-lg">
                     <div className="flex items-center space-x-3 mb-3">
                       {session.user.image ? (
@@ -441,15 +558,18 @@ export default function Navbar() {
                         <p className="text-sm text-blue-300 capitalize">
                           {userRole}
                         </p>
+                        {inductionProgress && (
+                          <p className="text-xs text-amber-300 mt-1">
+                            Induction: {inductionProgress.completed}/{inductionProgress.total}
+                          </p>
+                        )}
                       </div>
                     </div>
 
-                    {/* Settings for Mobile */}
                     <div className="space-y-2 mb-3">
                       <Link
-                        key="/settings/"
-                        href="/settings/"
-                        className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-red-600 hover:bg-red-700 rounded transition"
+                        href="/settings"
+                        className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gray-600 hover:bg-gray-700 rounded transition"
                         onClick={closeAllMenus}
                       >
                         <span>⚙️</span>
@@ -466,7 +586,6 @@ export default function Navbar() {
                     </button>
                   </div>
                 ) : (
-                  // Not logged in - Mobile
                   <div className="text-center py-4 text-blue-300 text-sm">
                     Welcome to DevPromptExperts
                   </div>

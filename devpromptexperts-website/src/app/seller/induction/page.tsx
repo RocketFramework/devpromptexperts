@@ -1,15 +1,18 @@
-// components/consultant/InductionPage.tsx
+// components/seller/SellerInductionPage.tsx
 "use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { 
-  PlayIcon, 
-  DownloadIcon, 
-  CheckIcon, 
-  CrownIcon, 
-  CalendarIcon, 
-  DocumentIcon, 
-  UserGroupIcon 
+import {
+  PlayIcon,
+  DownloadIcon,
+  CheckIcon,
+  RocketIcon,
+  SalesKitIcon,
+  CommissionIcon,
+  ClientIcon,
+  CalendarIcon,
+  DocumentIcon,
+  UserGroupIcon
 } from "@/components/ui/SharedIcons";
 import { ActionCard } from "@/components/ui/ActionCard";
 import { NextStep } from "@/components/ui/NextStep";
@@ -21,15 +24,15 @@ const iconMap = {
   calendar: CalendarIcon,
   document: DocumentIcon,
   users: UserGroupIcon,
-  'sales-kit': DocumentIcon,
-  commission: DocumentIcon,
-  client: UserGroupIcon,
+  'sales-kit': SalesKitIcon,
+  commission: CommissionIcon,
+  client: ClientIcon,
   project: DocumentIcon,
   experts: UserGroupIcon,
   security: DocumentIcon
 };
 
-export default function ConsultantInductionPage() {
+export default function SellerInductionPage() {
   const { data: session } = useSession();
   const [inductionData, setInductionData] = useState<UserInductionProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +40,7 @@ export default function ConsultantInductionPage() {
   useEffect(() => {
     const loadInductionData = async () => {
       if (session?.user?.id) {
-        const data = await InductionService.getInductionProgress(session.user.id, UserRoles.CONSULTANT);
+        const data = await InductionService.getInductionProgress(session.user.id, UserRoles.SELLER);
         setInductionData(data);
       }
       setLoading(false);
@@ -50,7 +53,7 @@ export default function ConsultantInductionPage() {
     if (session?.user?.id) {
       await InductionService.completeStep(session.user.id, stepId);
       // Reload data to update progress
-      const updatedData = await InductionService.getInductionProgress(session.user.id, UserRoles.CONSULTANT);
+      const updatedData = await InductionService.getInductionProgress(session.user.id, UserRoles.SELLER);
       setInductionData(updatedData);
     }
   };
@@ -65,8 +68,8 @@ export default function ConsultantInductionPage() {
     console.log(`Action clicked: ${actionId}`);
     
     // If this action completes a step, mark it
-    if (actionId === 'schedule_interview') {
-      await handleStepComplete('schedule_interview');
+    if (actionId === 'review_agreement' || actionId === 'access_materials' || actionId === 'submit_lead') {
+      await handleStepComplete(actionId);
     }
   };
 
@@ -87,8 +90,8 @@ export default function ConsultantInductionPage() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center">
-                <CrownIcon className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                <RocketIcon className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">{content.title}</h1>
@@ -106,8 +109,8 @@ export default function ConsultantInductionPage() {
 
         {/* Welcome Section */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CrownIcon className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <RocketIcon className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
             {session?.user?.name ? `Welcome, ${session.user.name}!` : content.welcomeTitle}
@@ -161,9 +164,9 @@ export default function ConsultantInductionPage() {
               <PlayIcon className="w-5 h-5" />
               <span>Play Video</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 border border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-3 rounded-lg font-semibold transition-colors">
+            <button className="flex items-center justify-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
               <DownloadIcon className="w-5 h-5" />
-              <span>Download Materials</span>
+              <span>Download Sales Kit</span>
             </button>
           </div>
         </div>
@@ -195,7 +198,7 @@ export default function ConsultantInductionPage() {
         {/* Next Steps */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-slate-900">Your Induction Progress</h2>
+            <h2 className="text-xl font-bold text-slate-900">Your Path to First Commission</h2>
             <div className="text-sm text-slate-500">
               <span className="font-semibold text-blue-600">{progress.completed}</span> of {progress.total} steps completed
             </div>
@@ -224,11 +227,11 @@ export default function ConsultantInductionPage() {
         {/* Benefits Section */}
         <div className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-xl p-6 mb-8">
           <h3 className="text-xl font-bold mb-6 text-center">{content.benefits.title}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             {content.benefits.items.map((item, index) => (
-              <div key={index}>
-                <p className="text-2xl font-bold">{item.value}</p>
-                <p className="text-amber-100 text-sm">{item.label}</p>
+              <div key={index} className="bg-white/20 rounded-lg p-4">
+                <p className="text-3xl font-bold">{item.value}</p>
+                <p className="text-amber-100 text-sm mt-2">{item.label}</p>
                 {item.description && (
                   <p className="text-amber-200 text-xs mt-1">{item.description}</p>
                 )}
@@ -246,7 +249,7 @@ export default function ConsultantInductionPage() {
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                 {content.support.primaryAction}
               </button>
-              <button className="border border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-3 rounded-lg font-semibold transition-colors">
+              <button className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                 {content.support.secondaryAction}
               </button>
             </div>

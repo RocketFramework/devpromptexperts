@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import { config } from 'dotenv'; // only needed when GENERATING code
-config({ path: '.env.local' });
+//import { config } from 'dotenv'; // only needed when GENERATING code
+//config({ path: '.env.local' });
 const supabaseUrl =
   typeof window === 'undefined'
     ? process.env.SUPABASE_URL        // Node scripts & server-side

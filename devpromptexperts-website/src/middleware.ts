@@ -10,10 +10,11 @@ export async function middleware(req: NextRequest) {
   const routeMap: Record<string, string> = {
     admin: "/auth/login/admin",
     consultant: "/auth/login/consultant",
-    customer: "/auth/login/customer",
+    client: "/auth/login/client", 
+    seller: "/auth/login/seller",
   };
 
-  // Extract the base route (admin/consultant/customer)
+  // Extract the base route (admin/consultant/client/seller)
   const baseRoute = pathname.split("/")[1];
 
   // ✅ If no token, redirect to login page for that route
@@ -23,11 +24,14 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ✅ If logged in, check if their loginContext matches the route
-  if (token?.loginContext) {
-    if (baseRoute && baseRoute !== token.loginContext) {
-      // Redirect to their dashboard based on loginContext
-      return NextResponse.redirect(new URL(`/${token.loginContext}`, req.url));
+  // ✅ If logged in, check if their role matches the route
+  if (token) {
+    // Use role instead of loginContext (more standard)
+    const userRole = token.role || token.loginContext;
+
+    if (baseRoute && userRole && baseRoute !== userRole) {
+      // Redirect to their dashboard based on their role
+      return NextResponse.redirect(new URL(`/${userRole}`, req.url));
     }
   }
 
@@ -35,5 +39,10 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/consultant/:path*", "/customer/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/consultant/:path*",
+    "/client/:path*", // Added client routes
+    "/seller/:path*", // Added seller routes
+  ],
 };

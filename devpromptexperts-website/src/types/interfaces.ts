@@ -1,8 +1,9 @@
 // src/types/types.ts
-import { Profile } from "next-auth";
+import { Profile, User } from "next-auth";
 import {ConsultantDTO } from "./dtos/Consultant.dto";
 import { DateTime } from "next-auth/providers/kakao";
 import { EngagementType, TierType, NoticePeriodType } from "@/types/";
+import { UserRole } from "./types";
 
 export interface PaginatedConsultantsResponse {
   consultants: ConsultantDTO[];
@@ -76,41 +77,6 @@ export interface FounderBenefits {
 // }
 
 
-
-export interface RouteConfig {
-  PUBLIC: {
-    HOME: string;
-    ERROR: string;
-  };
-  AUTH: {
-    CONSULTANT_LOGIN: string;
-    CLIENT_LOGIN: string;
-    CALLBACK: string;
-  };
-  CONSULTANT: {
-    ONBOARDING: string;
-    INTERVIEW: string;
-    PROBATION: string;
-    DASHBOARD: string;
-    PROFILE: string;
-    SETTINGS: string;
-  };
-  CLIENT: {
-    ONBOARDING: string;
-    VERIFICATION: string;
-    DASHBOARD: string;
-    PROJECTS: string;
-    PROFILE: string;
-    BILLING: string;
-  };
-  ADMIN: {
-    DASHBOARD: string;
-    USERS: string;
-    ANALYTICS: string;
-    SETTINGS: string;
-  };
-}
-
 // Base route configuration structure
 export interface RouteConfig {
   PUBLIC: {
@@ -120,11 +86,13 @@ export interface RouteConfig {
   AUTH: {
     CONSULTANT_LOGIN: string;
     CLIENT_LOGIN: string;
+    SELLER_LOGIN: string;
+    ADMIN_LOGIN: string;
     CALLBACK: string;
   };
   CONSULTANT: {
     ONBOARDING: string;
-    INTERVIEW: string;
+    INDUCTION: string;
     PROBATION: string;
     DASHBOARD: string;
     PROFILE: string;
@@ -132,9 +100,17 @@ export interface RouteConfig {
   };
   CLIENT: {
     ONBOARDING: string;
-    VERIFICATION: string;
+    INDUCTION: string;
     DASHBOARD: string;
     PROJECTS: string;
+    PROFILE: string;
+    BILLING: string;
+  };
+  SELLER: {
+    ONBOARDING: string;
+    INDUCTION: string;
+    DASHBOARD: string;
+    CLIENTS: string;
     PROFILE: string;
     BILLING: string;
   };
@@ -274,40 +250,6 @@ export interface FacebookProfile extends Profile {
 //   time: string;
 // }
 
-  // Base route configuration structure
-export interface RouteConfig {
-  PUBLIC: {
-    HOME: string;
-    ERROR: string;
-  };
-  AUTH: {
-    CONSULTANT_LOGIN: string;
-    CLIENT_LOGIN: string;
-    CALLBACK: string;
-  };
-  CONSULTANT: {
-    ONBOARDING: string;
-    INTERVIEW: string;
-    PROBATION: string;
-    DASHBOARD: string;
-    PROFILE: string;
-    SETTINGS: string;
-  };
-  CLIENT: {
-    ONBOARDING: string;
-    VERIFICATION: string;
-    DASHBOARD: string;
-    PROJECTS: string;
-    PROFILE: string;
-    BILLING: string;
-  };
-  ADMIN: {
-    DASHBOARD: string;
-    USERS: string;
-    ANALYTICS: string;
-    SETTINGS: string;
-  };
-}
 
 export interface Tier {
   id: 'founder_100' | 'referred' | 'general';
@@ -318,9 +260,6 @@ export interface Tier {
   benefits: string[];
   requirements: string[];
 }
-
-
-
 
 // types/dashboard.ts
 export interface Consultant {
@@ -490,4 +429,89 @@ export interface ConsultantData {
   clients_team_count_last_month: number;
   clients_team_count_this_month: number;
   summary_generated_at: string;
+}
+
+// types/induction.ts
+export interface InductionData {
+  id: string;
+  userId: string;
+  userType: UserRole;
+  currentStep: number;
+  completedSteps: string[];
+  status: 'not_started' | 'in_progress' | 'completed';
+  startedAt: Date;
+  completedAt?: Date;
+  lastActivityAt: Date;
+}
+
+export interface InductionStep {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  required: boolean;
+  videoUrl?: string;
+  materialsUrl?: string;
+  actionUrl?: string;
+}
+
+export interface InductionContent {
+  // Header
+  title: string;
+  subtitle: string;
+  badgeText: string;
+  statusText: string;
+  
+  // Welcome Section
+  welcomeTitle: string;
+  welcomeDescription: string;
+  highlightText: string;
+  
+  // Video Section
+  videoTitle: string;
+  videoDuration: string;
+  videoRequired: boolean;
+  learningPoints: string[];
+  
+  // Actions
+  actions: {
+    id: string;
+    icon: string;
+    title: string;
+    description: string;
+    buttonText: string;
+    buttonColor: string;
+    requiredStep?: string;
+  }[];
+  
+  // Steps
+  steps: InductionStep[];
+  
+  // Benefits
+  benefits: {
+    title: string;
+    items: {
+      value: string;
+      label: string;
+      description: string;
+    }[];
+  };
+  
+  // Support
+  support: {
+    title: string;
+    description: string;
+    primaryAction: string;
+    secondaryAction: string;
+  };
+}
+
+export interface UserInductionProgress {
+  userData: InductionData;
+  content: InductionContent;
+  progress: {
+    completed: number;
+    total: number;
+    percentage: number;
+  };
 }
