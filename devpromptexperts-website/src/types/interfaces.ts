@@ -535,9 +535,16 @@ export interface OnboardingFormData {
   industry?: string;
   company_size?: string;
   client_type?: string;
-  stage?: UserStage
-}
+  stage?: UserStage;
 
+  project_summary: string;
+  required_expertise: string[];
+  target_industries: string[];
+  desired_project_types: string[];
+  project_budget: string;
+  preferred_consultant_traits: string[];
+}
+              
 export interface OnboardingSession {
   id: string;
   client_id: string;

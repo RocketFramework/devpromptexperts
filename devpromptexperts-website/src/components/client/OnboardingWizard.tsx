@@ -6,6 +6,33 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { OnboardingFormData } from "@/types";
 import { useSession } from "next-auth/react";
 import { UsersService } from "@/services/generated";
+// 1. IMPORT THE NEW STEP COMPONENT
+import StepProjectNeeds from "./StepProjectNeeds"; // Assuming StepProjectNeeds is in the same directory or correctly imported
+
+// 2. IMPORT OR DEFINE CONSTANTS USED IN StepProjectNeeds (Assuming AI_EXPERTISE_AREAS, etc., are in "@/types/")
+// For demonstration, defining the missing constants here:
+const PROJECT_BUDGETS: string[] = [
+  "< $10,000",
+  "$10,000 - $50,000",
+  "$50,000 - $100,000",
+  "$100,000 - $500,000",
+  "> $500,000",
+];
+
+const CONSULTANT_TRAITS: string[] = [
+  "Deep Research Focus",
+  "Fast Deployment Specialist",
+  "Strategy & Governance Expert",
+  "Startup Experience",
+  "Enterprise Scale Experience",
+  "Remote/Global",
+  "Onsite Preferred",
+];
+
+// Re-using constants that are likely in your types file
+declare const AI_EXPERTISE_AREAS: string[];
+declare const INDUSTRIES: string[];
+declare const PROJECT_TYPES: string[];
 
 export const OnboardingWizard: React.FC = () => {
   const { data: session } = useSession();
@@ -18,6 +45,8 @@ export const OnboardingWizard: React.FC = () => {
     completeOnboarding,
   } = useOnboarding();
   const [isEditing, setIsEditing] = useState(false);
+
+  // 3. UPDATE formData STATE to include new project-related fields
   const [formData, setFormData] = useState<OnboardingFormData>({
     full_name: session?.user?.name || "",
     phone: "",
@@ -29,14 +58,22 @@ export const OnboardingWizard: React.FC = () => {
     industry: "",
     company_size: undefined,
     client_type: "",
+    // NEW FIELDS FOR NEEDS ANALYSIS STEP
+    project_summary: "",
+    required_expertise: [],
+    target_industries: [],
+    desired_project_types: [],
+    project_budget: "",
+    preferred_consultant_traits: [],
   });
   const router = useRouter();
 
   // Handle individual field changes
   const handleInputChange = (
     field: keyof OnboardingFormData,
-    value: string
+    value: string | string[] | number | undefined
   ) => {
+    // Note: Updated value type to accommodate arrays and numbers for new fields
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -44,7 +81,7 @@ export const OnboardingWizard: React.FC = () => {
   };
 
   const handleNext = async (
-    stepData: OnboardingFormData = {}
+    stepData: Partial<OnboardingFormData> = {} 
   ): Promise<void> => {
     // Merge only the provided fields
     const updatedData: OnboardingFormData = {
@@ -64,6 +101,16 @@ export const OnboardingWizard: React.FC = () => {
     }
   };
 
+  // Handler for updating data specifically within the Project Needs step
+  const handleProjectDetailsUpdate = (
+    projectData: Partial<OnboardingFormData>
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      ...projectData,
+    }));
+  };
+
   useEffect(() => {
     const loadExistingData = async () => {
       if (session?.user?.id) {
@@ -73,7 +120,9 @@ export const OnboardingWizard: React.FC = () => {
           );
           console.log("Existing user data:", existingData);
           if (existingData) {
-            const updatedFormData = {
+            const clientData = existingData.clients || {};
+
+            const updatedFormData: OnboardingFormData = {
               full_name: existingData.full_name || formData.full_name,
               phone: existingData.phone || formData.phone,
               country: existingData.country || formData.country,
@@ -84,24 +133,29 @@ export const OnboardingWizard: React.FC = () => {
                 existingData.company_name ||
                 existingData.company ||
                 formData.company_name,
-              industry: existingData.clients.industry || formData.industry,
-              company_size: existingData.clients.company_size || formData.company_size,
-              client_type: existingData.clients.client_type || formData.client_type,
+              industry: clientData.industry || formData.industry,
+              company_size: clientData.company_size || formData.company_size,
+              client_type: clientData.client_type || formData.client_type,
+              // LOAD NEW FIELDS
+              project_summary:
+                clientData.project_summary || formData.project_summary,
+              required_expertise:
+                clientData.required_expertise || formData.required_expertise,
+              target_industries:
+                clientData.target_industries || formData.target_industries,
+              desired_project_types:
+                clientData.desired_project_types ||
+                formData.desired_project_types,
+              project_budget:
+                clientData.project_budget || formData.project_budget,
+              preferred_consultant_traits:
+                clientData.preferred_consultant_traits ||
+                formData.preferred_consultant_traits,
             };
 
             console.log("🟢 UPDATED FORM DATA:", updatedFormData);
-            console.log("✅ Final Industry value:", updatedFormData.industry);
-            console.log(
-              "✅ Final Company Size value:",
-              updatedFormData.company_size
-            );
-            console.log(
-              "✅ Final Client Type value:",
-              updatedFormData.client_type
-            );
 
             setFormData(updatedFormData);
-            setIsEditing(true);
             setIsEditing(true);
           }
         } catch (error) {
@@ -117,6 +171,7 @@ export const OnboardingWizard: React.FC = () => {
     switch (currentStep) {
       case "welcome":
         return (
+          // ... (Existing welcome step content) ...
           <div className="max-w-2xl mx-auto text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-6">
               {isEditing ? "Update Your Profile" : "Welcome to Our Platform!"}
@@ -138,6 +193,7 @@ export const OnboardingWizard: React.FC = () => {
 
       case "user_profile":
         return (
+          // ... (Existing user_profile step content) ...
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">
               Your Profile Information
@@ -149,6 +205,8 @@ export const OnboardingWizard: React.FC = () => {
               }}
               className="space-y-6"
             >
+              {/* Form fields for user profile */}
+              {/* ... (full_name, email, phone, timezone, country, state inputs) ... */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
@@ -298,6 +356,7 @@ export const OnboardingWizard: React.FC = () => {
 
       case "company_info":
         return (
+          // ... (Existing company_info step content) ...
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">
               Company Information
@@ -429,15 +488,48 @@ export const OnboardingWizard: React.FC = () => {
                     ? "Saving..."
                     : isEditing
                     ? "Update Profile"
-                    : "Complete Setup"}
+                    : "Next Step"}
                 </button>
               </div>
             </form>
           </div>
         );
 
+      case "needs_analysis":
+        // 4. EMBED THE StepProjectNeeds COMPONENT HERE
+        return (
+          <StepProjectNeeds
+            data={{
+              project_summary: formData.project_summary,
+              required_expertise: formData.required_expertise,
+              target_industries: formData.target_industries,
+              desired_project_types: formData.desired_project_types,
+              project_budget: formData.project_budget,
+              preferred_consultant_traits: formData.preferred_consultant_traits,
+            }}
+            onUpdate={handleProjectDetailsUpdate}
+            onNext={() =>
+              handleNext({
+                project_summary: formData.project_summary,
+                required_expertise: formData.required_expertise,
+                target_industries: formData.target_industries,
+                desired_project_types: formData.desired_project_types,
+                project_budget: formData.project_budget,
+                preferred_consultant_traits:
+                  formData.preferred_consultant_traits,
+              })
+            }
+            // Assuming "company_info" is the previous step
+            onBack={() => {
+              /* Implement back logic if available in useOnboarding */
+            }}
+
+          />
+        );
+
       case "completion":
         return (
+          // ... (Existing completion step content) ...
           <div className="max-w-2xl mx-auto text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg

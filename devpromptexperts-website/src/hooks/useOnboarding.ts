@@ -34,6 +34,7 @@ export const useOnboarding = (): UseOnboardingReturn => {
     { id: "welcome", title: "Welcome", fields: [] },
     { id: "user_profile", title: "Profile", fields: ["profile"] },
     { id: "company_info", title: "Company Info", fields: ["company_name"] },
+    { id: "needs_analysis", title: "Need Analysis", fields: [] },
     { id: "completion", title: "Complete", fields: [] },
   ];
 
@@ -62,6 +63,7 @@ export const useOnboarding = (): UseOnboardingReturn => {
     setLoading(true);
     stepData.stage = UserStages.BIO_WIP// Update stage to onboarding in progress
     try {
+      console.log("Updating onboarding with data:", stepData, "Next step:", nextStep);
       const { data, error } = await RpcBusinessService.updateOnboardingProgress(
         session?.user.id || "",
         stepData,
@@ -90,7 +92,6 @@ export const useOnboarding = (): UseOnboardingReturn => {
   }> => {
     setLoading(true);
     try {
-      console.log("session?.user.id :", session?.user.id);
       const { data, error } = await RpcBusinessService.completeOnboarding(session?.user.id || "" );
       if (error) throw error;
 
