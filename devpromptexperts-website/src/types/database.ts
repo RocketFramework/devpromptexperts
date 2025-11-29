@@ -58,6 +58,63 @@ export type Database = {
           },
         ]
       }
+      client_onboarding_sessions: {
+        Row: {
+          client_id: string
+          completed_steps: string[] | null
+          created_at: string | null
+          current_step: string
+          data: Json | null
+          expires_at: string
+          id: string
+          session_token: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          completed_steps?: string[] | null
+          created_at?: string | null
+          current_step?: string
+          data?: Json | null
+          expires_at: string
+          id?: string
+          session_token: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          completed_steps?: string[] | null
+          created_at?: string | null
+          current_step?: string
+          data?: Json | null
+          expires_at?: string
+          id?: string
+          session_token?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_reviews: {
         Row: {
           client_id: string
@@ -1800,6 +1857,9 @@ export type Database = {
           ob_partner_id: string
         }[]
       }
+      complete_onboarding:
+        | { Args: never; Returns: Json }
+        | { Args: { p_user_id: string }; Returns: Json }
       get_available_interview_slots: {
         Args: { target_partner_id: string }
         Returns: {
@@ -1839,6 +1899,19 @@ export type Database = {
           ob_partner_id: string
         }[]
       }
+      update_onboarding_progress:
+        | {
+            Args: { p_current_step?: string; p_step_data: Json }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_current_step?: string
+              p_step_data: Json
+              p_user_id: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       [_ in never]: never

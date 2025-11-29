@@ -1,4 +1,5 @@
 export * from './AuthAuditService'
+export * from './ClientOnboardingSessionsService'
 export * from './ClientReviewsService'
 export * from './ClientsService'
 export * from './CommissionCalculationsService'

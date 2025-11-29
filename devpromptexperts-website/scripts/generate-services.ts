@@ -471,6 +471,7 @@ function getTablesFromFallback(): string[] {
   // Fallback to manual list if auto-detection fails
   return [
     "auth_audit",
+    "client_onboarding_sessions",
     "client_reviews",
     "clients",
     "commission_calculations",

@@ -90,6 +90,37 @@ export class RpcBusinessService {
     }
   }
 
+  // ✅ CORRECT SYNTAX
+  static async completeOnboarding(
+    userId: string
+  ): Promise<{ success: boolean; data?: any; error?: any }> {
+    try {
+      const { data, error } = await supabase.rpc("complete_onboarding", {
+        p_user_id: userId,
+      }); // <-- Move closing parenthesis here
+
+      if (error) {
+        console.error("DB RPC error:", error.message);
+        return { success: false, error };
+      }
+
+      // Supabase returns scalar values from RPC as `data` directly
+      if (data === null || data === undefined) {
+        console.warn("RPC returned no data");
+        return {
+          success: false,
+          error: new Error("No data returned from RPC"),
+        };
+      }
+
+      console.log("✅ Onboarding completed successfully:", data);
+
+      return { success: true, data };
+    } catch (err) {
+      console.error("❌ completeOnboarding error:", err);
+      return { success: false, error: err };
+    }
+  }
   /**
    * Returns the count of consultants matching:
    * onboarding_tier = 'founder_100',

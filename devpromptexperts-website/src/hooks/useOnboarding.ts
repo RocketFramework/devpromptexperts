@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
-import { OnboardingStep, OnboardingFormData, ClientUser } from "../types";
+import { OnboardingStep, OnboardingFormData, ClientUser, UserStage, UserStages } from "../types";
 import { RpcBusinessService } from "@/services/extended";
 import { useSession } from "next-auth/react";
 
@@ -32,10 +32,8 @@ export const useOnboarding = (): UseOnboardingReturn => {
 
   const steps: OnboardingStep[] = [
     { id: "welcome", title: "Welcome", fields: [] },
+    { id: "user_profile", title: "Profile", fields: ["profile"] },
     { id: "company_info", title: "Company Info", fields: ["company_name"] },
-    { id: "industry", title: "Industry", fields: ["industry"] },
-    { id: "company_size", title: "Company Size", fields: ["company_size"] },
-    { id: "client_type", title: "Client Type", fields: ["client_type"] },
     { id: "completion", title: "Complete", fields: [] },
   ];
 
@@ -62,6 +60,7 @@ export const useOnboarding = (): UseOnboardingReturn => {
     nextStep?: string
   ): Promise<{ success: boolean; data?: OnboardingFormData; error?: any }> => {
     setLoading(true);
+    stepData.stage = UserStages.BIO_WIP// Update stage to onboarding in progress
     try {
       const { data, error } = await RpcBusinessService.updateOnboardingProgress(
         session?.user.id || "",
@@ -75,7 +74,7 @@ export const useOnboarding = (): UseOnboardingReturn => {
         setCurrentStep(nextStep);
       }
 
-      return { success: true, data};
+      return { success: true, data };
     } catch (error) {
       console.error("Error updating onboarding:", error);
       return { success: false, error };
@@ -91,11 +90,12 @@ export const useOnboarding = (): UseOnboardingReturn => {
   }> => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("complete_onboarding");
+      console.log("session?.user.id :", session?.user.id);
+      const { data, error } = await RpcBusinessService.completeOnboarding(session?.user.id || "" );
       if (error) throw error;
 
       // Redirect to dashboard after completion
-      router.push("/dashboard");
+      router.push("/client/induction");
       return { success: true, data };
     } catch (error) {
       console.error("Error completing onboarding:", error);

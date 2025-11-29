@@ -2,12 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
-import {
-  UserRoles,
-  UserRole,
-  UserStages,
-  UserStage,
-} from "@/types/";
+import { UserRoles, UserRole, UserStages, UserStage } from "@/types/";
 
 // Move the logic that uses useSearchParams into a separate component
 function PostLoginContent() {
@@ -21,12 +16,12 @@ function PostLoginContent() {
     if (session?.user) {
       const userStage = session.user.stage as UserStage;
       let userRole = session.user.role as UserRole;
-      
+
       // Fix: Check for pending role and update if needed
       if (userRole === UserRoles.ROLE_PENDING) {
-        userRole = searchParams.get("pendingRole") as UserRole || userRole;
+        userRole = (searchParams.get("pendingRole") as UserRole) || userRole;
       }
-      
+
       const user_id = session.user.id;
       console.log(
         "Post-login redirect for role:",
@@ -51,17 +46,41 @@ function PostLoginContent() {
             router.push("/consultant/induction");
             break; // Added missing break
           case UserStages.PROFESSIONAL:
-            router.push(
-              `/consultant/${user_id}/dashboard`
-            );
+            router.push(`/consultant/${user_id}/dashboard`);
             break;
           default:
             router.push("/default-dashboard");
         }
       } else if (userRole === UserRoles.CLIENT) {
-        router.push("/client/");
+        switch (userStage) {
+          case UserStages.BIO_WIP:
+          case UserStages.BIO:
+            router.push("/client/onboarding");
+            break;
+          case UserStages.BIO_DONE:
+            router.push("/client/induction");
+            break; // Added missing break
+          case UserStages.PROFESSIONAL:
+            router.push(`/client/${user_id}/dashboard`);
+            break;
+          default:
+            router.push("/default-dashboard");
+        }
       } else if (userRole === UserRoles.SELLER) {
-        router.push("/seller/");
+        switch (userStage) {
+          case UserStages.BIO_WIP:
+          case UserStages.BIO:
+            router.push("/seller/onboarding");
+            break;
+          case UserStages.BIO_DONE:
+            router.push("/seller/induction");
+            break; // Added missing break
+          case UserStages.PROFESSIONAL:
+            router.push(`/seller/${user_id}/dashboard`);
+            break;
+          default:
+            router.push("/default-dashboard");
+        }
       } else {
         // Handle ROLE_PENDING or unknown roles
         router.push("/auth/select-role");
@@ -85,7 +104,7 @@ function PostLoginContent() {
 // Main component with Suspense boundary
 const PostLoginRedirect = () => {
   return (
-    <Suspense 
+    <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">

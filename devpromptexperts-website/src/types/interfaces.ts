@@ -3,7 +3,7 @@ import { Profile, User } from "next-auth";
 import {ConsultantDTO } from "./dtos/Consultant.dto";
 import { DateTime } from "next-auth/providers/kakao";
 import { EngagementType, TierType, NoticePeriodType } from "@/types/";
-import { UserRole } from "./types";
+import { UserRole, UserStage } from "./types";
 
 export interface PaginatedConsultantsResponse {
   consultants: ConsultantDTO[];
@@ -524,10 +524,18 @@ export interface OnboardingStep {
 }
 
 export interface OnboardingFormData {
+  full_name?: string;
+  phone?: string | null;
+  email?: string;
+  country?: string;
+  timezone?: string;
+  state?: string;
+  profile?: any;
   company_name?: string;
   industry?: string;
   company_size?: string;
   client_type?: string;
+  stage?: UserStage
 }
 
 export interface OnboardingSession {
