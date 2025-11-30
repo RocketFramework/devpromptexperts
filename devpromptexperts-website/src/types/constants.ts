@@ -335,3 +335,73 @@ export const OnboardingTierTypeData: Tier[] = [
     ],
   },
 ];
+
+export const PAYMENT_METHODS = [
+  "Bank Transfer",
+  "PayPal",
+  "Wise",
+  "Stripe",
+  "Direct Deposit"
+];
+
+// Realistic commission structure based on platform's 20% take rate
+export const COMMISSION_TIERS = [
+  { 
+    range: "Up to $25,000", 
+    commission: "5%", 
+    platform_fee: "15%",
+    example: "$10,000 project → $500 to you, $1,500 to platform"
+  },
+  { 
+    range: "$25,001 - $75,000", 
+    commission: "7.5%", 
+    platform_fee: "12.5%",
+    example: "$50,000 project → $3,750 to you, $6,250 to platform"
+  },
+  { 
+    range: "$75,001 - $150,000", 
+    commission: "10%", 
+    platform_fee: "10%",
+    example: "$100,000 project → $10,000 to you, $10,000 to platform"
+  },
+  { 
+    range: "$150,001+", 
+    commission: "12.5%", 
+    platform_fee: "7.5%",
+    example: "$200,000 project → $25,000 to you, $15,000 to platform"
+  }
+];
+
+export const GEOGRAPHIC_FOCUS_OPTIONS = [
+  "North America",
+  "Europe",
+  "Asia Pacific",
+  "Middle East",
+  "Latin America",
+  "Africa",
+  "Global"
+];
+
+export const TIMEZONES = [
+  "UTC",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "Europe/London",
+  "Europe/Paris",
+  "Asia/Tokyo",
+  "Asia/Singapore",
+  "Australia/Sydney"
+];
+
+export const PROJECT_BUDGETS: string[] = [
+  '< $10,000', '$10,000 - $50,000', '$50,000 - $100,000', 
+  '$100,000 - $500,000', '> $500,000'
+];
+
+export const CONSULTANT_TRAITS: string[] = [
+  'Deep Research Focus', 'Fast Deployment Specialist', 
+  'Strategy & Governance Expert', 'Startup Experience', 
+  'Enterprise Scale Experience', 'Remote/Global', 'Onsite Preferred'
+];

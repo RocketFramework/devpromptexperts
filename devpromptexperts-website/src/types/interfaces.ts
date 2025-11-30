@@ -1,9 +1,10 @@
 // src/types/types.ts
-import { Profile, User } from "next-auth";
-import {ConsultantDTO } from "./dtos/Consultant.dto";
+import { Profile } from "next-auth";
+import { ConsultantDTO } from "./dtos/Consultant.dto";
 import { DateTime } from "next-auth/providers/kakao";
 import { EngagementType, TierType, NoticePeriodType } from "@/types/";
 import { UserRole, UserStage } from "./types";
+import { Json } from "./database";
 
 export interface PaginatedConsultantsResponse {
   consultants: ConsultantDTO[];
@@ -76,7 +77,6 @@ export interface FounderBenefits {
 //   founderBenefits: FounderBenefits;
 // }
 
-
 // Base route configuration structure
 export interface RouteConfig {
   PUBLIC: {
@@ -136,17 +136,17 @@ export interface OnboardingSubmissionData {
     email: string;
     phone: string;
     country: string;
-    company: string,
+    company: string;
     timezone: string;
     linkedinUrl: string;
     image: string;
     role: string;
     founderNumber: number;
-    interviewSlotId: string,
-    interviewDate: string,
-    interviewStartTime: string,
-    interviewEndTime: string,
-  }
+    interviewSlotId: string;
+    interviewDate: string;
+    interviewStartTime: string;
+    interviewEndTime: string;
+  };
   professionalBackground: {
     currentRole: string;
     yearsExperience: number;
@@ -250,9 +250,8 @@ export interface FacebookProfile extends Profile {
 //   time: string;
 // }
 
-
 export interface Tier {
-  id: 'founder_100' | 'referred' | 'general';
+  id: "founder_100" | "referred" | "general";
   name: string;
   label: string;
   available: boolean;
@@ -281,7 +280,7 @@ export interface Project {
   platform_commission: number;
   your_earnings: number;
   payment_status: "pending" | "paid" | "processing";
-  commission_type:  "team" | "sales" | "client";
+  commission_type: "team" | "sales" | "client";
 }
 
 export interface Invoice {
@@ -438,7 +437,7 @@ export interface InductionData {
   userType: UserRole;
   currentStep: number;
   completedSteps: string[];
-  status: 'not_started' | 'in_progress' | 'completed';
+  status: "not_started" | "in_progress" | "completed";
   startedAt: Date;
   completedAt?: Date;
   lastActivityAt: Date;
@@ -461,18 +460,18 @@ export interface InductionContent {
   subtitle: string;
   badgeText: string;
   statusText: string;
-  
+
   // Welcome Section
   welcomeTitle: string;
   welcomeDescription: string;
   highlightText: string;
-  
+
   // Video Section
   videoTitle: string;
   videoDuration: string;
   videoRequired: boolean;
   learningPoints: string[];
-  
+
   // Actions
   actions: {
     id: string;
@@ -483,10 +482,10 @@ export interface InductionContent {
     buttonColor: string;
     requiredStep?: string;
   }[];
-  
+
   // Steps
   steps: InductionStep[];
-  
+
   // Benefits
   benefits: {
     title: string;
@@ -496,7 +495,7 @@ export interface InductionContent {
       description: string;
     }[];
   };
-  
+
   // Support
   support: {
     title: string;
@@ -523,14 +522,14 @@ export interface OnboardingStep {
   fields: string[];
 }
 
-export interface OnboardingFormData {
+export interface ClientOnboardingFormData {
   full_name?: string;
   phone?: string | null;
   email?: string;
   country?: string;
   timezone?: string;
   state?: string;
-  profile?: any;
+  profile?: Json;
   company_name?: string;
   industry?: string;
   company_size?: string;
@@ -544,35 +543,83 @@ export interface OnboardingFormData {
   project_budget: string;
   preferred_consultant_traits: string[];
 }
-              
+
+// types/index.ts
+export interface SellerOnboardingFormData {
+  // Basic info (shared)
+  full_name?: string;
+  phone?: string;
+  country?: string;
+  email?: string;
+  timezone?: string;
+  state?: string;
+  stage?: UserStage;
+
+  // Company info (shared)
+  company_name?: string;
+  primary_industry?: string;
+  company_size?: string | number;
+  client_type?: string;
+
+  // Seller-specific fields
+  linkedin_url?: string;
+  target_companies?: string[];
+  enterprise_connections?: number;
+  industries_focus?: string[];
+  geographic_focus?: string[];
+
+  // Commission & Payment
+  commission_type: "tiered" | "revshare";
+  selected_tier?: string; // Track which tier was selected
+  estimated_earnings?: number; // For tracking potential
+  payment_method?: string;
+  tax_id?: string;
+  agreed_to_terms?: boolean;
+
+  // Verification
+  identity_verification_consented: boolean;
+  enhanced_verification_consented: boolean;
+  identity_verified?: boolean;
+  enhanced_verified?: boolean;
+
+  // Platform Economics Tracking
+  platform_fee: string;
+  your_commission: string;
+  platform_net: string;
+
+  // For tracking onboarding type
+  user_type?: UserRole;
+  onboarding_tier?: string;
+}
+
 export interface OnboardingSession {
   id: string;
   client_id: string;
   user_id: string;
   session_token: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'expired' | 'abandoned';
+  status: "pending" | "in_progress" | "completed" | "expired" | "abandoned";
   current_step: string;
   completed_steps: string[];
-  data: OnboardingFormData;
+  data: ClientOnboardingFormData;
   expires_at: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface Client {
-  id: string;
-  user_id: string;
-  company_name: string;
-  company_size: string | null;
-  industry: string | null;
-  avg_consultant_rating: number | null;
-  client_tier: string;
-  metadata: any;
-  created_at: string;
-  updated_at: string;
-  client_type: string | null;
-  stage: string | null;
-}
+// export interface Client {
+//   id: string;
+//   user_id: string;
+//   company_name: string;
+//   company_size: string | null;
+//   industry: string | null;
+//   avg_consultant_rating: number | null;
+//   client_tier: string;
+//   metadata: any;
+//   created_at: string;
+//   updated_at: string;
+//   client_type: string | null;
+//   stage: string | null;
+// }
 
 export interface ClientUser {
   id: string;
@@ -583,8 +630,25 @@ export interface ClientUser {
   country: string | null;
   created_at: string;
   company: string | null;
-  profile: any;
-  metadata: any;
+  profile: Json;
+  metadata: Json;
+  last_sign_in: string | null;
+  phone: string | null;
+  timezone: string;
+  state: string | null;
+}
+
+export interface SellerUser {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  profile_image_url: string | null;
+  country: string | null;
+  created_at: string;
+  company: string | null;
+  profile: Json;
+  metadata: Json;
   last_sign_in: string | null;
   phone: string | null;
   timezone: string;

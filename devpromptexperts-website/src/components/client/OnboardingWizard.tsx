@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useOnboarding } from "@/hooks/useOnboarding";
-import { OnboardingFormData } from "@/types";
+import { useOnboarding } from "@/hooks/useClientOnboarding";
+import { ClientOnboardingFormData } from "@/types";
 import { useSession } from "next-auth/react";
 import { UsersService } from "@/services/generated";
 // 1. IMPORT THE NEW STEP COMPONENT
@@ -47,7 +47,7 @@ export const OnboardingWizard: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   // 3. UPDATE formData STATE to include new project-related fields
-  const [formData, setFormData] = useState<OnboardingFormData>({
+  const [formData, setFormData] = useState<ClientOnboardingFormData>({
     full_name: session?.user?.name || "",
     phone: "",
     country: session?.user?.country || "",
@@ -70,7 +70,7 @@ export const OnboardingWizard: React.FC = () => {
 
   // Handle individual field changes
   const handleInputChange = (
-    field: keyof OnboardingFormData,
+    field: keyof ClientOnboardingFormData,
     value: string | string[] | number | undefined
   ) => {
     // Note: Updated value type to accommodate arrays and numbers for new fields
@@ -81,10 +81,10 @@ export const OnboardingWizard: React.FC = () => {
   };
 
   const handleNext = async (
-    stepData: Partial<OnboardingFormData> = {} 
+    stepData: Partial<ClientOnboardingFormData> = {} 
   ): Promise<void> => {
     // Merge only the provided fields
-    const updatedData: OnboardingFormData = {
+    const updatedData: ClientOnboardingFormData = {
       ...formData,
       ...stepData,
     };
@@ -103,7 +103,7 @@ export const OnboardingWizard: React.FC = () => {
 
   // Handler for updating data specifically within the Project Needs step
   const handleProjectDetailsUpdate = (
-    projectData: Partial<OnboardingFormData>
+    projectData: Partial<ClientOnboardingFormData>
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -122,7 +122,7 @@ export const OnboardingWizard: React.FC = () => {
           if (existingData) {
             const clientData = existingData.clients || {};
 
-            const updatedFormData: OnboardingFormData = {
+            const updatedFormData: ClientOnboardingFormData = {
               full_name: existingData.full_name || formData.full_name,
               phone: existingData.phone || formData.phone,
               country: existingData.country || formData.country,

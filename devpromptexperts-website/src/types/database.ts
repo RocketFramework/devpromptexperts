@@ -58,63 +58,6 @@ export type Database = {
           },
         ]
       }
-      client_onboarding_sessions: {
-        Row: {
-          client_id: string
-          completed_steps: string[] | null
-          created_at: string | null
-          current_step: string
-          data: Json | null
-          expires_at: string
-          id: string
-          session_token: string
-          status: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          client_id: string
-          completed_steps?: string[] | null
-          created_at?: string | null
-          current_step?: string
-          data?: Json | null
-          expires_at: string
-          id?: string
-          session_token: string
-          status?: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          client_id?: string
-          completed_steps?: string[] | null
-          created_at?: string | null
-          current_step?: string
-          data?: Json | null
-          expires_at?: string
-          id?: string
-          session_token?: string
-          status?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_sessions_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       client_reviews: {
         Row: {
           client_id: string
@@ -208,10 +151,16 @@ export type Database = {
           company_name: string
           company_size: string | null
           created_at: string | null
+          desired_project_types: string[] | null
           id: string
           industry: string | null
           metadata: Json | null
+          preferred_consultant_traits: string[] | null
+          project_budget: string | null
+          project_summary: string | null
+          required_expertise: string[] | null
           stage: string | null
+          target_industries: string[] | null
           updated_at: string | null
           user_id: string
         }
@@ -222,10 +171,16 @@ export type Database = {
           company_name: string
           company_size?: string | null
           created_at?: string | null
+          desired_project_types?: string[] | null
           id?: string
           industry?: string | null
           metadata?: Json | null
+          preferred_consultant_traits?: string[] | null
+          project_budget?: string | null
+          project_summary?: string | null
+          required_expertise?: string[] | null
           stage?: string | null
+          target_industries?: string[] | null
           updated_at?: string | null
           user_id: string
         }
@@ -236,10 +191,16 @@ export type Database = {
           company_name?: string
           company_size?: string | null
           created_at?: string | null
+          desired_project_types?: string[] | null
           id?: string
           industry?: string | null
           metadata?: Json | null
+          preferred_consultant_traits?: string[] | null
+          project_budget?: string | null
+          project_summary?: string | null
+          required_expertise?: string[] | null
           stage?: string | null
+          target_industries?: string[] | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1591,41 +1552,167 @@ export type Database = {
       }
       sellers: {
         Row: {
+          agreed_to_terms: boolean | null
+          client_type: string | null
+          commission_type: string | null
+          company_name: string | null
+          company_size: string | null
           created_at: string | null
+          desired_project_types: Json | null
+          enhanced_verification_consented: boolean | null
+          enhanced_verified: boolean | null
+          enterprise_connections: number | null
+          estimated_earnings: number | null
+          geographic_focus: Json | null
           id: string
+          identity_verification_consented: boolean | null
+          identity_verified: boolean | null
+          industries_focus: Json | null
           is_verified: boolean | null
+          linkedin_url: string | null
+          onboarding_tier: string | null
+          payment_method: string | null
+          platform_fee: string | null
+          platform_net: string | null
+          preferred_consultant_traits: Json | null
+          primary_industry: string | null
+          project_budget: string | null
+          project_summary: Json | null
+          selected_tier: string | null
           seller_type: string | null
           stage: string | null
+          target_companies: Json | null
+          target_industries: Json | null
+          tax_id: string | null
+          updated_at: string | null
           user_id: string
           verified_at: string | null
+          your_commission: string | null
         }
         Insert: {
+          agreed_to_terms?: boolean | null
+          client_type?: string | null
+          commission_type?: string | null
+          company_name?: string | null
+          company_size?: string | null
           created_at?: string | null
+          desired_project_types?: Json | null
+          enhanced_verification_consented?: boolean | null
+          enhanced_verified?: boolean | null
+          enterprise_connections?: number | null
+          estimated_earnings?: number | null
+          geographic_focus?: Json | null
           id?: string
+          identity_verification_consented?: boolean | null
+          identity_verified?: boolean | null
+          industries_focus?: Json | null
           is_verified?: boolean | null
+          linkedin_url?: string | null
+          onboarding_tier?: string | null
+          payment_method?: string | null
+          platform_fee?: string | null
+          platform_net?: string | null
+          preferred_consultant_traits?: Json | null
+          primary_industry?: string | null
+          project_budget?: string | null
+          project_summary?: Json | null
+          selected_tier?: string | null
           seller_type?: string | null
           stage?: string | null
+          target_companies?: Json | null
+          target_industries?: Json | null
+          tax_id?: string | null
+          updated_at?: string | null
           user_id: string
           verified_at?: string | null
+          your_commission?: string | null
         }
         Update: {
+          agreed_to_terms?: boolean | null
+          client_type?: string | null
+          commission_type?: string | null
+          company_name?: string | null
+          company_size?: string | null
           created_at?: string | null
+          desired_project_types?: Json | null
+          enhanced_verification_consented?: boolean | null
+          enhanced_verified?: boolean | null
+          enterprise_connections?: number | null
+          estimated_earnings?: number | null
+          geographic_focus?: Json | null
           id?: string
+          identity_verification_consented?: boolean | null
+          identity_verified?: boolean | null
+          industries_focus?: Json | null
           is_verified?: boolean | null
+          linkedin_url?: string | null
+          onboarding_tier?: string | null
+          payment_method?: string | null
+          platform_fee?: string | null
+          platform_net?: string | null
+          preferred_consultant_traits?: Json | null
+          primary_industry?: string | null
+          project_budget?: string | null
+          project_summary?: Json | null
+          selected_tier?: string | null
           seller_type?: string | null
           stage?: string | null
+          target_companies?: Json | null
+          target_industries?: Json | null
+          tax_id?: string | null
+          updated_at?: string | null
           user_id?: string
           verified_at?: string | null
+          your_commission?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "sales_people_user_id_fkey"
+            foreignKeyName: "sellers_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_onboarding_sessions: {
+        Row: {
+          completed_steps: string[] | null
+          created_at: string | null
+          current_step: string
+          data: Json | null
+          expires_at: string
+          id: string
+          session_token: string
+          status: string
+          updated_at: string | null
+          user_role: string
+        }
+        Insert: {
+          completed_steps?: string[] | null
+          created_at?: string | null
+          current_step?: string
+          data?: Json | null
+          expires_at: string
+          id?: string
+          session_token: string
+          status?: string
+          updated_at?: string | null
+          user_role: string
+        }
+        Update: {
+          completed_steps?: string[] | null
+          created_at?: string | null
+          current_step?: string
+          data?: Json | null
+          expires_at?: string
+          id?: string
+          session_token?: string
+          status?: string
+          updated_at?: string | null
+          user_role?: string
+        }
+        Relationships: []
       }
       user_settings: {
         Row: {
@@ -1857,9 +1944,7 @@ export type Database = {
           ob_partner_id: string
         }[]
       }
-      complete_onboarding:
-        | { Args: never; Returns: Json }
-        | { Args: { p_user_id: string }; Returns: Json }
+      complete_onboarding: { Args: { p_user_id: string }; Returns: Json }
       get_available_interview_slots: {
         Args: { target_partner_id: string }
         Returns: {
@@ -1899,19 +1984,10 @@ export type Database = {
           ob_partner_id: string
         }[]
       }
-      update_onboarding_progress:
-        | {
-            Args: { p_current_step?: string; p_step_data: Json }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_current_step?: string
-              p_step_data: Json
-              p_user_id: string
-            }
-            Returns: Json
-          }
+      update_onboarding_progress: {
+        Args: { p_current_step: string; p_step_data: Json; p_user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

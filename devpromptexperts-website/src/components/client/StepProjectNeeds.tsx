@@ -1,25 +1,12 @@
 import { useState, useRef, useEffect, useCallback, FC, FormEvent } from 'react';
 // ASSUMPTION: These types and constants are correctly imported from your project's shared types file.
-import { OnboardingFormData } from "@/types"; 
+import { ClientOnboardingFormData, PROJECT_BUDGETS, CONSULTANT_TRAITS } from "@/types"; 
 // Assuming these are arrays of strings exported from your types file
 import { ExpertiseOptions as AI_EXPERTISE_AREAS, Industries as INDUSTRIES, Projects_Types as PROJECT_TYPES } from "@/types/"; 
 
-// ================================
-// CONSTANTS FOR CLIENT FIELDS (Defined locally for the component if not in types/)
-// ================================
-const PROJECT_BUDGETS: string[] = [
-  '< $10,000', '$10,000 - $50,000', '$50,000 - $100,000', 
-  '$100,000 - $500,000', '> $500,000'
-];
-
-const CONSULTANT_TRAITS: string[] = [
-  'Deep Research Focus', 'Fast Deployment Specialist', 
-  'Strategy & Governance Expert', 'Startup Experience', 
-  'Enterprise Scale Experience', 'Remote/Global', 'Onsite Preferred'
-];
 
 // Define the shape of the project data expected by this step
-type ProjectDetails = Pick<OnboardingFormData, 
+type ProjectDetails = Pick<ClientOnboardingFormData, 
   | 'project_summary'
   | 'required_expertise'
   | 'target_industries'
@@ -34,10 +21,6 @@ interface StepProjectNeedsProps {
   onNext: () => void;
   onBack: () => void;
 }
-
-// ================================
-// UTILITY HOOKS AND COMPONENTS (REUSED FROM EXPERTISE STEP)
-// ================================
 
 // --- Tag Input Hook Types ---
 interface TagInputHookProps {

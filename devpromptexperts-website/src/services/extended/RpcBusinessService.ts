@@ -1,7 +1,12 @@
-import { AvailableSlot, OnboardingFormData } from "@/types";
+import {
+  AvailableSlot,
+  ClientOnboardingFormData,
+  SellerOnboardingFormData,
+} from "@/types";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
 import { UserWithFullRelations } from "@/services/extended";
+
 
 export class RpcBusinessService {
   static async getFullUser(
@@ -55,11 +60,11 @@ export class RpcBusinessService {
     return mappedUser;
   }
 
-  static async updateOnboardingProgress(
+  static async updateClientOnboardingProgress(
     userId: string,
-    stepData: OnboardingFormData,
+    stepData: ClientOnboardingFormData,
     nextStep?: string
-  ): Promise<{ success: boolean; data?: any; error?: any }> {
+  ): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
     try {
       const { data, error } = await supabase.rpc("update_onboarding_progress", {
         p_user_id: userId,
@@ -90,10 +95,83 @@ export class RpcBusinessService {
     }
   }
 
+  static async updateSellerOnboardingProgress(
+    userId: string,
+    stepData: SellerOnboardingFormData,
+    nextStep?: string
+  ): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
+    try {
+      const { data, error } = await supabase.rpc("update_onboarding_progress", {
+        p_user_id: userId,
+        p_step_data: stepData,
+        p_current_step: nextStep,
+      });
+
+      if (error) {
+        console.error("DB RPC error:", error.message);
+        return { success: false, error };
+      }
+
+      // Supabase returns scalar values from RPC as `data` directly
+      if (data === null || data === undefined) {
+        console.warn("RPC returned no data");
+        return {
+          success: false,
+          error: new Error("No data returned from RPC"),
+        };
+      }
+
+      console.log("✅ Seller Onboarding progress updated:", data);
+      return { success: true, data };
+    } catch (err) {
+      console.error("❌ updateOnboardingProgress error:", err);
+      return { success: false, error: err };
+    }
+  }
+
   // ✅ CORRECT SYNTAX
-  static async completeOnboarding(
+  static async completeClientOnboarding(
     userId: string
-  ): Promise<{ success: boolean; data?: any; error?: any }> {
+  ): Promise<{
+    success: boolean;
+    data?: ClientOnboardingFormData;
+    error?: unknown;
+  }> {
+    try {
+      const { data, error } = await supabase.rpc("complete_onboarding", {
+        p_user_id: userId,
+      }); // <-- Move closing parenthesis here
+
+      if (error) {
+        console.error("DB RPC error:", error.message);
+        return { success: false, error };
+      }
+
+      // Supabase returns scalar values from RPC as `data` directly
+      if (data === null || data === undefined) {
+        console.warn("RPC returned no data");
+        return {
+          success: false,
+          error: new Error("No data returned from RPC"),
+        };
+      }
+
+      console.log("✅ Onboarding completed successfully:", data);
+
+      return { success: true, data };
+    } catch (err) {
+      console.error("❌ completeOnboarding error:", err);
+      return { success: false, error: err };
+    }
+  }
+
+  static async completeSellerOnboarding(
+    userId: string
+  ): Promise<{
+    success: boolean;
+    data?: SellerOnboardingFormData;
+    error?: unknown;
+  }> {
     try {
       const { data, error } = await supabase.rpc("complete_onboarding", {
         p_user_id: userId,
