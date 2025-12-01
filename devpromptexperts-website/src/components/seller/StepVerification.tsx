@@ -65,7 +65,7 @@ export default function StepVerification({ data, onUpdate, onNext, onBack, isEdi
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Commission Summary */}
         {showCommissionSummary && (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+          <div className="bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Your Commission Setup</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div className="text-center p-3 bg-white rounded-lg border">
@@ -133,7 +133,7 @@ export default function StepVerification({ data, onUpdate, onNext, onBack, isEdi
                 </label>
                 <p className="text-xs text-gray-600 mt-1">
                   Required for all ambassadors. This includes government-issued ID verification and LinkedIn profile validation. 
-                  You'll receive detailed instructions via email after submission.
+                  You&#39;ll receive detailed instructions via email after submission.
                 </p>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function StepVerification({ data, onUpdate, onNext, onBack, isEdi
               />
               <div className="flex-1">
                 <label htmlFor="enhanced_verification_consented" className="text-sm font-medium text-gray-900 block">
-                  I'm interested in enhanced verification
+                  I&#39;m interested in enhanced verification
                 </label>
                 <p className="text-xs text-gray-600 mt-1">
                   This includes comprehensive background check and opens access to Fortune 500 clients and premium projects.
@@ -225,7 +225,7 @@ export default function StepVerification({ data, onUpdate, onNext, onBack, isEdi
         </div>
 
         {/* Verification Status Summary */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+        <div className="bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Verification Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
@@ -333,7 +333,7 @@ export default function StepVerification({ data, onUpdate, onNext, onBack, isEdi
           <button
             type="submit"
             disabled={!canSubmit}
-            className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-linear-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isEditing ? 'Update Profile' : 'Submit Application'}
           </button>

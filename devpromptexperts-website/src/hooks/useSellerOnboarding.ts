@@ -2,7 +2,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
-import { OnboardingStep, SellerOnboardingFormData, SellerUser, UserStages, UserRoles, OnboardingTierTypes } from "../types";
+import {
+  OnboardingStep,
+  SellerOnboardingFormData,
+  SellerUser,
+  UserStages,
+  UserRoles,
+  OnboardingTierTypes,
+} from "../types";
 import { RpcBusinessService } from "@/services/extended";
 import { useSession } from "next-auth/react";
 
@@ -15,7 +22,7 @@ interface UseSellerOnboardingReturn {
     stepData: SellerOnboardingFormData,
     nextStep?: string
   ) => Promise<{ success: boolean; data?: unknown; error?: unknown }>;
-  completeOnboarding: () => Promise<{
+  completeOnboarding: (stepData: SellerOnboardingFormData) => Promise<{
     success: boolean;
     data?: unknown;
     error?: unknown;
@@ -70,20 +77,26 @@ export const useSellerOnboarding = (): UseSellerOnboardingReturn => {
   ): Promise<{ success: boolean; data?: unknown; error?: unknown }> => {
     setLoading(true);
     stepData.stage = UserStages.BIO_WIP; // Update stage to onboarding in progress
-    
+
     try {
-      console.log("Updating seller onboarding with data:", stepData, "Next step:", nextStep);
-      
-      // Use the same RPC service but with seller-specific data
-      const { data, error } = await RpcBusinessService.updateSellerOnboardingProgress(
-        session?.user.id || "",
-        {
-          ...stepData,
-          user_type: UserRoles.SELLER, // Mark as seller type
-          onboarding_tier: OnboardingTierTypes.GENERAL
-        },
+      console.log(
+        "Updating seller onboarding with data:",
+        stepData,
+        "Next step:",
         nextStep
       );
+
+      // Use the same RPC service but with seller-specific data
+      const { data, error } =
+        await RpcBusinessService.updateSellerOnboardingProgress(
+          session?.user.id || "",
+          {
+            ...stepData,
+            user_type: UserRoles.SELLER, // Mark as seller type
+            onboarding_tier: OnboardingTierTypes.GENERAL,
+          },
+          nextStep
+        );
 
       if (error) throw error;
 
@@ -100,7 +113,9 @@ export const useSellerOnboarding = (): UseSellerOnboardingReturn => {
     }
   };
 
-  const completeOnboarding = async (): Promise<{
+  const completeOnboarding = async (
+    stepData: SellerOnboardingFormData
+  ): Promise<{
     success: boolean;
     data?: unknown;
     error?: unknown;
@@ -109,7 +124,8 @@ export const useSellerOnboarding = (): UseSellerOnboardingReturn => {
     try {
       // Use seller-specific completion if available, otherwise use generic
       const { data, error } = await RpcBusinessService.completeSellerOnboarding(
-        session?.user.id || ""
+        session?.user.id || "",
+        stepData
       );
 
       if (error) throw error;

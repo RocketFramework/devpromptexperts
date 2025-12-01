@@ -1558,7 +1558,6 @@ export type Database = {
           company_name: string | null
           company_size: string | null
           created_at: string | null
-          desired_project_types: Json | null
           enhanced_verification_consented: boolean | null
           enhanced_verified: boolean | null
           enterprise_connections: number | null
@@ -1574,15 +1573,11 @@ export type Database = {
           payment_method: string | null
           platform_fee: string | null
           platform_net: string | null
-          preferred_consultant_traits: Json | null
           primary_industry: string | null
-          project_budget: string | null
-          project_summary: Json | null
           selected_tier: string | null
           seller_type: string | null
           stage: string | null
           target_companies: Json | null
-          target_industries: Json | null
           tax_id: string | null
           updated_at: string | null
           user_id: string
@@ -1596,7 +1591,6 @@ export type Database = {
           company_name?: string | null
           company_size?: string | null
           created_at?: string | null
-          desired_project_types?: Json | null
           enhanced_verification_consented?: boolean | null
           enhanced_verified?: boolean | null
           enterprise_connections?: number | null
@@ -1612,15 +1606,11 @@ export type Database = {
           payment_method?: string | null
           platform_fee?: string | null
           platform_net?: string | null
-          preferred_consultant_traits?: Json | null
           primary_industry?: string | null
-          project_budget?: string | null
-          project_summary?: Json | null
           selected_tier?: string | null
           seller_type?: string | null
           stage?: string | null
           target_companies?: Json | null
-          target_industries?: Json | null
           tax_id?: string | null
           updated_at?: string | null
           user_id: string
@@ -1634,7 +1624,6 @@ export type Database = {
           company_name?: string | null
           company_size?: string | null
           created_at?: string | null
-          desired_project_types?: Json | null
           enhanced_verification_consented?: boolean | null
           enhanced_verified?: boolean | null
           enterprise_connections?: number | null
@@ -1650,15 +1639,11 @@ export type Database = {
           payment_method?: string | null
           platform_fee?: string | null
           platform_net?: string | null
-          preferred_consultant_traits?: Json | null
           primary_industry?: string | null
-          project_budget?: string | null
-          project_summary?: Json | null
           selected_tier?: string | null
           seller_type?: string | null
           stage?: string | null
           target_companies?: Json | null
-          target_industries?: Json | null
           tax_id?: string | null
           updated_at?: string | null
           user_id?: string
@@ -1987,6 +1972,13 @@ export type Database = {
       update_onboarding_progress: {
         Args: { p_current_step: string; p_step_data: Json; p_user_id: string }
         Returns: Json
+      }
+      update_seller_onboarding_progress: {
+        Args: { p_seller_id?: string; p_step_data: Json; p_user_id: string }
+        Returns: {
+          seller_id: string
+          user_id: string
+        }[]
       }
     }
     Enums: {

@@ -14,7 +14,7 @@ export default function StepNetworkOverview({ data, onUpdate, onNext, onBack }: 
   const [formData, setFormData] = useState(data);
   const [companyInput, setCompanyInput] = useState("");
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: unknown) => {
     const updated = { ...formData, [field]: value };
     setFormData(updated);
     onUpdate(updated);
@@ -159,7 +159,7 @@ export default function StepNetworkOverview({ data, onUpdate, onNext, onBack }: 
         </div>
 
         {/* Network Strength Indicator */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+        <div className="bg-gradien-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Your Network Potential</h3>
           <div className="space-y-3">
             <div className="flex justify-between">

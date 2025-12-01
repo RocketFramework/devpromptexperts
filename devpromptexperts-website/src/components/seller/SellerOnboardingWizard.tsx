@@ -84,7 +84,7 @@ export const SellerOnboardingWizard: React.FC = () => {
     if (nextStep) {
       await updateOnboardingStep(updatedData, nextStep);
     } else {
-      await completeOnboarding();
+      await completeOnboarding(updatedData);
     }
   };
 
@@ -110,14 +110,14 @@ export const SellerOnboardingWizard: React.FC = () => {
     const loadExistingData = async () => {
       if (session?.user?.id) {
         try {
-          const existingData = await UsersService.findWithClients(
+          const existingData = await UsersService.findWithSellers(
             session.user.id
           );
           console.log("Existing seller data:", existingData);
 
           if (existingData) {
-            const clientData = existingData.clients || {};
-
+            const sellerData = existingData.sellers || {};
+            console.log("🟢 LOADED EXISTING SELLER DATA:", sellerData);
             const updatedFormData: SellerOnboardingFormData = {
               full_name: existingData.full_name || formData.full_name,
               phone: existingData.phone || formData.phone,
@@ -126,46 +126,47 @@ export const SellerOnboardingWizard: React.FC = () => {
               timezone: existingData.timezone || formData.timezone,
               state: existingData.state || formData.state,
               company_name:
-                existingData.company_name ||
+                sellerData.company_name ||
                 existingData.company ||
                 formData.company_name,
               primary_industry:
-                clientData.industry || formData.primary_industry,
-              linkedin_url: clientData.linkedin_url || formData.linkedin_url,
+                sellerData.primary_industry || formData.primary_industry,
+              linkedin_url: sellerData.linkedin_url || formData.linkedin_url,
 
               // Seller-specific fields
               target_companies:
-                clientData.target_companies || formData.target_companies,
+                sellerData.target_companies || formData.target_companies,
               enterprise_connections:
-                clientData.enterprise_connections ||
+                sellerData.enterprise_connections ||
                 formData.enterprise_connections,
               industries_focus:
-                clientData.industries_focus || formData.industries_focus,
+                sellerData.industries_focus || formData.industries_focus,
               geographic_focus:
-                clientData.geographic_focus || formData.geographic_focus,
+                sellerData.geographic_focus || formData.geographic_focus,
 
               commission_type:
-                clientData.commission_type || formData.commission_type,
+                sellerData.commission_type || formData.commission_type,
               payment_method:
-                clientData.payment_method || formData.payment_method,
-              tax_id: clientData.tax_id || formData.tax_id,
+                sellerData.payment_method || formData.payment_method,
+              tax_id: sellerData.tax_id || formData.tax_id,
               agreed_to_terms:
-                clientData.agreed_to_terms || formData.agreed_to_terms,
+                sellerData.agreed_to_terms || formData.agreed_to_terms,
 
               identity_verified:
-                clientData.identity_verified || formData.identity_verified,
+                sellerData.identity_verified || formData.identity_verified,
               enhanced_verified:
-                clientData.enhanced_verified || formData.enhanced_verified,
+                sellerData.enhanced_verified || formData.enhanced_verified,
               identity_verification_consented:
-                clientData.identity_verification_consented ||
+                sellerData.identity_verification_consented ||
                 formData.identity_verification_consented,
               enhanced_verification_consented:
-                clientData.enhanced_verification_consented ||
+                sellerData.enhanced_verification_consented ||
                 formData.enhanced_verification_consented,
               your_commission:
-                clientData.your_commission || formData.your_commission,
-              platform_fee: clientData.platform_fee || formData.platform_fee,
-              platform_net: clientData.platform_net || formData.platform_net,
+                sellerData.your_commission || formData.your_commission,
+              platform_fee: sellerData.platform_fee || formData.platform_fee,
+              platform_net: sellerData.platform_net || formData.platform_net,
+            
 
             };
 
@@ -187,7 +188,7 @@ export const SellerOnboardingWizard: React.FC = () => {
       case "welcome":
         return (
           <div className="max-w-2xl mx-auto text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-24 h-24 bg-linear-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-12 h-12 text-white"
                 fill="none"
@@ -236,7 +237,7 @@ export const SellerOnboardingWizard: React.FC = () => {
 
             <button
               onClick={() => handleNext()}
-              className="w-full max-w-xs bg-gradient-to-r from-green-600 to-blue-600 text-white py-4 px-6 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 text-lg font-medium shadow-lg"
+              className="w-full max-w-xs bg-linear-to-r from-green-600 to-blue-600 text-white py-4 px-6 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 text-lg font-medium shadow-lg"
               type="button"
             >
               {isEditing ? "Update Profile" : "Start Ambassador Application"}
@@ -316,7 +317,7 @@ export const SellerOnboardingWizard: React.FC = () => {
       case "completion":
         return (
           <div className="max-w-2xl mx-auto text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-24 h-24 bg-linear-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-12 h-12 text-white"
                 fill="none"

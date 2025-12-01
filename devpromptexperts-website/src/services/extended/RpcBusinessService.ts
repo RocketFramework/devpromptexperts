@@ -2,6 +2,7 @@ import {
   AvailableSlot,
   ClientOnboardingFormData,
   SellerOnboardingFormData,
+  UserStages,
 } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -101,10 +102,9 @@ export class RpcBusinessService {
     nextStep?: string
   ): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
     try {
-      const { data, error } = await supabase.rpc("update_onboarding_progress", {
+      const { data, error } = await supabase.rpc("update_seller_onboarding_progress", {
         p_user_id: userId,
-        p_step_data: stepData,
-        p_current_step: nextStep,
+        p_step_data: stepData
       });
 
       if (error) {
@@ -166,16 +166,16 @@ export class RpcBusinessService {
   }
 
   static async completeSellerOnboarding(
-    userId: string
-  ): Promise<{
-    success: boolean;
-    data?: SellerOnboardingFormData;
-    error?: unknown;
-  }> {
+    userId: string,
+    stepData: SellerOnboardingFormData,
+    nextStep?: string
+  ): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
     try {
-      const { data, error } = await supabase.rpc("complete_onboarding", {
+      stepData.stage = UserStages.BIO_DONE;
+      const { data, error } = await supabase.rpc("update_seller_onboarding_progress", {
         p_user_id: userId,
-      }); // <-- Move closing parenthesis here
+        p_step_data: stepData
+      });
 
       if (error) {
         console.error("DB RPC error:", error.message);
@@ -191,11 +191,10 @@ export class RpcBusinessService {
         };
       }
 
-      console.log("✅ Onboarding completed successfully:", data);
-
+      console.log("✅ Seller Onboarding progress updated:", data);
       return { success: true, data };
     } catch (err) {
-      console.error("❌ completeOnboarding error:", err);
+      console.error("❌ updateOnboardingProgress error:", err);
       return { success: false, error: err };
     }
   }

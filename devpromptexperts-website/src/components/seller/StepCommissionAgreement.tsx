@@ -87,7 +87,7 @@ export default function StepCommissionAgreement({ data, onUpdate, onNext, onBack
     onUpdate(updated);
   }, [selectedModel, selectedTier]);
 
-  const handleChange = (field: keyof SellerOnboardingFormData, value: any) => {
+  const handleChange = (field: keyof SellerOnboardingFormData, value: unknown) => {
     const updated = { ...formData, [field]: value };
     setFormData(updated);
     onUpdate(updated);
@@ -172,7 +172,7 @@ export default function StepCommissionAgreement({ data, onUpdate, onNext, onBack
 
           {/* Tiered Commission Structure */}
           {selectedModel === "tiered" && (
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+            <div className="bg-linear-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Select Your Target Tier</h4>
               <div className="space-y-3">
                 {COMMISSION_TIERS.map((tier, index) => (
@@ -209,7 +209,7 @@ export default function StepCommissionAgreement({ data, onUpdate, onNext, onBack
 
           {/* Revenue Share Structure */}
           {selectedModel === "revshare" && (
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+            <div className="bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Revenue Share Model</h4>
               <div className="grid grid-cols-3 gap-4 text-center mb-4">
                 <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -226,7 +226,7 @@ export default function StepCommissionAgreement({ data, onUpdate, onNext, onBack
                 </div>
               </div>
               <p className="text-sm text-gray-600 text-center">
-                You earn 50% of the platform's 20% service fee - a clean 10% of every deal.
+                You earn 50% of the platform&#39;s 20% service fee - a clean 10% of every deal.
               </p>
             </div>
           )}
@@ -259,7 +259,7 @@ export default function StepCommissionAgreement({ data, onUpdate, onNext, onBack
         </div>
 
         {/* Earning Examples */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+        <div className="bg-linear-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Your Earning Potential</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             {[50000, 100000, 200000].map((dealSize) => (

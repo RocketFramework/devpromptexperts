@@ -149,9 +149,9 @@ export default function StepSellerProfile({ data, onUpdate, onNext, onBack }: St
               Primary Industry *
             </label>
             <select
-              id="industry"
+              id="primary_industry"
               required
-              value={formData.primary_industry}
+              value={String(formData.primary_industry ?? "")}
               onChange={(e) => handleChange("primary_industry", e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
