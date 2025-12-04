@@ -97,7 +97,7 @@ export const OnboardingWizard: React.FC = () => {
     if (nextStep) {
       await updateOnboardingStep(updatedData, nextStep);
     } else {
-      await completeOnboarding();
+      await completeOnboarding(updatedData);
     }
   };
 

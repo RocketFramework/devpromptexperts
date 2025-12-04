@@ -10,3 +10,9 @@ email channel etc login with champikansh gmail account
 linkedin company
 supportdevprompt
 96s633896S6338@123
+
+http://localhost:3000/api/auth/providers
+http://localhost:3000/api/auth/session
+http://localhost:3000/api/auth/csrf
+http://localhost:3000/api/auth/signin
+http://localhost:3000/api/auth/signout

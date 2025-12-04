@@ -429,7 +429,7 @@ export const SellerOnboardingWizard: React.FC = () => {
             <button
               onClick={() => handleNext()}
               disabled={loading}
-              className="w-full max-w-xs bg-gradient-to-r from-green-600 to-blue-600 text-white py-4 px-6 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 text-lg font-medium shadow-lg"
+              className="w-full max-w-xs bg-linear-to-r from-green-600 to-blue-600 text-white py-4 px-6 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 text-lg font-medium shadow-lg"
               type="button"
             >
               {loading ? "Redirecting..." : "Go to Ambassador Dashboard"}
@@ -451,7 +451,7 @@ export const SellerOnboardingWizard: React.FC = () => {
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-linear-to-br from-green-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -479,7 +479,7 @@ export const SellerOnboardingWizard: React.FC = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
-                  className="bg-gradient-to-r from-green-600 to-blue-600 h-3 rounded-full transition-all duration-300"
+                  className="bg-linear-to-r from-green-600 to-blue-600 h-3 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>

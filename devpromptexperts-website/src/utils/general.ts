@@ -50,6 +50,22 @@ export function calculateTargetAchievement(data: ConsultantData): number {
   return Math.min(100, Math.round((current / target) * 100));
 }
 
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
+
+export function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+}
+
 export function getEarningsComposition(data: ConsultantData) {
   const total = data.direct_earnings_my_earnings + data.consultant_commissions + data.sales_commissions + data.client_commissions;
   
@@ -98,4 +114,8 @@ export function calculateTrend(current: number, previous: number): string {
   if (previous === 0) return '+0%';
   const change = ((current - previous) / previous) * 100;
   return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+}
+
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat('en-US').format(value);
 }

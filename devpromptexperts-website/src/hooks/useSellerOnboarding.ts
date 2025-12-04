@@ -130,8 +130,8 @@ export const useSellerOnboarding = (): UseSellerOnboardingReturn => {
 
       if (error) throw error;
 
-      // Redirect to seller dashboard after completion
-      router.push("/seller/dashboard");
+      // Redirect to seller induction after completion
+      router.push("/seller/induction");
       return { success: true, data };
     } catch (error) {
       console.error("Error completing seller onboarding:", error);

@@ -67,10 +67,9 @@ export class RpcBusinessService {
     nextStep?: string
   ): Promise<{ success: boolean; data?: unknown; error?: unknown }> {
     try {
-      const { data, error } = await supabase.rpc("update_onboarding_progress", {
+      const { data, error } = await supabase.rpc("update_client_onboarding_progress", {
         p_user_id: userId,
-        p_step_data: stepData,
-        p_current_step: nextStep,
+        p_step_data: stepData
       });
 
       if (error) {
@@ -131,16 +130,21 @@ export class RpcBusinessService {
 
   // ✅ CORRECT SYNTAX
   static async completeClientOnboarding(
-    userId: string
+    userId: string,
+    stepData: ClientOnboardingFormData,
   ): Promise<{
     success: boolean;
     data?: ClientOnboardingFormData;
     error?: unknown;
   }> {
     try {
-      const { data, error } = await supabase.rpc("complete_onboarding", {
+      console.log("Completing onboarding for userId:", userId);
+      console.log("Step data:", stepData);
+      stepData.stage = UserStages.BIO_DONE;
+      const { data, error } = await supabase.rpc("update_client_onboarding_progress", {
         p_user_id: userId,
-      }); // <-- Move closing parenthesis here
+        p_step_data: stepData
+      });
 
       if (error) {
         console.error("DB RPC error:", error.message);

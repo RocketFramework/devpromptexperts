@@ -654,3 +654,59 @@ export interface SellerUser {
   timezone: string;
   state: string | null;
 }
+
+
+// app/types/seller.ts
+export interface SellerMetrics {
+  seller_id: string;
+  total_clients_count: number;
+  total_clients_count_this_month: number;
+  total_clients_count_last_month: number;
+  active_clients_count: number;
+  average_client_satisfaction_score: number;
+  satisfied_clients_count: number;
+  total_client_projects_count: number;
+  completed_client_projects_count: number;
+  active_client_projects_count: number;
+  net_earnings: number;
+  net_earnings_this_month: number;
+  net_earnings_last_month: number;
+  direct_sales_commissions: number;
+  direct_sales_commissions_this_month: number;
+  direct_sales_commissions_last_month: number;
+  team_sales_commissions: number;
+  team_sales_commissions_this_month: number;
+  team_sales_commissions_last_month: number;
+  team_consultant_commissions: number;
+  team_consultant_commissions_this_month: number;
+  team_consultant_commissions_last_month: number;
+  client_projects_earnings: number;
+  client_projects_earnings_this_month: number;
+  client_projects_earnings_last_month: number;
+  client_projects_earnings_overdue: number;
+  consultants_team_count: number;
+  sales_team_count: number;
+  clients_team_count: number;
+  summary_generated_at: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  industry: string;
+  status: 'active' | 'onboarding' | 'inactive' | 'at-risk';
+  total_spend: number;
+  satisfaction_score: number;
+  active_projects: number;
+  joined_date: string;
+  last_activity: string;
+}
+
+export interface Activity {
+  id: string;
+  type: 'commission' | 'client_signed' | 'project_milestone' | 'team_addition' | 'payment_overdue';
+  title: string;
+  description: string;
+  timestamp: string;
+  amount?: number;
+}

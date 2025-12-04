@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
-import { OnboardingStep, ClientOnboardingFormData, ClientUser, UserStage, UserStages } from "../types";
+import {
+  OnboardingStep,
+  ClientOnboardingFormData,
+  ClientUser,
+  UserStage,
+  UserStages,
+} from "../types";
 import { RpcBusinessService } from "@/services/extended";
 import { useSession } from "next-auth/react";
 
@@ -15,7 +21,9 @@ interface UseOnboardingReturn {
     stepData: ClientOnboardingFormData,
     nextStep?: string
   ) => Promise<{ success: boolean; data?: unknown; error?: unknown }>;
-  completeOnboarding: () => Promise<{
+  completeOnboarding: (
+    stepData: ClientOnboardingFormData
+  ) => Promise<{
     success: boolean;
     data?: unknown;
     error?: unknown;
@@ -61,14 +69,20 @@ export const useOnboarding = (): UseOnboardingReturn => {
     nextStep?: string
   ): Promise<{ success: boolean; data?: unknown; error?: unknown }> => {
     setLoading(true);
-    stepData.stage = UserStages.BIO_WIP// Update stage to onboarding in progress
+    stepData.stage = UserStages.BIO_WIP; // Update stage to onboarding in progress
     try {
-      console.log("Updating onboarding with data:", stepData, "Next step:", nextStep);
-      const { data, error } = await RpcBusinessService.updateClientOnboardingProgress(
-        session?.user.id || "",
+      console.log(
+        "Updating onboarding with data:",
         stepData,
+        "Next step:",
         nextStep
       );
+      const { data, error } =
+        await RpcBusinessService.updateClientOnboardingProgress(
+          session?.user.id || "",
+          stepData,
+          nextStep
+        );
 
       if (error) throw error;
 
@@ -85,14 +99,19 @@ export const useOnboarding = (): UseOnboardingReturn => {
     }
   };
 
-  const completeOnboarding = async (): Promise<{
+  const completeOnboarding = async (
+    stepData: ClientOnboardingFormData
+  ): Promise<{
     success: boolean;
     data?: unknown;
     error?: unknown;
   }> => {
     setLoading(true);
     try {
-      const { data, error } = await RpcBusinessService.completeClientOnboarding(session?.user.id || "" );
+      const { data, error } = await RpcBusinessService.completeClientOnboarding(
+        session?.user.id || "", 
+        stepData
+      );
       if (error) throw error;
 
       // Redirect to dashboard after completion
