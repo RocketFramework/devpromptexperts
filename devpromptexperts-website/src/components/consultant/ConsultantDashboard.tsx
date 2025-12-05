@@ -94,12 +94,12 @@ export default function ConsultantDashboard(data: ConsultantData) {
   const profileScore = calculateProfileScore();
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 p-4 lg:p-6">
+    <div className="bg-linear-to-br from-slate-50 to-blue-50/30 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+            <h1 className="text-2xl lg:text-3xl font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
               Performance Dashboard
             </h1>
             <Tooltip content="Real-time updates of your business performance metrics">
@@ -415,7 +415,7 @@ export default function ConsultantDashboard(data: ConsultantData) {
                     {Math.round(earningsComposition.direct.percentage)}
                   </Tooltip>
                 }
-                color="bg-gradient-to-r from-blue-500 to-cyan-500"
+                color="bg-linear-to-r from-blue-500 to-cyan-500"
                 trend={calculateTrend(
                   data.direct_earnings_this_month,
                   data.direct_earnings_last_month
@@ -473,7 +473,7 @@ export default function ConsultantDashboard(data: ConsultantData) {
                     {Math.round(earningsComposition.team.percentage)}
                   </Tooltip>
                 }
-                color="bg-gradient-to-r from-green-500 to-emerald-500"
+                color="bg-linear-to-r from-green-500 to-emerald-500"
                 trend={calculateTrend(
                   data.consultant_commissions_this_month,
                   data.consultant_commissions_last_month
@@ -531,7 +531,7 @@ export default function ConsultantDashboard(data: ConsultantData) {
                     {Math.round(earningsComposition.sales.percentage)}
                   </Tooltip>
                 }
-                color="bg-gradient-to-r from-purple-500 to-pink-500"
+                color="bg-linear-to-r from-purple-500 to-pink-500"
                 trend={calculateTrend(
                   data.sales_commissions_this_month,
                   data.sales_commissions_last_month
@@ -589,7 +589,7 @@ export default function ConsultantDashboard(data: ConsultantData) {
                     {Math.round(earningsComposition.client.percentage)}
                   </Tooltip>
                 }
-                color="bg-gradient-to-r from-orange-500 to-red-500"
+                color="bg-linear-to-r from-orange-500 to-red-500"
                 trend={calculateTrend(
                   data.client_commissions_this_month,
                   data.client_commissions_last_month

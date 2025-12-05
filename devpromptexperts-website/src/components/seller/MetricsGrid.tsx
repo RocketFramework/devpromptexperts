@@ -1,5 +1,5 @@
 // app/components/seller/MetricsGrid.tsx
-import StatCard from './StatCard';
+import StatCard from '../ui/StatCard';
 import { 
   HiCurrencyDollar, 
   HiUsers, 

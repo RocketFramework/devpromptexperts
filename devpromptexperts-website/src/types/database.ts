@@ -1220,6 +1220,7 @@ export type Database = {
           preferred_contact_method: string | null
           preferred_engagement_types: string[] | null
           preferred_industries: string[] | null
+          project_summary: string | null
           project_type: string
           published_at: string | null
           required_skills: string[] | null
@@ -1229,6 +1230,7 @@ export type Database = {
           timeline: string
           title: string
           total_responses: number | null
+          type: string
           updated_at: string | null
           urgency_level: string | null
           views_count: number | null
@@ -1247,6 +1249,7 @@ export type Database = {
           preferred_contact_method?: string | null
           preferred_engagement_types?: string[] | null
           preferred_industries?: string[] | null
+          project_summary?: string | null
           project_type: string
           published_at?: string | null
           required_skills?: string[] | null
@@ -1256,6 +1259,7 @@ export type Database = {
           timeline: string
           title: string
           total_responses?: number | null
+          type?: string
           updated_at?: string | null
           urgency_level?: string | null
           views_count?: number | null
@@ -1274,6 +1278,7 @@ export type Database = {
           preferred_contact_method?: string | null
           preferred_engagement_types?: string[] | null
           preferred_industries?: string[] | null
+          project_summary?: string | null
           project_type?: string
           published_at?: string | null
           required_skills?: string[] | null
@@ -1283,6 +1288,7 @@ export type Database = {
           timeline?: string
           title?: string
           total_responses?: number | null
+          type?: string
           updated_at?: string | null
           urgency_level?: string | null
           views_count?: number | null
@@ -1967,6 +1973,13 @@ export type Database = {
         Returns: {
           id: string
           ob_partner_id: string
+        }[]
+      }
+      update_client_onboarding_progress: {
+        Args: { p_step_data?: Json; p_user_id?: string }
+        Returns: {
+          client_id: string
+          user_id: string
         }[]
       }
       update_onboarding_progress: {

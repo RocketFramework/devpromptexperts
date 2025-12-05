@@ -11,7 +11,9 @@ import {
   Projects_Types,
   Industries,
   OnboardingTierTypeData,
-  NoticePeriodTypes
+  NoticePeriodTypes,
+  TimeWindowEnum, 
+  PROJECT_BUDGETS
 } from "./";
 
 // Generic route map for stage/state based routing
@@ -41,3 +43,6 @@ export type ProjectType = (typeof Projects_Types)[number];
 export type Industry = (typeof Industries)[number];
 export type TierType = (typeof OnboardingTierTypeData)[number]['label'];
 export type NoticePeriodType = (typeof NoticePeriodTypes)[keyof typeof NoticePeriodTypes];
+//export type TimeWindowType = (typeof TimeWindowTypes)[keyof typeof TimeWindowTypes]; // '7d' | '30d' | '90d' | 'ytd'
+export type TimeWindowType = TimeWindowEnum;
+export type ProjectBudgetType = (typeof PROJECT_BUDGETS)[number];

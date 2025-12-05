@@ -37,7 +37,7 @@ export const UserRoles = {
 export const ClientSellerTypes = {
   INDIVIDUAL: "individual" as const,
   AGENCY: "agency" as const,
-  ENTERPRISE : "enterprise" as const,
+  ENTERPRISE: "enterprise" as const,
 } as const;
 
 export const UserStates = {
@@ -281,6 +281,31 @@ export const PartnershipStatusTypes = {
   ENDED_EARLY: "ended_early" as const,
 };
 
+export enum TimeWindowEnum {
+  SEVEN_DAYS= "7d",
+  THIRTY_DAYS= "30d" ,
+  NINETY_DAYS= "90d" ,
+  YEAR_TO_DATE= "ytd" ,
+}
+
+export const TIME_WINDOW_CONFIG = {
+  OPTIONS: [
+    TimeWindowEnum.SEVEN_DAYS,
+    TimeWindowEnum.THIRTY_DAYS,
+    TimeWindowEnum.NINETY_DAYS,
+    TimeWindowEnum.YEAR_TO_DATE
+  ] as const,
+  DEFAULT: TimeWindowEnum.THIRTY_DAYS,
+  
+  LABELS: {
+    [TimeWindowEnum.SEVEN_DAYS]: 'Last 7 days',
+    [TimeWindowEnum.THIRTY_DAYS]: 'Last 30 days',
+    [TimeWindowEnum.NINETY_DAYS]: 'Last 90 days',
+    [TimeWindowEnum.YEAR_TO_DATE]: 'Year to date',
+  }
+} as const;
+
+
 export const OnboardingTierTypeData: Tier[] = [
   {
     id: "founder_100",
@@ -341,35 +366,35 @@ export const PAYMENT_METHODS = [
   "PayPal",
   "Wise",
   "Stripe",
-  "Direct Deposit"
+  "Direct Deposit",
 ];
 
 // Realistic commission structure based on platform's 20% take rate
 export const COMMISSION_TIERS = [
-  { 
-    range: "Up to $25,000", 
-    commission: "5%", 
+  {
+    range: "Up to $25,000",
+    commission: "5%",
     platform_fee: "15%",
-    example: "$10,000 project → $500 to you, $1,500 to platform"
+    example: "$10,000 project → $500 to you, $1,500 to platform",
   },
-  { 
-    range: "$25,001 - $75,000", 
-    commission: "7.5%", 
+  {
+    range: "$25,001 - $75,000",
+    commission: "7.5%",
     platform_fee: "12.5%",
-    example: "$50,000 project → $3,750 to you, $6,250 to platform"
+    example: "$50,000 project → $3,750 to you, $6,250 to platform",
   },
-  { 
-    range: "$75,001 - $150,000", 
-    commission: "10%", 
+  {
+    range: "$75,001 - $150,000",
+    commission: "10%",
     platform_fee: "10%",
-    example: "$100,000 project → $10,000 to you, $10,000 to platform"
+    example: "$100,000 project → $10,000 to you, $10,000 to platform",
   },
-  { 
-    range: "$150,001+", 
-    commission: "12.5%", 
+  {
+    range: "$150,001+",
+    commission: "12.5%",
     platform_fee: "7.5%",
-    example: "$200,000 project → $25,000 to you, $15,000 to platform"
-  }
+    example: "$200,000 project → $25,000 to you, $15,000 to platform",
+  },
 ];
 
 export const GEOGRAPHIC_FOCUS_OPTIONS = [
@@ -379,7 +404,7 @@ export const GEOGRAPHIC_FOCUS_OPTIONS = [
   "Middle East",
   "Latin America",
   "Africa",
-  "Global"
+  "Global",
 ];
 
 export const TIMEZONES = [
@@ -392,16 +417,23 @@ export const TIMEZONES = [
   "Europe/Paris",
   "Asia/Tokyo",
   "Asia/Singapore",
-  "Australia/Sydney"
+  "Australia/Sydney",
 ];
 
 export const PROJECT_BUDGETS: string[] = [
-  '< $10,000', '$10,000 - $50,000', '$50,000 - $100,000', 
-  '$100,000 - $500,000', '> $500,000'
+  "< $10,000",
+  "$10,000 - $50,000",
+  "$50,000 - $100,000",
+  "$100,000 - $500,000",
+  "> $500,000",
 ];
 
 export const CONSULTANT_TRAITS: string[] = [
-  'Deep Research Focus', 'Fast Deployment Specialist', 
-  'Strategy & Governance Expert', 'Startup Experience', 
-  'Enterprise Scale Experience', 'Remote/Global', 'Onsite Preferred'
+  "Deep Research Focus",
+  "Fast Deployment Specialist",
+  "Strategy & Governance Expert",
+  "Startup Experience",
+  "Enterprise Scale Experience",
+  "Remote/Global",
+  "Onsite Preferred",
 ];

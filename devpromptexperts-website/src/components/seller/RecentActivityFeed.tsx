@@ -88,7 +88,7 @@ export default function RecentActivityFeed({ activities }: RecentActivityFeedPro
             className={`p-4 rounded-lg border ${getActivityColor(activity.type)} transition-all duration-200 hover:shadow-sm`}
           >
             <div className="flex gap-3">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="p-2 rounded-lg bg-white dark:bg-gray-700 shadow-sm">
                   {getActivityIcon(activity.type)}
                 </div>

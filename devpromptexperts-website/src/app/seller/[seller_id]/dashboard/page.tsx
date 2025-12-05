@@ -8,7 +8,7 @@ import RevenueBreakdownChart from '@/components/seller/RevenueBreakdownChart';
 import PerformanceAnalytics from '@/components/seller/PerformanceAnalytics';
 import RecentActivityFeed from '@/components/seller/RecentActivityFeed';
 import QuickActionsPanel from '@/components/seller/QuickActionsPanel';
-import { SellerMetrics, Client, Activity } from '@/types';
+import { SellerMetrics, Client, Activity, TimeWindowEnum, TimeWindowType, TIME_WINDOW_CONFIG } from '@/types';
 import { formatDate, calculatePercentageChange } from '@/utils/general';
 import { HiClock, HiUsers } from 'react-icons/hi';
 
@@ -105,7 +105,7 @@ export default function SellerDashboard() {
   const [metrics, setMetrics] = useState<SellerMetrics>(mockSellerMetrics);
   const [clients, setClients] = useState<Client[]>(mockClients);
   const [activities, setActivities] = useState<Activity[]>(mockActivities);
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'ytd'>('30d');
+  const [timeRange, setTimeWindows] = useState<TimeWindowType>(TIME_WINDOW_CONFIG.DEFAULT);
   const [isLoading, setIsLoading] = useState(false);
 
   // Calculate derived metrics
@@ -134,78 +134,84 @@ export default function SellerDashboard() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Dashboard Header (Minimal) */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Seller Performance
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Last updated: {formatDate(metrics.summary_generated_at)}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <select 
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white"
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as any)}
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="ytd">Year to date</option>
-          </select>
-          
-          <button 
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center disabled:opacity-50"
-          >
-            <HiClock className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            {isLoading ? 'Refreshing...' : 'Refresh'}
-          </button>
-          
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center">
-            <HiUsers className="w-4 h-4 mr-2" />
-            New Client
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <MetricsGrid metrics={metrics} />
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <RevenueBreakdownChart metrics={metrics} />
-        </div>
-        <div className="lg:col-span-1">
-          <PerformanceAnalytics 
-            projectCompletionRate={projectCompletionRate}
-            overduePercentage={overduePercentage}
-            clientGrowthRate={clientGrowthRate}
-            earningsGrowthRate={earningsGrowthRate}
-          />
-        </div>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Client Portfolio */}
-        <div className="lg:col-span-2">
-          <ClientPortfolioTable 
-            clients={clients}
-            onViewAll={() => console.log('View all clients')}
-          />
-        </div>
-
-        {/* Right Sidebar */}
+    <div className="flex justify-center p-6">
+      {/* Centered Container with min and max width */}
+      <div className="w-full min-w-[320px] max-w-7xl mx-auto">
         <div className="space-y-6">
-          <RecentActivityFeed activities={activities} />
-          <QuickActionsPanel />
+          {/* Dashboard Header (Minimal) */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                Seller Performance
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">
+                Last updated: {formatDate(metrics.summary_generated_at)}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <select 
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white"
+                value={timeRange}
+                onChange={(e) => setTimeWindows(e.target.value as TimeWindowType)}
+              >
+                {TIME_WINDOW_CONFIG.OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {TIME_WINDOW_CONFIG.LABELS[option]}
+                  </option>
+                ))}
+              </select>
+              
+              <button 
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center disabled:opacity-50"
+              >
+                <HiClock className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Refreshing...' : 'Refresh'}
+              </button>
+              
+              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center">
+                <HiUsers className="w-4 h-4 mr-2" />
+                New Client
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <MetricsGrid metrics={metrics} />
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <RevenueBreakdownChart metrics={metrics} />
+            </div>
+            <div className="lg:col-span-1">
+              <PerformanceAnalytics 
+                projectCompletionRate={projectCompletionRate}
+                overduePercentage={overduePercentage}
+                clientGrowthRate={clientGrowthRate}
+                earningsGrowthRate={earningsGrowthRate}
+              />
+            </div>
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Client Portfolio */}
+            <div className="lg:col-span-2">
+              <ClientPortfolioTable 
+                clients={clients}
+                onViewAll={() => console.log('View all clients')}
+              />
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="space-y-6">
+              <RecentActivityFeed activities={activities} />
+              <QuickActionsPanel />
+            </div>
+          </div>
         </div>
       </div>
     </div>
