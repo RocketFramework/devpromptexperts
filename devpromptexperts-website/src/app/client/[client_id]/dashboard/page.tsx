@@ -6,6 +6,7 @@ import ProjectTable from '@/components/client/ProjectTable';
 import RecentActivity from '@/components/client/RecentActivity';
 import { HiCurrencyDollar, HiLightningBolt, HiClock, HiDocumentText } from 'react-icons/hi';
 import { ReactNode } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 
 interface Project {
   id: number;
@@ -81,6 +82,10 @@ const PROJECT_COLUMNS = [
 ];
 
 export default function ClientDashboard() {
+  const router = useRouter();
+  const params = useParams();
+  const clientId = params.client_id as string;
+
   return (
     <ClientDashboardLayout>
       <div className="space-y-6">
@@ -90,7 +95,10 @@ export default function ClientDashboard() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, Alex!</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Here&#39;s what&#39;s happening with your projects today.</p>
           </div>
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center">
+          <button 
+            onClick={() => router.push(`/client/${clientId}/rfp/create`)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center"
+          >
             <HiDocumentText className="w-4 h-4 mr-2" />
             Create New RFP
           </button>
@@ -112,7 +120,7 @@ export default function ClientDashboard() {
               data={RECENT_PROJECTS} 
               columns={PROJECT_COLUMNS} 
               actionLabel="View All"
-              onAction={() => console.log('View all projects')}
+              onAction={() => router.push(`/client/${clientId}/rfp`)}
             />
           </div>
 

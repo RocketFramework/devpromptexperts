@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import RFPForm, { RFPCreationData } from "@/components/client/RFPForm";
 import { ProjectRequestsService } from "@/services/generated";
@@ -18,6 +18,8 @@ import {
 
 export default function CreateRFPPage() {
   const router = useRouter();
+  const params = useParams();
+  const clientId = params.client_id as string;
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,7 +33,7 @@ export default function CreateRFPPage() {
       setIsSubmitting(true);
       const projectData = {
         ...data,
-        client_id: session.user.id,
+        client_id: clientId || session?.user?.id || "",
         status: isDraft ? ProjectStatus.DRAFT : ProjectStatus.OPEN,
         published_at: isDraft ? null : new Date().toISOString(),
         // Ensure required fields are present and cast to string if needed
@@ -42,7 +44,7 @@ export default function CreateRFPPage() {
 
       await ProjectRequestsService.create(projectData);
       alert(isDraft ? "Draft saved successfully!" : "RFP published successfully!");
-      router.push("/client/dashboard/projects");
+      router.push(`/client/${clientId}/rfp`);
     } catch (error) {
       console.error("Error creating project:", error);
       alert("Failed to create project. Please try again.");
@@ -61,7 +63,7 @@ export default function CreateRFPPage() {
         </div>
         <RFPForm
           onSubmit={handleSubmit}
-          onCancel={() => router.push("/client/dashboard/projects")}
+          onCancel={() => router.push(`/client/${clientId}/rfp`)}
           isSubmitting={isSubmitting}
         />
       </div>

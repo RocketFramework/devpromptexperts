@@ -12,8 +12,10 @@ import {
   SecurityIcon,
   CalendarIcon,
   DocumentIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  HomeIcon
 } from "@/components/ui/SharedIcons";
+import { useRouter } from "next/navigation";
 import { ActionCard } from "@/components/ui/ActionCard";
 import { NextStep } from "@/components/ui/NextStep";
 import { InductionService } from "@/lib/inductionService";
@@ -33,6 +35,7 @@ const iconMap = {
 };
 
 export default function ClientInductionPage() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [inductionData, setInductionData] = useState<UserInductionProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +106,13 @@ export default function ClientInductionPage() {
                 {content.badgeText}
               </div>
               <p className="text-sm text-slate-500">{content.statusText}</p>
+              <button
+                onClick={() => session?.user?.id && router.push(`/client/${session.user.id}/dashboard`)}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm mt-2 transition-colors shadow-sm"
+              >
+                <HomeIcon className="w-4 h-4" />
+                <span>Go to Dashboard</span>
+              </button>
             </div>
           </div>
         </div>

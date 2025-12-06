@@ -59,7 +59,7 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
     client: [
       {
         name: "My Projects",
-        href: `/client/projects`,
+        href: `/client/${userId}/rfp`,
         icon: "📋",
       },
       {

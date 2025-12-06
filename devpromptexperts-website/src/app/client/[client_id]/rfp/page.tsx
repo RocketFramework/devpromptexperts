@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import { ProjectRequestsService } from "@/services/generated";
@@ -12,16 +12,18 @@ import { HiPlus, HiPencil, HiTrash, HiEye, HiCheckCircle, HiXCircle } from "reac
 
 export default function RFPListPage() {
   const router = useRouter();
+  const params = useParams();
+  const clientId = params.client_id as string;
   const { data: session } = useSession();
   const [projects, setProjects] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
   useEffect(() => {
-    if (session?.user?.id) {
-      loadProjects(session.user.id);
+    if (clientId) {
+      loadProjects(clientId);
     }
-  }, [session]);
+  }, [clientId]);
 
   const loadProjects = async (clientId: string) => {
     try {
@@ -46,7 +48,7 @@ export default function RFPListPage() {
         published_at: new Date().toISOString(),
       });
       // Reload projects
-      if (session?.user?.id) loadProjects(session.user.id);
+      if (clientId) loadProjects(clientId);
     } catch (error) {
       console.error("Error publishing project:", error);
       alert("Failed to publish project");
@@ -64,7 +66,7 @@ export default function RFPListPage() {
         status: ProjectStatus.CANCELLED,
       });
       // Reload projects
-      if (session?.user?.id) loadProjects(session.user.id);
+      if (clientId) loadProjects(clientId);
     } catch (error) {
       console.error("Error closing project:", error);
       alert("Failed to close project");
@@ -96,7 +98,7 @@ export default function RFPListPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My RFPs</h1>
           <Link 
-            href="/client/dashboard/rfp/create"
+            href={`/client/${clientId}/rfp/create`}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center"
           >
             <HiPlus className="w-4 h-4 mr-2" />
@@ -116,7 +118,7 @@ export default function RFPListPage() {
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new Request for Proposal.</p>
               <div className="mt-6">
                 <Link
-                  href="/client/dashboard/rfp/create"
+                  href={`/client/${clientId}/rfp/create`}
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <HiPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
@@ -155,7 +157,7 @@ export default function RFPListPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-3">
                           <Link 
-                            href={`/client/dashboard/rfp/edit/${project.id}`}
+                            href={`/client/${clientId}/rfp/${project.id}`}
                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                             title="Edit"
                           >

@@ -20,7 +20,7 @@ export class ExtendedProjectRequestsService {
       .from('project_requests')
       .select('*')
       .eq('client_id', client_id)
-      .single()
+
     
     if (error) throw error
     return data

@@ -20,6 +20,7 @@ export default function EditRFPPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const clientId = params.client_id as string;
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,14 +36,14 @@ export default function EditRFPPage() {
     try {
       setIsLoading(true);
       const response = await ProjectRequestsService.findById(projectId);
-      const project = response.data;
+      const project = response;
       
       if (project) {
         setInitialData({
           client_id: project.client_id,
           title: project.title,
           description: project.description,
-          project_summary: project.description, // Mapping description to summary as fallback if needed, or check if DB has summary
+          project_summary: project.project_summary || project.description,
           required_skills: project.required_skills || [],
           preferred_industries: project.preferred_industries || [],
           preferred_engagement_types: project.preferred_engagement_types || [],
@@ -55,7 +56,7 @@ export default function EditRFPPage() {
           specific_location: project.specific_location || "",
           client_availability: project.client_availability || "",
           preferred_contact_method: (project.preferred_contact_method as PreferredContactMethod) || PreferredContactMethod.EMAIL,
-          deadline: project.deadline || "",
+          deadline: project.deadline ? new Date(project.deadline).toISOString().slice(0, 16) : "",
         });
       }
     } catch (error) {
@@ -81,7 +82,7 @@ export default function EditRFPPage() {
 
       await ProjectRequestsService.update(id, projectData);
       alert(isDraft ? "Draft updated successfully!" : "RFP updated and published successfully!");
-      router.push("/client/dashboard/projects");
+      router.push(`/client/${clientId}/rfp`);
     } catch (error) {
       console.error("Error updating project:", error);
       alert("Failed to update project. Please try again.");
@@ -117,7 +118,7 @@ export default function EditRFPPage() {
           initialData={initialData}
           isEditing={true}
           onSubmit={handleSubmit}
-          onCancel={() => router.push("/client/dashboard/projects")}
+          onCancel={() => router.push(`/client/${clientId}/rfp`)}
           isSubmitting={isSubmitting}
         />
       </div>
