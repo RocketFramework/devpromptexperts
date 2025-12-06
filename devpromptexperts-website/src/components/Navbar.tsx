@@ -167,7 +167,7 @@ export default function Navbar() {
   }, [isProfileDropdownOpen, isAuthDropdownOpen, isNotificationsOpen]);
 
   return (
-    <nav className="bg-gradient-to-r from-blue-950 to-black text-white shadow-lg relative">
+    <nav className="bg-linear-to-r from-blue-950 to-black text-white shadow-lg relative">
       <div className="max-w-7xl mx-auto">
         {/* Top Bar */}
         <div className="flex justify-between items-center p-4">
@@ -232,7 +232,7 @@ export default function Navbar() {
                       {hasIncompleteInduction && (
                         <div className="p-4 border-b border-slate-100">
                           <div className="flex items-start space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center mt-1">
+                            <div className="w-8 h-8 bg-linear-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center mt-1">
                               <FaGraduationCap className="text-white text-sm" />
                             </div>
                             <div className="flex-1">
@@ -315,7 +315,7 @@ export default function Navbar() {
                       {/* User Info */}
                       <div className="p-4 border-b border-slate-200">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          <div className="w-10 h-10 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                             {getUserInitials(session.user.name || "U")}
                           </div>
                           <div>
@@ -452,7 +452,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-gradient-to-r from-blue-950 to-black border-t border-blue-800 shadow-lg z-40">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-linear-to-r from-blue-950 to-black border-t border-blue-800 shadow-lg z-40">
             <div className="p-4 space-y-4">
               {/* Main Navigation Links */}
               {mainNavigation.map((link) => (

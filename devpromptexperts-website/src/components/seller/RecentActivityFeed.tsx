@@ -126,7 +126,7 @@ export default function RecentActivityFeed({ activities }: RecentActivityFeedPro
 
       {/* Quick Stats */}
       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Today's Summary</h3>
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Today&#39;s Summary</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
             <div className="text-lg font-bold text-gray-900 dark:text-white">3</div>
@@ -136,7 +136,7 @@ export default function RecentActivityFeed({ activities }: RecentActivityFeedPro
             <div className="text-lg font-bold text-gray-900 dark:text-white">
               {formatCurrency(14500)}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Today's Earnings</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">Today&#39;s Earnings</div>
           </div>
         </div>
       </div>

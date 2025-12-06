@@ -1,324 +1,196 @@
 "use client";
 
-import { useState, FC, FormEvent } from 'react';
-import ClientDashboardLayout from '@/components/client/ClientDashboardLayout';
-// ASSUMPTION: These types and constants are correctly imported from your project's shared types file.
-import { PROJECT_BUDGETS, ProjectBudgetType as ProjectBudget, CONSULTANT_TRAITS } from "@/types"; 
-// Assuming these are arrays of strings exported from your types file
-import { ExpertiseOptions as AI_EXPERTISE_AREAS, Industries as INDUSTRIES, Projects_Types as PROJECT_TYPES } from "@/types/"; 
-import { TagInputField } from '@/components/ui/TagInputField';
-import { ProjectRequestsService } from '@/services/generated';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
+import { ProjectRequestsService } from "@/services/generated";
+import { ExtendedProjectRequestsService } from "@/services/extended";
+import { ProjectStatus } from "@/types";
+import { HiPlus, HiPencil, HiTrash, HiEye, HiCheckCircle, HiXCircle } from "react-icons/hi";
 
-// Define the shape of the RFP data
-type RFPCreationData = {
-  title: string;
-  type: "RFP" | "RFI" | "Casual Inquiry";
-  project_summary: string;
-  required_expertise: string[];
-  target_industries: string[];
-  desired_project_types: string[];
-  project_budget: ProjectBudget | "";
-  preferred_consultant_traits: string[];
-  skills: string;
-  description: string;
-  budget: string;
-};
+export default function RFPListPage() {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
-export default function RFPPage() {
-  const [rfpData, setRfpData] = useState<RFPCreationData>({
-    title: "",
-    type: "RFP",
-    project_summary: "",
-    required_expertise: [],
-    target_industries: [],
-    desired_project_types: [],
-    project_budget: "",
-    preferred_consultant_traits: [],
-    skills: "",
-    description: "",
-    budget: ""
-  });
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadProjects(session.user.id);
+    }
+  }, [session]);
 
-  const handleUpdate = (updates: Partial<RFPCreationData>) => {
-    setRfpData(prev => ({ ...prev, ...updates }));
+  const loadProjects = async (clientId: string) => {
+    try {
+      setIsLoading(true);
+      console.log("Loading projects for client ID:", clientId);
+      const data = await ExtendedProjectRequestsService.findByClientId(clientId);
+      setProjects(data || []);
+    } catch (error) {
+      console.error("Error loading projects:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSaveDraft = () => {
-    console.log("Saving draft:", rfpData);
-    // Implement actual save logic here
-    ProjectRequestsService.create({
-    title: rfpData.title,
-    type: rfpData.type,
-    project_summary: rfpData.project_summary,
-    required_skills: rfpData.required_expertise,
-    preferred_industries: rfpData.target_industries,
-    preferred_engagement_types: rfpData.desired_project_types,
-    budget_range: rfpData.project_budget,
-    preferredConsultantTraits: rfpData.preferred_consultant_traits,
-    skills: rfpData.skills,
-    description: rfpData.description,
-    budget: rfpData.budget,
-    status: 'Draft',
-
-  });
-    alert("Draft saved successfully!");
+  const handlePublish = async (id: string) => {
+    if (!confirm("Are you sure you want to publish this RFP?")) return;
+    
+    try {
+      setIsUpdating(id);
+      await ProjectRequestsService.update(id, {
+        status: ProjectStatus.OPEN,
+        published_at: new Date().toISOString(),
+      });
+      // Reload projects
+      if (session?.user?.id) loadProjects(session.user.id);
+    } catch (error) {
+      console.error("Error publishing project:", error);
+      alert("Failed to publish project");
+    } finally {
+      setIsUpdating(null);
+    }
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
-    // Validation
-    if (!rfpData.title.trim()) {
-      alert("Please enter a project title");
-      return;
+  const handleClose = async (id: string) => {
+    if (!confirm("Are you sure you want to close this RFP? This action cannot be undone.")) return;
+
+    try {
+      setIsUpdating(id);
+      await ProjectRequestsService.update(id, {
+        status: ProjectStatus.CANCELLED,
+      });
+      // Reload projects
+      if (session?.user?.id) loadProjects(session.user.id);
+    } catch (error) {
+      console.error("Error closing project:", error);
+      alert("Failed to close project");
+    } finally {
+      setIsUpdating(null);
     }
-    
-    if (rfpData.project_summary.trim().length < 20) {
-      alert("Please provide a detailed project summary (minimum 20 characters)");
-      return;
-    }
-    
-    if (!rfpData.project_budget) {
-      alert("Please select a project budget");
-      return;
-    }
-    
-    if (rfpData.required_expertise.length === 0) {
-      alert("Please add at least one required expertise area");
-      return;
-    }
-    
-    console.log("Publishing RFP:", rfpData);
-    // Implement actual submission logic here
-    alert("RFP published successfully!");
   };
 
-  const inputClasses = (darkMode = false) => 
-    `mt-1 block w-full rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 ${
-      darkMode 
-        ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
-        : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'
-    }`;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case ProjectStatus.OPEN:
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Open</span>;
+      case ProjectStatus.DRAFT:
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Draft</span>;
+      case ProjectStatus.IN_PROGRESS:
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">In Progress</span>;
+      case ProjectStatus.COMPLETED:
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">Completed</span>;
+      case ProjectStatus.CANCELLED:
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Closed</span>;
+      default:
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Unknown</span>;
+    }
+  };
 
   return (
     <ClientDashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create New RFP / RFI</h1>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My RFPs</h1>
+          <Link 
+            href="/client/dashboard/rfp/create"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center"
+          >
+            <HiPlus className="w-4 h-4 mr-2" />
+            Create New RFP
+          </Link>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Basic Information Section */}
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
-              
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Project Title *
-                </label>
-                <input 
-                  type="text" 
-                  id="title"
-                  required
-                  value={rfpData.title}
-                  onChange={(e) => handleUpdate({ title: e.target.value })}
-                  className={inputClasses(false)}
-                  placeholder="e.g., AI-Powered Recommendation Engine"
-                />
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {isLoading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading projects...</div>
+          ) : projects.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="mx-auto h-12 w-12 text-gray-400">
+                <HiPlus className="h-12 w-12" />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Request Type *
-                  </label>
-                  <select 
-                    id="type"
-                    value={rfpData.type}
-                    onChange={(e) => handleUpdate({ type: e.target.value as RFPCreationData['type'] })}
-                    className={inputClasses(false)}
-                  >
-                    <option value="RFP">Request for Proposal (RFP)</option>
-                    <option value="RFI">Request for Information (RFI)</option>
-                    <option value="Casual Inquiry">Casual Inquiry</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="budget" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Budget Range (for display) *
-                  </label>
-                  <input 
-                    type="text" 
-                    id="budget"
-                    required
-                    value={rfpData.budget}
-                    onChange={(e) => handleUpdate({ budget: e.target.value })}
-                    className={inputClasses(false)}
-                    placeholder="e.g., $10,000 - $50,000"
-                  />
-                </div>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No RFPs</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new Request for Proposal.</p>
+              <div className="mt-6">
+                <Link
+                  href="/client/dashboard/rfp/create"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <HiPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                  New RFP
+                </Link>
               </div>
             </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700/50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Title</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Budget</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {projects.map((project) => (
+                    <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{project.title}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_summary}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(project.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {project.budget_range}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(project.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-3">
+                          <Link 
+                            href={`/client/dashboard/rfp/edit/${project.id}`}
+                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                            title="Edit"
+                          >
+                            <HiPencil className="w-5 h-5" />
+                          </Link>
+                          
+                          {project.status === ProjectStatus.DRAFT && (
+                            <button
+                              onClick={() => handlePublish(project.id)}
+                              disabled={isUpdating === project.id}
+                              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 disabled:opacity-50"
+                              title="Publish"
+                            >
+                              <HiCheckCircle className="w-5 h-5" />
+                            </button>
+                          )}
 
-            {/* Project Details Section */}
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Project Details</h2>
-              
-              {/* Project Summary */}
-              <div>
-                <label htmlFor="project_summary" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Project Summary / Challenge *
-                </label>
-                <textarea
-                  id="project_summary"
-                  required
-                  rows={4}
-                  value={rfpData.project_summary}
-                  onChange={(e) => handleUpdate({ project_summary: e.target.value })}
-                  className={`w-full rounded-lg border shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-4 ${
-                    false 
-                      ? 'border-gray-600 bg-gray-700 text-white' 
-                      : 'border-gray-300 bg-gray-50 text-gray-900'
-                  }`}
-                  placeholder="e.g., We need an expert to build and deploy a custom GenAI knowledge-base for our legal team, focused on RAG architecture and hosted on AWS."
-                />
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Please provide a detailed summary (min 20 characters).
-                </p>
-              </div>
-
-              {/* Extended Description */}
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Detailed Project Description
-                </label>
-                <textarea 
-                  id="description"
-                  rows={6}
-                  value={rfpData.description}
-                  onChange={(e) => handleUpdate({ description: e.target.value })}
-                  className={inputClasses(false)}
-                  placeholder="Describe your project goals, specific requirements, timeline, and any other relevant details..."
-                />
-              </div>
+                          {project.status === ProjectStatus.OPEN && (
+                            <button
+                              onClick={() => handleClose(project.id)}
+                              disabled={isUpdating === project.id}
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50"
+                              title="Close RFP"
+                            >
+                              <HiXCircle className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-
-            {/* Skills & Requirements Section */}
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Skills & Requirements</h2>
-              
-              {/* Legacy Skills Input (for comma-separated custom skills) */}
-              <div>
-                <label htmlFor="skills" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Additional Required Skills (Comma separated)
-                </label>
-                <input 
-                  type="text" 
-                  id="skills"
-                  value={rfpData.skills}
-                  onChange={(e) => handleUpdate({ skills: e.target.value })}
-                  className={inputClasses(false)}
-                  placeholder="Python, TensorFlow, NLP, React, AWS..."
-                />
-              </div>
-
-              {/* Required Expertise */}
-              <TagInputField
-                label="Required AI Expertise Areas *"
-                tags={rfpData.required_expertise}
-                onTagsChange={(tags) => handleUpdate({ required_expertise: tags })}
-                allOptions={AI_EXPERTISE_AREAS}
-                placeholder="e.g., Generative AI, Computer Vision, MLOps..."
-                required={true}
-                helperText="Select the primary AI skills the consultant must possess."
-                darkMode={false}
-              />
-
-              {/* Target Industries */}
-              <TagInputField
-                label="Target Industry Focus"
-                tags={rfpData.target_industries}
-                onTagsChange={(tags) => handleUpdate({ target_industries: tags })}
-                allOptions={INDUSTRIES}
-                placeholder="e.g., Healthcare, FinTech, E-commerce..."
-                required={false}
-                helperText="What industry is this project focused on?"
-                darkMode={false}
-              />
-
-              {/* Desired Project Types */}
-              <TagInputField
-                label="Desired Project Types"
-                tags={rfpData.desired_project_types}
-                onTagsChange={(tags) => handleUpdate({ desired_project_types: tags })}
-                allOptions={PROJECT_TYPES}
-                placeholder="e.g., Strategy Consulting, MVP Development, Auditing..."
-                required={false}
-                helperText="What kind of engagement are you looking for?"
-                darkMode={false}
-              />
-            </div>
-
-            {/* Budget & Preferences Section */}
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Budget & Preferences</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Project Budget */}
-                <div>
-                  <label htmlFor="project_budget" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Estimated Project Budget (USD) *
-                  </label>
-                  <select
-                    id="project_budget"
-                    required
-                    value={rfpData.project_budget}
-                    onChange={(e) => handleUpdate({ project_budget: e.target.value as ProjectBudget | "" })}
-                    className={inputClasses(false)}
-                  >
-                    <option value="" disabled>Select Budget Range</option>
-                    {PROJECT_BUDGETS.map((budget) => (
-                      <option key={budget} value={budget}>{budget}</option>
-                    ))}
-                  </select>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    This helps us match you with consultants whose pricing aligns with your goals.
-                  </p>
-                </div>
-                
-                {/* Preferred Consultant Traits */}
-                <TagInputField
-                  label="Preferred Consultant Traits"
-                  tags={rfpData.preferred_consultant_traits}
-                  onTagsChange={(tags) => handleUpdate({ preferred_consultant_traits: tags })}
-                  allOptions={CONSULTANT_TRAITS}
-                  placeholder="e.g., Fast Deployment, Strategy Expert, Onsite Preferred..."
-                  required={false}
-                  helperText="Any specific working style or experience you require?"
-                  darkMode={false}
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="pt-4 flex justify-end space-x-3">
-              <button 
-                type="button"
-                onClick={handleSaveDraft}
-                className="px-4 py-2 border rounded-lg shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-blue-500"
-              >
-                Save Draft
-              </button>
-              <button 
-                type="submit"
-                disabled={!rfpData.title || !rfpData.project_budget || rfpData.required_expertise.length === 0 || rfpData.project_summary.trim().length < 20}
-                className="px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Publish RFP
-              </button>
-            </div>
-          </form>
+          )}
         </div>
       </div>
     </ClientDashboardLayout>

@@ -1220,8 +1220,8 @@ export type Database = {
           preferred_contact_method: string | null
           preferred_engagement_types: string[] | null
           preferred_industries: string[] | null
+          project_mode: string
           project_summary: string | null
-          project_type: string
           published_at: string | null
           required_skills: string[] | null
           shortlisted_responses: number | null
@@ -1249,8 +1249,8 @@ export type Database = {
           preferred_contact_method?: string | null
           preferred_engagement_types?: string[] | null
           preferred_industries?: string[] | null
+          project_mode: string
           project_summary?: string | null
-          project_type: string
           published_at?: string | null
           required_skills?: string[] | null
           shortlisted_responses?: number | null
@@ -1278,8 +1278,8 @@ export type Database = {
           preferred_contact_method?: string | null
           preferred_engagement_types?: string[] | null
           preferred_industries?: string[] | null
+          project_mode?: string
           project_summary?: string | null
-          project_type?: string
           published_at?: string | null
           required_skills?: string[] | null
           shortlisted_responses?: number | null

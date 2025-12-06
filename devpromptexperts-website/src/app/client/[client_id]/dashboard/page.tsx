@@ -5,6 +5,41 @@ import StatCard from '@/components/ui/StatCard';
 import ProjectTable from '@/components/client/ProjectTable';
 import RecentActivity from '@/components/client/RecentActivity';
 import { HiCurrencyDollar, HiLightningBolt, HiClock, HiDocumentText } from 'react-icons/hi';
+import { ReactNode } from 'react';
+
+interface Project {
+  id: number;
+  name: string;
+  consultant: string;
+  status: 'In Progress' | 'Review' | 'RFP Open' | string; // Add other possible statuses
+  deadline: string;
+  budget: string;
+}
+
+interface Activity {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+}
+
+interface StatCardData {
+  title: string;
+  value: string;
+  icon: ReactNode;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+  description?: string;
+}
+
+interface ColumnDefinition<T> {
+  header: string;
+  accessor: keyof T | ((item: T) => ReactNode);
+  className?: string;
+}
 
 // Mock Data
 const STATS = [
@@ -31,7 +66,7 @@ const PROJECT_COLUMNS = [
   { header: 'Consultant', accessor: 'consultant' as const },
   { 
     header: 'Status', 
-    accessor: (item: any) => (
+    accessor: (item: Project) => (
       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
         item.status === 'In Progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
         item.status === 'Review' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
@@ -53,7 +88,7 @@ export default function ClientDashboard() {
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, Alex!</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Here's what's happening with your projects today.</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Here&#39;s what&#39;s happening with your projects today.</p>
           </div>
           <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center">
             <HiDocumentText className="w-4 h-4 mr-2" />

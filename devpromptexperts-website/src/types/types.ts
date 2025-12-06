@@ -46,3 +46,4 @@ export type NoticePeriodType = (typeof NoticePeriodTypes)[keyof typeof NoticePer
 //export type TimeWindowType = (typeof TimeWindowTypes)[keyof typeof TimeWindowTypes]; // '7d' | '30d' | '90d' | 'ytd'
 export type TimeWindowType = TimeWindowEnum;
 export type ProjectBudgetType = (typeof PROJECT_BUDGETS)[number];
+
