@@ -22,3 +22,6 @@ export const BREADCRUMB_LABELS: Record<string, string> = {
 };
 
 export const HIDDEN_BREADCRUMB_SEGMENTS = ["(auth)", "(site)"];
+
+// Segments that should appear in the breadcrumb but are NOT clickable
+export const NON_NAVIGABLE_SEGMENTS = ["client", "consultant", "seller", "admin"];
