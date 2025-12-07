@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Footer from "../components/Footer";
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <Navbar />
+          <Breadcrumbs />
           {children}
           <Footer />
           <Analytics />
