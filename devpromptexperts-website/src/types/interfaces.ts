@@ -190,7 +190,7 @@ export interface OnboardingSubmissionData {
 export interface UpsertPayload {
   email: string | null;
   name: string;
-  avatar_url: string | null;
+  profile_image_url: string | null;
   role: string;
   provider: string;
   provider_account_id: string | null;

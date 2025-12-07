@@ -20,7 +20,6 @@ export class ExtendedProjectRequestsService {
       .from('project_requests')
       .select('*')
       .eq('client_id', client_id)
-
     
     if (error) throw error
     return data
@@ -46,17 +45,16 @@ export class ExtendedProjectRequestsService {
           user_id,
           featured,
           users (
-            first_name,
-            last_name,
+            full_name,
             email,
-            avatar_url
+            profile_image_url
           )
         )
       `)
       .eq('project_request_id', id);
 
     if (responsesError) {
-      console.error("Error fetching responses:", responsesError);
+      console.error('Error fetching responses:', responsesError);
       // Return project without responses if responses fetch fails
       return { ...project, project_responses: [] };
     }
@@ -73,31 +71,35 @@ export class ExtendedProjectRequestsService {
     if (error) throw error;
     
     // Filter for OPEN projects (case-insensitive)
-    const openProjects = data?.filter((p: any) => p.status?.toLowerCase() === 'open') || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const openProjects = data?.filter((p: any) => p.status?.toLowerCase() === 'open') || [];
     
     if (openProjects.length === 0) return [];
-
+    
     // Fetch response counts separately to avoid join issues
-    const projectIds = openProjects.map((p: any) => p.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const projectIds = openProjects.map((p: any) => p.id);
     const { data: responses, error: responsesError } = await supabase
       .from('project_responses')
       .select('project_request_id')
       .in('project_request_id', projectIds);
 
     if (responsesError) {
-      console.error("Error fetching response counts:", responsesError);
+      console.error('Error fetching response counts:', responsesError);
       // Return projects with 0 count if responses fail
       return openProjects.map((project: any) => ({ ...project, response_count: 0 }));
     }
     
     // Calculate counts
     const responseCounts: Record<string, number> = {};
-    responses?.forEach((r: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+responses?.forEach((r: any) => {
       responseCounts[r.project_request_id] = (responseCounts[r.project_request_id] || 0) + 1;
     });
-
+    
     // Merge counts
-    return openProjects.map((project: any) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+return openProjects.map((project: any) => ({
       ...project,
       response_count: responseCounts[project.id] || 0
     }));

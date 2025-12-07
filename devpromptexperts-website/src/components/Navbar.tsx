@@ -37,22 +37,27 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
     consultant: [
       {
         name: "Dashboard",
-        href: `/consultant/dashboard`,
+        href: `/consultant/ /dashboard`,
         icon: "📊",
       },
       {
         name: "Projects",
-        href: `/consultant/dashboard/projects`,
+        href: `/consultant/${userId}/dashboard/projects`,
         icon: "🚀",
       },
       {
+        name: "Find Projects",
+        href: `/consultant/${userId}/find-projects`,
+        icon: "🔍",
+      },
+      {
         name: "Earnings",
-        href: `/consultant/dashboard/earnings`,
+        href: `/consultant/${userId}/dashboard/earnings`,
         icon: "💰",
       },
       {
         name: "Network",
-        href: `/consultant/dashboard/network`,
+        href: `/consultant/${userId}/dashboard/network`,
         icon: "👥",
       },
     ],

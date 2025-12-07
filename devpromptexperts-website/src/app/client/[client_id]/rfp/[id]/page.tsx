@@ -7,6 +7,7 @@ import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import { ExtendedProjectRequestsService } from "@/services/extended";
 import { ProjectRequestsService } from "@/services/generated";
 import { ProjectStatus } from "@/types";
+import { ProjectResponsesService } from "@/services/generated";
 import {
   HiPencil,
   HiClock,
@@ -36,7 +37,10 @@ export default function RFPLifecyclePage() {
   const loadProject = async (projectId: string) => {
     try {
       setIsLoading(true);
+      console.log("Loading project with responses for ID:", projectId);
       const data = await ExtendedProjectRequestsService.findWithResponses(projectId);
+      console.log("Loaded Project Data:", data);
+      console.log("Project Responses:", data?.project_responses);
       setProject(data);
     } catch (error) {
       console.error("Error loading project:", error);
@@ -249,53 +253,66 @@ export default function RFPLifecyclePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {project.project_responses.map((response: any) => (
-                    <div key={response.id} className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors cursor-pointer">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-start space-x-3">
-                          {response.consultants?.users?.avatar_url ? (
-                             <img src={response.consultants.users.avatar_url} alt="" className="h-10 w-10 rounded-full" />
-                          ) : (
-                             <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300">
-                               <HiUser className="h-6 w-6" />
+                     {project.project_responses.map((response: any) => (
+                       <div key={response.id} className="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors cursor-pointer">
+                         <div className="flex justify-between items-start">
+                           <div className="flex items-start space-x-3">
+                             {response.consultants?.users?.profile_image_url ? (
+                                <img src={response.consultants.users.profile_image_url} alt="" className="h-10 w-10 rounded-full" />
+                             ) : (
+                                <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300">
+                                  <HiUser className="h-6 w-6" />
+                                </div>
+                             )}
+                             <div>
+                               <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                                 {response.consultants?.users?.full_name}
+                               </h3>
+                               <p className="text-xs text-gray-500 dark:text-gray-400">
+                                 {response.viewed_at ? `Viewed on ${new Date(response.viewed_at).toLocaleDateString()}` : `Submitted on ${new Date(response.created_at).toLocaleDateString()}`}
+                               </p>
                              </div>
-                          )}
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                              {response.consultants?.users?.first_name} {response.consultants?.users?.last_name}
-                            </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Submitted on {new Date(response.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          response.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                          response.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {response.status || 'Pending'}
-                        </span>
-                      </div>
-                      
-                      <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center text-gray-600 dark:text-gray-300">
-                          <HiCurrencyDollar className="mr-1.5 h-4 w-4 text-gray-400" />
-                          Budget: ${response.proposed_budget?.toLocaleString()}
-                        </div>
-                        <div className="flex items-center text-gray-600 dark:text-gray-300">
-                          <HiCalendar className="mr-1.5 h-4 w-4 text-gray-400" />
-                          Timeline: {response.proposed_timeline}
-                        </div>
-                      </div>
-                      
-                      {response.cover_letter && (
-                        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                          {response.cover_letter}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                           </div>
+                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                             response.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                             response.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                             response.status === 'viewed' ? 'bg-blue-100 text-blue-800' :
+                             'bg-yellow-100 text-yellow-800'
+                           }`}>
+                             {response.status || 'Pending'}
+                           </span>
+                         </div>
+                         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                           <div className="flex items-center text-gray-600 dark:text-gray-300">
+                             <HiCurrencyDollar className="mr-1.5 h-4 w-4 text-gray-400" />
+                             Budget: ${response.proposed_budget?.toLocaleString()}
+                           </div>
+                           <div className="flex items-center text-gray-600 dark:text-gray-300">
+                             <HiCalendar className="mr-1.5 h-4 w-4 text-gray-400" />
+                             Timeline: {response.proposed_timeline}
+                           </div>
+                         </div>
+                         {response.cover_letter && (
+                           <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                             {response.cover_letter}
+                           </p>
+                         )}
+                         {/* Clickable overlay to view details */}
+                         <div
+                           onClick={async () => {
+                             // Update status to viewed if not already
+                             if (response.status !== 'viewed') {
+                               await ProjectResponsesService.update(response.id, {
+                                 status: 'viewed',
+                                 viewed_at: new Date().toISOString(),
+                               });
+                             }
+                             router.push(`/client/${clientId}/rfp/${project.id}/proposal/${response.id}`);
+                           }}
+                           className="absolute inset-0"
+                         ></div>
+                       </div>
+                     ))}
                 </div>
               )}
             </div>
