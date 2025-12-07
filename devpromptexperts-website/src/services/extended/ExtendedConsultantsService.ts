@@ -49,10 +49,6 @@ export class ExtendedConsultantsService {
 
     if (error) throw error;
     return data;
-
-    if (error?.code === "PGRST116") return null; // Not found
-    if (error) throw error;
-    return data;
   }
 
   static async updateByUser_Id(user_id: string, data: ConsultantsUpdate) {

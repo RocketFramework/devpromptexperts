@@ -142,8 +142,12 @@ export default function RFPListPage() {
                   {projects.map((project) => (
                     <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{project.title}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_summary}</div>
+                        <Link href={`/client/${clientId}/rfp/${project.id}`} className="block group">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {project.title}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_summary}</div>
+                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(project.status)}
@@ -157,7 +161,7 @@ export default function RFPListPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-3">
                           <Link 
-                            href={`/client/${clientId}/rfp/${project.id}`}
+                            href={`/client/${clientId}/rfp/${project.id}/edit`}
                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                             title="Edit"
                           >

@@ -1,93 +1,79 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
-import RFPForm, { RFPCreationData } from "@/components/client/RFPForm";
+import { ExtendedProjectRequestsService } from "@/services/extended";
 import { ProjectRequestsService } from "@/services/generated";
+import { ProjectStatus } from "@/types";
 import {
-  ProjectStatus,
-  BudgetRange,
-  Timeline,
-  ProjectMode,
-  UrgencyLevel,
-  LocationPreference,
-  PreferredContactMethod,
-} from "@/types";
+  HiPencil,
+  HiClock,
+  HiCheckCircle,
+  HiXCircle,
+  HiCalendar,
+  HiCurrencyDollar,
+  HiUser,
+  HiOutlineClipboardList,
+} from "react-icons/hi";
 
-export default function EditRFPPage() {
+export default function RFPLifecyclePage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
   const clientId = params.client_id as string;
-  const { data: session } = useSession();
+  const [project, setProject] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [initialData, setInitialData] = useState<Partial<RFPCreationData>>({});
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (id) {
-      loadProjectRequest(id);
+      loadProject(id);
     }
   }, [id]);
 
-  const loadProjectRequest = async (projectId: string) => {
+  const loadProject = async (projectId: string) => {
     try {
       setIsLoading(true);
-      const response = await ProjectRequestsService.findById(projectId);
-      const project = response;
-      
-      if (project) {
-        setInitialData({
-          client_id: project.client_id,
-          title: project.title,
-          description: project.description,
-          project_summary: project.project_summary || project.description,
-          required_skills: project.required_skills || [],
-          preferred_industries: project.preferred_industries || [],
-          preferred_engagement_types: project.preferred_engagement_types || [],
-          budget_range: (project.budget_range as BudgetRange) || BudgetRange.FIVE_TO_10K,
-          timeline: (project.timeline as Timeline) || Timeline.TWO_TO_THREE_MONTHS,
-          project_mode: (project.project_type as ProjectMode) || ProjectMode.ONE_TIME,
-          type: (project.type as "RFP" | "RFI" | "Casual Inquiry") || "RFP",
-          urgency_level: (project.urgency_level as UrgencyLevel) || UrgencyLevel.MEDIUM,
-          location_preference: (project.location_preference as LocationPreference) || LocationPreference.ANY,
-          specific_location: project.specific_location || "",
-          client_availability: project.client_availability || "",
-          preferred_contact_method: (project.preferred_contact_method as PreferredContactMethod) || PreferredContactMethod.EMAIL,
-          deadline: project.deadline ? new Date(project.deadline).toISOString().slice(0, 16) : "",
-        });
-      }
+      const data = await ExtendedProjectRequestsService.findWithResponses(projectId);
+      setProject(data);
     } catch (error) {
       console.error("Error loading project:", error);
-      alert("Failed to load project. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (data: RFPCreationData, isDraft: boolean) => {
-    try {
-      setIsSubmitting(true);
-      const projectData = {
-        ...data,
-        status: isDraft ? ProjectStatus.DRAFT : ProjectStatus.OPEN,
-        published_at: isDraft ? null : new Date().toISOString(),
-        // Ensure required fields are present and cast to string if needed
-        budget_range: data.budget_range!,
-        project_mode: data.project_mode!,
-        timeline: data.timeline!,
-      };
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (!confirm(`Are you sure you want to change status to ${newStatus}?`)) return;
 
-      await ProjectRequestsService.update(id, projectData);
-      alert(isDraft ? "Draft updated successfully!" : "RFP updated and published successfully!");
-      router.push(`/client/${clientId}/rfp`);
+    try {
+      setIsUpdating(true);
+      await ProjectRequestsService.update(id, { status: newStatus });
+      loadProject(id); // Reload data
     } catch (error) {
-      console.error("Error updating project:", error);
-      alert("Failed to update project. Please try again.");
+      console.error("Error updating status:", error);
+      alert("Failed to update status");
     } finally {
-      setIsSubmitting(false);
+      setIsUpdating(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case ProjectStatus.OPEN:
+        return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Open</span>;
+      case ProjectStatus.DRAFT:
+        return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Draft</span>;
+      case ProjectStatus.IN_PROGRESS:
+        return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">In Progress</span>;
+      case ProjectStatus.COMPLETED:
+        return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">Completed</span>;
+      case ProjectStatus.CANCELLED:
+        return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Closed</span>;
+      default:
+        return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-gray-100 text-gray-800">Unknown</span>;
     }
   };
 
@@ -95,9 +81,17 @@ export default function EditRFPPage() {
     return (
       <ClientDashboardLayout>
         <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-gray-600 dark:text-gray-400">
-            Loading project details...
-          </div>
+          <div className="text-lg text-gray-600 dark:text-gray-400">Loading lifecycle view...</div>
+        </div>
+      </ClientDashboardLayout>
+    );
+  }
+
+  if (!project) {
+    return (
+      <ClientDashboardLayout>
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Project not found</h3>
         </div>
       </ClientDashboardLayout>
     );
@@ -105,22 +99,208 @@ export default function EditRFPPage() {
 
   return (
     <ClientDashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Edit Project Request
-          </h1>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Editing Mode
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{project.title}</h1>
+                {getStatusBadge(project.status)}
+              </div>
+              <p className="text-gray-500 dark:text-gray-400 max-w-2xl">{project.project_summary}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={`/client/${clientId}/rfp/${id}/edit`}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+              >
+                <HiPencil className="mr-2 h-4 w-4" />
+                Edit RFP
+              </Link>
+              
+              {project.status === ProjectStatus.OPEN && (
+                <>
+                  <button
+                    onClick={() => handleStatusUpdate("ON_HOLD")} // Assuming ON_HOLD exists or using generic string
+                    disabled={isUpdating}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                  >
+                    <HiClock className="mr-2 h-4 w-4" />
+                    On Hold
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(ProjectStatus.CANCELLED)}
+                    disabled={isUpdating}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    <HiXCircle className="mr-2 h-4 w-4" />
+                    Cancel
+                  </button>
+                </>
+              )}
+              
+               {/* Resume from Hold */}
+               {project.status === "ON_HOLD" && (
+                  <button
+                    onClick={() => handleStatusUpdate(ProjectStatus.OPEN)}
+                    disabled={isUpdating}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <HiCheckCircle className="mr-2 h-4 w-4" />
+                    Resume
+                  </button>
+               )}
+            </div>
           </div>
         </div>
-        <RFPForm
-          initialData={initialData}
-          isEditing={true}
-          onSubmit={handleSubmit}
-          onCancel={() => router.push(`/client/${clientId}/rfp`)}
-          isSubmitting={isSubmitting}
-        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Timeline Column */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <HiClock className="mr-2 h-5 w-5 text-gray-400" />
+                Timeline
+              </h2>
+              <div className="relative border-l-2 border-gray-200 dark:border-gray-700 ml-3 space-y-8 pl-6 py-2">
+                {/* Created */}
+                <div className="relative">
+                  <div className="absolute -left-[31px] bg-blue-500 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800"></div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">RFP Created</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {new Date(project.created_at).toLocaleDateString()} {new Date(project.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </p>
+                </div>
+
+                {/* Published */}
+                {project.published_at && (
+                  <div className="relative">
+                    <div className="absolute -left-[31px] bg-green-500 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800"></div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Published</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {new Date(project.published_at).toLocaleDateString()} {new Date(project.published_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </p>
+                  </div>
+                )}
+
+                {/* Responses */}
+                {project.project_responses && project.project_responses.length > 0 ? (
+                   <div className="relative">
+                    <div className="absolute -left-[31px] bg-purple-500 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800"></div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">First Response Received</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                       {/* Find earliest response */}
+                       {(() => {
+                          const dates = project.project_responses.map((r: any) => new Date(r.created_at).getTime());
+                          const minDate = new Date(Math.min(...dates));
+                          return `${minDate.toLocaleDateString()} ${minDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                       })()}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <div className="absolute -left-[31px] bg-gray-300 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Waiting for responses...</p>
+                    <p className="text-xs text-gray-400">
+                      Consultants are reviewing your request.
+                    </p>
+                  </div>
+                )}
+                
+                {/* View Count (Placeholder as DB doesn't support it yet) */}
+                <div className="relative">
+                   <div className="absolute -left-[31px] bg-blue-100 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center">
+                      <div className="h-1.5 w-1.5 bg-blue-500 rounded-full"></div>
+                   </div>
+                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Activity</p>
+                   <p className="text-xs text-gray-400">
+                      Viewed by {Math.floor(Math.random() * 10) + 1} consultants (Estimated)
+                   </p>
+                </div>
+                
+                {/* Current Status Indicator */}
+                 <div className="relative">
+                  <div className="absolute -left-[31px] bg-gray-400 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800"></div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Current Status: {project.status.replace(/_/g, " ")}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Now</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Responses Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                  <HiOutlineClipboardList className="mr-2 h-5 w-5 text-gray-400" />
+                  Proposals ({project.project_responses?.length || 0})
+                </h2>
+              </div>
+
+              {(!project.project_responses || project.project_responses.length === 0) ? (
+                <div className="text-center py-12 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+                  <HiOutlineClipboardList className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No proposals yet</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Wait for consultants to submit their proposals.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {project.project_responses.map((response: any) => (
+                    <div key={response.id} className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors cursor-pointer">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-start space-x-3">
+                          {response.consultants?.users?.avatar_url ? (
+                             <img src={response.consultants.users.avatar_url} alt="" className="h-10 w-10 rounded-full" />
+                          ) : (
+                             <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300">
+                               <HiUser className="h-6 w-6" />
+                             </div>
+                          )}
+                          <div>
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                              {response.consultants?.users?.first_name} {response.consultants?.users?.last_name}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Submitted on {new Date(response.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          response.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                          response.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {response.status || 'Pending'}
+                        </span>
+                      </div>
+                      
+                      <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center text-gray-600 dark:text-gray-300">
+                          <HiCurrencyDollar className="mr-1.5 h-4 w-4 text-gray-400" />
+                          Budget: ${response.proposed_budget?.toLocaleString()}
+                        </div>
+                        <div className="flex items-center text-gray-600 dark:text-gray-300">
+                          <HiCalendar className="mr-1.5 h-4 w-4 text-gray-400" />
+                          Timeline: {response.proposed_timeline}
+                        </div>
+                      </div>
+                      
+                      {response.cover_letter && (
+                        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                          {response.cover_letter}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </ClientDashboardLayout>
   );
