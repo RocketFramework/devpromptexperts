@@ -240,6 +240,21 @@ export default function ProposalDetailPage() {
                   Schedule Interview
                 </button>
                 
+                {response.status !== 'accepted' && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to accept this proposal? This indicates your intent to hire the consultant.')) {
+                        handleStatusUpdate('accepted');
+                      }
+                    }}
+                    disabled={isUpdating}
+                    className="flex-1 min-w-[200px] inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <HiCheckCircle className="h-5 w-5 mr-2" />
+                    Accept Proposal
+                  </button>
+                )}
+
                 {response.status !== 'shortlisted' && response.status !== 'accepted' && (
                   <button
                     onClick={() => handleStatusUpdate('shortlisted')}
