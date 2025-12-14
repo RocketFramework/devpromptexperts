@@ -87,7 +87,7 @@ const projectIds = openProjects.map((p: any) => p.id);
     if (responsesError) {
       console.error('Error fetching response counts:', responsesError);
       // Return projects with 0 count if responses fail
-      return openProjects.map((project: any) => ({ ...project, response_count: 0 }));
+      return openProjects.map((project: ProjectRequests) => ({ ...project, response_count: 0 }));
     }
     
     // Calculate counts

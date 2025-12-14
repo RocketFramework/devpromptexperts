@@ -3,11 +3,23 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import { ExtendedProjectRequestsService } from "@/services/extended";
 import { ProjectRequestsService } from "@/services/generated";
-import { ProjectStatus } from "@/types";
-import { ProjectResponsesService } from "@/services/generated";
+import { ProjectRequestStatus as ProjectStatus } from "@/types";
+import { ProjectResponsesService, ProjectRequests, ProjectResponses } from "@/services/generated";
+
+type ProjectWithResponses = ProjectRequests & {
+  project_responses: (ProjectResponses & {
+    consultants: {
+      users: {
+        full_name: string;
+        profile_image_url: string;
+      } | null;
+    } | null;
+  })[];
+};
 import {
   HiPencil,
   HiClock,
@@ -24,7 +36,7 @@ export default function RFPLifecyclePage() {
   const params = useParams();
   const id = params.id as string;
   const clientId = params.client_id as string;
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<ProjectWithResponses | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -49,7 +61,7 @@ export default function RFPLifecyclePage() {
     }
   };
 
-  const handleStatusUpdate = async (newStatus: string) => {
+  const handleStatusUpdate = async (newStatus: ProjectStatus) => {
     if (!confirm(`Are you sure you want to change status to ${newStatus}?`)) return;
 
     try {
@@ -64,7 +76,7 @@ export default function RFPLifecyclePage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: ProjectStatus) => {
     switch (status) {
       case ProjectStatus.OPEN:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Open</span>;
@@ -110,7 +122,7 @@ export default function RFPLifecyclePage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{project.title}</h1>
-                {getStatusBadge(project.status)}
+                {getStatusBadge(project.status as ProjectStatus)}
               </div>
               <p className="text-gray-500 dark:text-gray-400 max-w-2xl">{project.project_summary}</p>
             </div>
@@ -126,7 +138,7 @@ export default function RFPLifecyclePage() {
               {project.status === ProjectStatus.OPEN && (
                 <>
                   <button
-                    onClick={() => handleStatusUpdate("ON_HOLD")} // Assuming ON_HOLD exists or using generic string
+                    onClick={() => handleStatusUpdate(ProjectStatus.ON_HOLD)}
                     disabled={isUpdating}
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                   >
@@ -145,7 +157,7 @@ export default function RFPLifecyclePage() {
               )}
               
                {/* Resume from Hold */}
-               {project.status === "ON_HOLD" && (
+               {project.status === ProjectStatus.ON_HOLD && (
                   <button
                     onClick={() => handleStatusUpdate(ProjectStatus.OPEN)}
                     disabled={isUpdating}
@@ -173,7 +185,7 @@ export default function RFPLifecyclePage() {
                   <div className="absolute -left-[31px] bg-blue-500 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800"></div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">RFP Created</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(project.created_at).toLocaleDateString()} {new Date(project.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    {project.created_at ? `${new Date(project.created_at).toLocaleDateString()} ${new Date(project.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : 'N/A'}
                   </p>
                 </div>
 
@@ -183,7 +195,7 @@ export default function RFPLifecyclePage() {
                     <div className="absolute -left-[31px] bg-green-500 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800"></div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">Published</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(project.published_at).toLocaleDateString()} {new Date(project.published_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {project.published_at ? `${new Date(project.published_at as string).toLocaleDateString()} ${new Date(project.published_at as string).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : ''}
                     </p>
                   </div>
                 )}
@@ -196,7 +208,7 @@ export default function RFPLifecyclePage() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                        {/* Find earliest response */}
                        {(() => {
-                          const dates = project.project_responses.map((r: any) => new Date(r.created_at).getTime());
+                          const dates = project.project_responses.map((r) => new Date(r.created_at || '').getTime());
                           const minDate = new Date(Math.min(...dates));
                           return `${minDate.toLocaleDateString()} ${minDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
                        })()}
@@ -226,7 +238,7 @@ export default function RFPLifecyclePage() {
                 {/* Current Status Indicator */}
                  <div className="relative">
                   <div className="absolute -left-[31px] bg-gray-400 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800"></div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Current Status: {project.status.replace(/_/g, " ")}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Current Status: {project.status.replace(/[-_]/g, " ")}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Now</p>
                 </div>
               </div>
@@ -253,12 +265,18 @@ export default function RFPLifecyclePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                     {project.project_responses.map((response: any) => (
+                     {project.project_responses.map((response) => (
                        <div key={response.id} className="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors cursor-pointer">
                          <div className="flex justify-between items-start">
                            <div className="flex items-start space-x-3">
                              {response.consultants?.users?.profile_image_url ? (
-                                <img src={response.consultants.users.profile_image_url} alt="" className="h-10 w-10 rounded-full" />
+                                <Image
+                                  src={response.consultants.users.profile_image_url}
+                                  alt=""
+                                  width={40}
+                                  height={40}
+                                  className="h-10 w-10 rounded-full object-cover"
+                                />
                              ) : (
                                 <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300">
                                   <HiUser className="h-6 w-6" />
@@ -269,17 +287,17 @@ export default function RFPLifecyclePage() {
                                  {response.consultants?.users?.full_name}
                                </h3>
                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                 {response.viewed_at ? `Viewed on ${new Date(response.viewed_at).toLocaleDateString()}` : `Submitted on ${new Date(response.created_at).toLocaleDateString()}`}
+                                 {response.viewed_at ? `Viewed on ${new Date(response.viewed_at).toLocaleDateString()}` : `Submitted on ${response.created_at ? new Date(response.created_at).toLocaleDateString() : 'N/A'}`}
                                </p>
                              </div>
                            </div>
                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                             response.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                             response.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                             response.status === 'viewed' ? 'bg-blue-100 text-blue-800' :
+                             response.status === ProjectStatus.ACCEPTED ? 'bg-green-100 text-green-800' :
+                             response.status === ProjectStatus.REJECTED ? 'bg-red-100 text-red-800' :
+                             response.status === ProjectStatus.VIEWED ? 'bg-blue-100 text-blue-800' :
                              'bg-yellow-100 text-yellow-800'
                            }`}>
-                             {response.status || 'Pending'}
+                             {response.status || ProjectStatus.OPEN}
                            </span>
                          </div>
                          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
@@ -301,9 +319,9 @@ export default function RFPLifecyclePage() {
                          <div
                            onClick={async () => {
                              // Update status to viewed if not already
-                             if (response.status !== 'viewed') {
+                             if (response.status !== ProjectStatus.VIEWED) {
                                await ProjectResponsesService.update(response.id, {
-                                 status: 'viewed',
+                                 status: ProjectStatus.VIEWED,
                                  viewed_at: new Date().toISOString(),
                                });
                              }

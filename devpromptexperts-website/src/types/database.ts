@@ -1299,7 +1299,7 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1507,6 +1507,13 @@ export type Database = {
             columns: ["project_response_id"]
             isOneToOne: false
             referencedRelation: "project_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_communications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]

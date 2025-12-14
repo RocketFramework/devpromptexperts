@@ -1,11 +1,14 @@
 import { Fragment, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { HiX, HiCalendar, HiVideoCamera, HiLink, HiLockClosed } from 'react-icons/hi';
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { HiX, HiCalendar, HiLink, HiLockClosed } from 'react-icons/hi';
+import { ProposalInterviewsInsert } from '@/services/generated';
+
+export type InterviewData = Pick<ProposalInterviewsInsert, 'title' | 'description' | 'start_time' | 'end_time' | 'meeting_platform' | 'meeting_url' | 'meeting_id' | 'meeting_password'>;
 
 interface InterviewSchedulingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSchedule: (data: any) => Promise<void>;
+  onSchedule: (data: InterviewData) => Promise<void>;
   consultantName: string;
 }
 
@@ -15,7 +18,7 @@ export default function InterviewSchedulingModal({
   onSchedule,
   consultantName,
 }: InterviewSchedulingModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<InterviewData>({
     title: `Interview with ${consultantName}`,
     description: '',
     start_time: '',
@@ -92,9 +95,9 @@ export default function InterviewSchedulingModal({
   };
 
   return (
-    <Transition.Root show={isOpen} as={Fragment}>
+    <Transition show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
+        <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
@@ -104,11 +107,11 @@ export default function InterviewSchedulingModal({
           leaveTo="opacity-0"
         >
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
+            <TransitionChild
               as={Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -117,7 +120,7 @@ export default function InterviewSchedulingModal({
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              <DialogPanel className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                 <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                   <button
                     type="button"
@@ -133,9 +136,9 @@ export default function InterviewSchedulingModal({
                     <HiCalendar className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                    <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                    <DialogTitle as="h3" className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
                       Schedule Interview
-                    </Dialog.Title>
+                    </DialogTitle>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                         Set up a meeting with {consultantName}.
@@ -196,7 +199,7 @@ export default function InterviewSchedulingModal({
                             name="meeting_platform"
                             id="meeting_platform"
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            value={formData.meeting_platform}
+                            value={formData.meeting_platform ?? ''}
                             onChange={handleChange}
                           >
                             <option value="Google Meet">Google Meet</option>
@@ -220,7 +223,7 @@ export default function InterviewSchedulingModal({
                               id="meeting_url"
                               className="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               placeholder="https://meet.google.com/..."
-                              value={formData.meeting_url}
+                              value={formData.meeting_url ?? ''}
                               onChange={handleChange}
                             />
                           </div>
@@ -236,7 +239,7 @@ export default function InterviewSchedulingModal({
                               name="meeting_id"
                               id="meeting_id"
                               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                              value={formData.meeting_id}
+                              value={formData.meeting_id ?? ''}
                               onChange={handleChange}
                             />
                           </div>
@@ -253,7 +256,7 @@ export default function InterviewSchedulingModal({
                                 name="meeting_password"
                                 id="meeting_password"
                                 className="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={formData.meeting_password}
+                                value={formData.meeting_password ?? ''}
                                 onChange={handleChange}
                               />
                             </div>
@@ -269,7 +272,7 @@ export default function InterviewSchedulingModal({
                             name="description"
                             rows={3}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            value={formData.description}
+                            value={formData.description ?? ''}
                             onChange={handleChange}
                           />
                         </div>
@@ -294,11 +297,11 @@ export default function InterviewSchedulingModal({
                     </div>
                   </div>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 }

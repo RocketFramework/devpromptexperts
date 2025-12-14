@@ -2,11 +2,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import {
-  PROJECT_BUDGETS,
-  ProjectBudgetType as ProjectBudget,
-  CONSULTANT_TRAITS,
   ProjectMode,
-  ProjectStatus,
   BudgetRange,
   Timeline,
   UrgencyLevel,

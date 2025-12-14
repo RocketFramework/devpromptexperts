@@ -370,6 +370,38 @@ function generateCustomJoinMethods(tableName: string, joins: string[]): string {
   }`;
   }
 
+  if (tableName === "proposal_communications") {
+    return `
+  // Get communications with sender details
+  static async findByResponseIdWithSender(responseId: string) {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        sender:users!sender_id (*)
+      \`)
+      .eq('project_response_id', responseId)
+      .order('created_at', { ascending: true })
+    
+    if (error) throw error
+    return data
+  }
+
+  static async findAllWithSender() {
+    const { data, error } = await supabase
+      .from('${tableName}')
+      .select(\`
+        *,
+        sender:users!sender_id (*)
+      \`)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data
+  }
+  `;
+  }
+
   return "";
 }
 
@@ -379,7 +411,7 @@ function generateTypeDefinitions(
   pascalCase: string,
   joins: string[]
 ): string {
-  if (joins.length === 0) return "";
+  // if (joins.length === 0) return ""; // Removed early return to allow custom types
 
   const joinTypeDefinitions = joins
     .map((joinTable) => {
@@ -436,6 +468,15 @@ export type UserWithRoleSpecificData = Users & (
 )`;
   }
 
+  if (tableName === "proposal_communications") {
+    return `${joinTypeDefinitions}
+
+// Communication with sender details
+export type ProposalCommunicationsWithSender = ProposalCommunications & {
+  sender?: Database['public']['Tables']['users']['Row'] | null
+}`;
+  }
+
   return joinTypeDefinitions;
 }
 
@@ -490,6 +531,8 @@ function getTablesFromFallback(): string[] {
     "project_requests",
     "project_responses",
     "projects",
+    "proposal_communications",
+    "proposal_interviews",
     "provider_accounts",
     "seller_clients",
     "sellers",

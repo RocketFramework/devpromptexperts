@@ -6,7 +6,7 @@ export class ProposalCommunicationsService {
       .from('proposal_communications')
       .select(`
         *,
-        sender:sender_id (
+        users:sender_id (
           full_name,
           profile_image_url
         )

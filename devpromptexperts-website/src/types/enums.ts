@@ -6,16 +6,35 @@ export enum ProjectMode {
   CONSULTATION = 'consultation'
 }
 
-export enum ProjectStatus {
+export enum ProjectResponseStatus {
+  DRAFT = "draft",
+  OPEN = "open",
+  VIEWED = "viewed",
+  IN_REVIEW = "in-review",
+  SHORTLISTING = "shortlisting",
+  INTERVIEWING = "interviewing",
+  ASSIGNED = "assigned",
+  CANCELLED = "cancelled",
+  ON_HOLD = "on-hold",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+}
+
+export enum ProjectRequestStatus {
   DRAFT = 'draft',
   OPEN = 'open',
-  IN_REVIEW = 'in-review',
-  SHORTLISTING = 'shortlisting',
-  ASSIGNED = 'assigned',
+  SUBMITTED = "submitted",
+  VIEWED = "viewed",
+  SHORTLISTED = "shortlisted",
   IN_PROGRESS = 'in-progress',
-  COMPLETED = 'completed',
-  RATED = 'rated',
-  CANCELLED = 'cancelled'
+  REJECTED = "rejected",
+  ACCEPTED = "accepted",
+  INTERVIEW_REQUESTED = "interview_requested",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+  CLOSED = "closed",
+  RATED = "rated",
+  ON_HOLD = "on-hold",
 }
 
 export enum ProjectRequestType {

@@ -7,7 +7,7 @@ import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import RFPForm, { RFPCreationData } from "@/components/client/RFPForm";
 import { ProjectRequestsService } from "@/services/generated";
 import {
-  ProjectStatus,
+  ProjectRequestStatus as ProjectStatus,
   BudgetRange,
   Timeline,
   ProjectMode,

@@ -5,9 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
-import { ProjectRequestsService } from "@/services/generated";
+import { ProjectRequestsService, ProjectRequests } from "@/services/generated";
 import { ExtendedProjectRequestsService } from "@/services/extended";
-import { ProjectStatus } from "@/types";
+  import { ProjectRequestStatus as ProjectStatus } from "@/types";
 import { HiPlus, HiPencil, HiTrash, HiEye, HiCheckCircle, HiXCircle } from "react-icons/hi";
 
 export default function RFPListPage() {
@@ -15,7 +15,7 @@ export default function RFPListPage() {
   const params = useParams();
   const clientId = params.client_id as string;
   const { data: session } = useSession();
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectRequests[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
@@ -156,7 +156,7 @@ export default function RFPListPage() {
                         {project.budget_range}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(project.created_at).toLocaleDateString()}
+                        {new Date(project.created_at??'').toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-3">

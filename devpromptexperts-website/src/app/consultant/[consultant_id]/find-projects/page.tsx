@@ -11,16 +11,22 @@ import {
   HiLightningBolt,
   HiCheckCircle,
   HiSearch,
-  HiFilter,
   HiOutlineClipboardList,
 } from "react-icons/hi";
+import { ProjectRequests, Consultants } from "@/services/generated";
+
+type ProjectWithMatch = ProjectRequests & {
+  response_count: number;
+  matchScore: number;
+  matchReasons: string[];
+};
 
 export default function FindProjectsPage() {
   const params = useParams();
-  const router = useRouter();
+  // const router = useRouter(); // Removed unused router
   const consultantId = params.consultant_id as string;
-  const [projects, setProjects] = useState<any[]>([]);
-  const [consultant, setConsultant] = useState<any>(null);
+  const [projects, setProjects] = useState<ProjectWithMatch[]>([]);
+  // const [consultant, setConsultant] = useState<Consultants | null>(null); // Removed unused consultant state
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // all, matched
 
@@ -28,6 +34,7 @@ export default function FindProjectsPage() {
     if (consultantId) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [consultantId]);
 
   const loadData = async () => {
@@ -35,7 +42,7 @@ export default function FindProjectsPage() {
       setIsLoading(true);
       
       // 1. Fetch Projects (Critical)
-      let projectsData: any[] = [];
+      let projectsData: (ProjectRequests & { response_count: number })[] = [];
       try {
         projectsData = await ExtendedProjectRequestsService.findAllOpenWithCounts();
       } catch (err) {
@@ -51,9 +58,9 @@ export default function FindProjectsPage() {
       }
 
       // Calculate match scores
-      const scoredProjects = projectsData.map((project: any) => {
+      const scoredProjects = projectsData.map((project) => {
         let score = 0;
-        let reasons: string[] = [];
+        const reasons: string[] = [];
 
         // Skill Match
         if (project.required_skills && consultantData?.expertise) {
@@ -81,13 +88,15 @@ export default function FindProjectsPage() {
       });
 
       // Sort by score desc, then date desc
-      scoredProjects.sort((a: any, b: any) => {
+      scoredProjects.sort((a, b) => {
         if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        return dateB - dateA;
       });
 
-      setProjects(scoredProjects);
-      setConsultant(consultantData);
+      setProjects(scoredProjects as ProjectWithMatch[]);
+      // setConsultant(consultantData);
     } catch (error) {
       console.error("Error in loadData:", error);
     } finally {
@@ -201,7 +210,7 @@ export default function FindProjectsPage() {
                       Respond
                     </Link>
                     <span className="text-xs text-gray-400">
-                      Posted {new Date(project.created_at).toLocaleDateString()}
+                      Posted {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
                 </div>

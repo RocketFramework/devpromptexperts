@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ExtendedProjectRequestsService } from "@/services/extended/ExtendedProjectRequestsService";
 import { supabase } from "@/lib/supabase";
-import { HiArrowLeft, HiCurrencyDollar, HiClock, HiUpload } from "react-icons/hi";
+import { HiArrowLeft, HiCurrencyDollar, HiClock } from "react-icons/hi";
+import { ProjectRequests, ProjectResponses } from "@/services/generated";
 
 export default function RespondToProjectPage() {
   const params = useParams();
@@ -12,10 +13,10 @@ export default function RespondToProjectPage() {
   const consultantId = params.consultant_id as string;
   const projectId = params.project_id as string;
   
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<ProjectRequests | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingResponse, setExistingResponse] = useState<any>(null);
+  const [existingResponse, setExistingResponse] = useState<ProjectResponses | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -29,6 +30,7 @@ export default function RespondToProjectPage() {
     if (projectId && consultantId) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, consultantId]);
 
   const loadData = async () => {

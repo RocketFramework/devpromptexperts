@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase'
+import { ProjectResponseWithDetails } from '@/types/extended'
 
 export class ExtendedProjectResponsesService {
-  static async findByIdWithDetails(id: string) {
+  static async findByIdWithDetails(id: string): Promise<ProjectResponseWithDetails | null> {
     const { data, error } = await supabase
       .from('project_responses')
       .select(`
@@ -17,7 +18,7 @@ export class ExtendedProjectResponsesService {
       .single()
     
     if (error) throw error
-    return data
+    return data as ProjectResponseWithDetails
   }
 
   static async updateStatus(id: string, status: string) {

@@ -6,8 +6,8 @@ import { useRouter, useParams } from "next/navigation";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import RFPForm, { RFPCreationData } from "@/components/client/RFPForm";
 import { ProjectRequestsService } from "@/services/generated";
-import { 
-  ProjectStatus, 
+  import { 
+  ProjectRequestStatus as ProjectStatus, 
   ProjectMode, 
   BudgetRange, 
   Timeline, 

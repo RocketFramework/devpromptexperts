@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { ProposalCommunicationsService } from '@/services/extended';
+import { ProposalCommunicationsService } from '@/services/generated';
 import { HiPaperAirplane, HiUser } from 'react-icons/hi';
+import { ProposalCommunicationsWithSender } from '@/services/generated';
 
 interface ProposalMessagesComponentProps {
   responseId: string;
@@ -13,7 +14,7 @@ export default function ProposalMessagesComponent({
   currentUserId,
   currentUserType
 }: ProposalMessagesComponentProps) {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ProposalCommunicationsWithSender[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
@@ -31,7 +32,7 @@ export default function ProposalMessagesComponent({
   const loadMessages = async () => {
     try {
       setIsLoading(true);
-      const data = await ProposalCommunicationsService.getMessages(responseId);
+      const data = await ProposalCommunicationsService.findByResponseIdWithSender(responseId);
       setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -50,12 +51,12 @@ export default function ProposalMessagesComponent({
 
     try {
       setIsSending(true);
-      const message = await ProposalCommunicationsService.sendMessage(
-        responseId,
-        currentUserId,
-        currentUserType,
-        newMessage
-      );
+      const message = await ProposalCommunicationsService.create({
+        project_response_id: responseId,
+        sender_id: currentUserId,
+        message: newMessage,
+        sender_type: currentUserType,
+      });
       
       // Optimistically update UI
       setMessages([...messages, { ...message, sender: { full_name: 'You' } }]); // Simplified for now
@@ -104,7 +105,7 @@ export default function ProposalMessagesComponent({
                       </span>
                     )}
                     <span className={`text-xs ${isMe ? 'text-blue-100' : 'text-gray-400'}`}>
-                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(msg.created_at??'').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                   <p className="text-sm whitespace-pre-wrap">{msg.message}</p>

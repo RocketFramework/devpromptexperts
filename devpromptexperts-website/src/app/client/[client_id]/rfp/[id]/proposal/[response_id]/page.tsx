@@ -2,21 +2,26 @@
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
-import InterviewSchedulingModal from "@/components/client/InterviewSchedulingModal";
+import InterviewSchedulingModal, { InterviewData } from '@/components/client/InterviewSchedulingModal';
 import ProposalMessagesComponent from "@/components/client/ProposalMessagesComponent";
 import { ExtendedProjectResponsesService, ProposalInterviewsService } from "@/services/extended";
-import { HiUser, HiCalendar, HiCurrencyDollar, HiArrowLeft, HiClock, HiCheckCircle, HiLocationMarker, HiBriefcase, HiStar, HiGlobeAlt, HiX, HiThumbUp, HiThumbDown, HiChatAlt, HiVideoCamera, HiLink } from "react-icons/hi";
+import { HiUser, HiCalendar, HiCurrencyDollar, HiArrowLeft, HiClock, HiCheckCircle, HiLocationMarker, HiBriefcase, HiStar, HiGlobeAlt, HiThumbUp, HiThumbDown, HiChatAlt, HiVideoCamera, HiLink } from "react-icons/hi";
+import { ProposalInterviews } from "@/services/generated";
+import { ProjectResponseWithDetails } from "@/types/extended";
+import { ProjectResponseStatus as ProjectStatus } from "@/types";
+
 
 export default function ProposalDetailPage() {
   const router = useRouter();
   const params = useParams();
   const clientId = params.client_id as string;
-  const rfpId = params.id as string;
+  // const rfpId = params.id as string; // Unused
   const responseId = params.response_id as string;
 
-  const [response, setResponse] = useState<any>(null);
-  const [interviews, setInterviews] = useState<any[]>([]);
+  const [response, setResponse] = useState<ProjectResponseWithDetails | null>(null);
+  const [interviews, setInterviews] = useState<ProposalInterviews[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -57,10 +62,11 @@ export default function ProposalDetailPage() {
   };
 
   const handleStatusUpdate = async (newStatus: string) => {
+    if (!response) return;
     try {
       setIsUpdating(true);
       const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, newStatus);
-      setResponse({ ...response, status: updatedResponse.status });
+      setResponse({ ...response, attachments: updatedResponse.attachments??[], status: updatedResponse.status });
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status. Please try again.");
@@ -70,6 +76,7 @@ export default function ProposalDetailPage() {
   };
 
   const handleFeedbackSubmit = async () => {
+    if (!response) return;
     try {
       setIsUpdating(true);
       const updatedResponse = await ExtendedProjectResponsesService.updateFeedback(responseId, rating, feedback);
@@ -87,26 +94,26 @@ export default function ProposalDetailPage() {
     }
   };
 
-  const handleScheduleInterview = async (data: any) => {
+  const handleScheduleInterview = async (data: InterviewData) => {
     try {
       // Create the interview record
       await ProposalInterviewsService.createInterview({
         project_response_id: responseId,
         organizer_id: clientId, // Assuming clientId is the user ID
-        attendee_id: response.consultant_id, // This might need to be the user_id of the consultant
+        attendee_id: response?.consultant_id || "", // This might need to be the user_id of the consultant
         title: data.title,
-        description: data.description,
+        description: data.description ?? undefined,
         start_time: data.start_time,
         end_time: data.end_time,
-        meeting_url: data.meeting_url,
-        meeting_platform: data.meeting_platform,
-        meeting_id: data.meeting_id,
-        meeting_password: data.meeting_password
+        meeting_url: data.meeting_url ?? undefined,
+        meeting_platform: data.meeting_platform ?? undefined,
+        meeting_id: data.meeting_id ?? undefined,
+        meeting_password: data.meeting_password ?? undefined,
       });
 
       // Update status if needed
-      if (response.status !== 'interview_requested') {
-        const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, 'interview_requested');
+      if (response && response.status !== ProjectStatus.INTERVIEWING) {
+        const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, ProjectStatus.INTERVIEWING);
         setResponse({ ...response, status: updatedResponse.status });
       }
 
@@ -185,9 +192,11 @@ export default function ProposalDetailPage() {
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
             <div className="flex items-start space-x-4">
               {user?.profile_image_url ? (
-                <img 
+                <Image 
                   src={user.profile_image_url} 
                   alt="" 
+                  width={64}
+                  height={64}
                   className="h-16 w-16 rounded-full border-2 border-gray-100 dark:border-gray-700 object-cover" 
                 />
               ) : (
@@ -203,7 +212,7 @@ export default function ProposalDetailPage() {
                   <span>
                     {response.viewed_at 
                       ? `Viewed on ${new Date(response.viewed_at).toLocaleDateString()}` 
-                      : `Submitted on ${new Date(response.submitted_at || response.created_at).toLocaleDateString()}`
+                      : `Submitted on ${new Date(response.submitted_at || response.created_at || new Date().toISOString()).toLocaleDateString()}`
                     }
                   </span>
                   <span>•</span>
@@ -240,11 +249,11 @@ export default function ProposalDetailPage() {
                   Schedule Interview
                 </button>
                 
-                {response.status !== 'accepted' && (
+                {response.status !== ProjectStatus.ACCEPTED && (
                   <button
                     onClick={() => {
                       if (window.confirm('Are you sure you want to accept this proposal? This indicates your intent to hire the consultant.')) {
-                        handleStatusUpdate('accepted');
+                        handleStatusUpdate(ProjectStatus.ACCEPTED);
                       }
                     }}
                     disabled={isUpdating}
@@ -255,9 +264,13 @@ export default function ProposalDetailPage() {
                   </button>
                 )}
 
-                {response.status !== 'shortlisted' && response.status !== 'accepted' && (
+                {response.status !== ProjectStatus.SHORTLISTING && response.status !== ProjectStatus.ACCEPTED && (
                   <button
-                    onClick={() => handleStatusUpdate('shortlisted')}
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to shortlist this proposal?')) {
+                        handleStatusUpdate(ProjectStatus.SHORTLISTING);
+                      }
+                    }}
                     disabled={isUpdating}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
                   >
@@ -266,9 +279,9 @@ export default function ProposalDetailPage() {
                   </button>
                 )}
 
-                {response.status !== 'rejected' && response.status !== 'accepted' && (
+                {response.status !== ProjectStatus.REJECTED && response.status !== ProjectStatus.ACCEPTED && (
                   <button
-                    onClick={() => handleStatusUpdate('rejected')}
+                    onClick={() => handleStatusUpdate(ProjectStatus.REJECTED)}
                     disabled={isUpdating}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
                   >
@@ -416,7 +429,7 @@ export default function ProposalDetailPage() {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Attachments</h2>
                 <div className="space-y-2">
-                  {response.attachments.map((attachment: any, index: number) => (
+                  {(response.attachments as unknown as Array<{ name?: string }>).map((attachment, index) => (
                     <div key={index} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
                       <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{attachment.name || `Attachment ${index + 1}`}</span>
                     </div>
@@ -444,7 +457,7 @@ export default function ProposalDetailPage() {
                       {[...Array(5)].map((_, i) => (
                         <HiStar
                           key={i}
-                          className={`h-5 w-5 ${i < response.client_rating ? 'text-yellow-400' : 'text-gray-200 dark:text-gray-600'}`}
+                          className={`h-5 w-5 ${i < (response.client_rating ?? 0) ? 'text-yellow-400' : 'text-gray-200 dark:text-gray-600'}`}
                         />
                       ))}
                     </div>
@@ -479,10 +492,10 @@ export default function ProposalDetailPage() {
                 )}
 
                 {/* Location */}
-                {(user?.city || user?.country) && (
+                {(user?.state || user?.country) && (
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                     <HiLocationMarker className="h-5 w-5 text-gray-400 mr-2" />
-                    {[user.city, user.state, user.country].filter(Boolean).join(", ")}
+                    {[user.state, user.country].filter(Boolean).join(", ")}
                   </div>
                 )}
 
@@ -588,7 +601,7 @@ export default function ProposalDetailPage() {
                   <div className="absolute -left-[29px] bg-blue-500 h-3 w-3 rounded-full border-2 border-white dark:border-gray-800"></div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">Submitted</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(response.submitted_at).toLocaleString()}
+                    {new Date(response.submitted_at ?? '').toLocaleString()}
                   </p>
                 </div>
                 
@@ -597,7 +610,7 @@ export default function ProposalDetailPage() {
                     <div className="absolute -left-[29px] bg-purple-500 h-3 w-3 rounded-full border-2 border-white dark:border-gray-800"></div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">Viewed</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(response.viewed_at).toLocaleString()}
+                      {new Date(response.viewed_at ?? '').toLocaleString()}
                     </p>
                   </div>
                 )}
@@ -607,7 +620,7 @@ export default function ProposalDetailPage() {
                     <div className="absolute -left-[29px] bg-green-500 h-3 w-3 rounded-full border-2 border-white dark:border-gray-800"></div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">Shortlisted</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(response.shortlisted_at).toLocaleString()}
+                      {new Date(response.shortlisted_at ?? '').toLocaleString()}
                     </p>
                   </div>
                 )}
