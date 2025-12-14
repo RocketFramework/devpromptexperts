@@ -4,3 +4,6 @@ export * from './ExtendedUsersService'
 export * from './RpcBusinessService'
 export * from './ExtendedConnectedObPartnerMeetsService'
 export * from './ExtendedProjectRequestsService'
+export * from './ExtendedProjectResponsesService';
+export * from './ProposalCommunicationsService';
+export * from './ProposalInterviewsService';

@@ -1467,6 +1467,123 @@ export type Database = {
           },
         ]
       }
+      proposal_communications: {
+        Row: {
+          attachments: Json | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          project_response_id: string
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          project_response_id: string
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          project_response_id?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_communications_project_response_id_fkey"
+            columns: ["project_response_id"]
+            isOneToOne: false
+            referencedRelation: "project_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_interviews: {
+        Row: {
+          attendee_id: string
+          created_at: string | null
+          description: string | null
+          end_time: string
+          id: string
+          meeting_id: string | null
+          meeting_password: string | null
+          meeting_platform: string | null
+          meeting_url: string | null
+          organizer_id: string
+          project_response_id: string
+          start_time: string
+          status: string
+          title: string
+        }
+        Insert: {
+          attendee_id: string
+          created_at?: string | null
+          description?: string | null
+          end_time: string
+          id?: string
+          meeting_id?: string | null
+          meeting_password?: string | null
+          meeting_platform?: string | null
+          meeting_url?: string | null
+          organizer_id: string
+          project_response_id: string
+          start_time: string
+          status?: string
+          title: string
+        }
+        Update: {
+          attendee_id?: string
+          created_at?: string | null
+          description?: string | null
+          end_time?: string
+          id?: string
+          meeting_id?: string | null
+          meeting_password?: string | null
+          meeting_platform?: string | null
+          meeting_url?: string | null
+          organizer_id?: string
+          project_response_id?: string
+          start_time?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_interviews_attendee_id_fkey"
+            columns: ["attendee_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_interviews_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_interviews_project_response_id_fkey"
+            columns: ["project_response_id"]
+            isOneToOne: false
+            referencedRelation: "project_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       provider_accounts: {
         Row: {
           access_token_enc: string | null
