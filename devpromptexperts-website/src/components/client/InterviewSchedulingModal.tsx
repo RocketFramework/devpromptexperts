@@ -1,11 +1,11 @@
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { HiX, HiCalendar } from 'react-icons/hi';
+import { HiX, HiCalendar, HiVideoCamera, HiLink, HiLockClosed } from 'react-icons/hi';
 
 interface InterviewSchedulingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSchedule: (date: string, message: string) => Promise<void>;
+  onSchedule: (data: any) => Promise<void>;
   consultantName: string;
 }
 
@@ -15,21 +15,75 @@ export default function InterviewSchedulingModal({
   onSchedule,
   consultantName,
 }: InterviewSchedulingModalProps) {
-  const [date, setDate] = useState('');
-  const [message, setMessage] = useState('');
+  const [formData, setFormData] = useState({
+    title: `Interview with ${consultantName}`,
+    description: '',
+    start_time: '',
+    end_time: '',
+    meeting_platform: 'Google Meet',
+    meeting_url: '',
+    meeting_id: '',
+    meeting_password: ''
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    if (name === 'start_time') {
+      // Auto-set end time to 30 mins later
+      const startDate = new Date(value);
+      const endDate = new Date(startDate.getTime() + 30 * 60000);
+      
+      // Format to datetime-local string (YYYY-MM-DDTHH:mm)
+      // Note: This simple formatting works for local time if the input is local
+      // But datetime-local inputs work with local time strings directly
+      
+      // We need to handle the timezone offset manually or use a library, 
+      // but for a simple input value copy, we can just use the date methods carefully
+      // or just rely on the fact that the input value is just a string.
+      
+      // Let's do it robustly:
+      // The value from input is like "2023-10-27T10:00"
+      // We can just parse it, add 30 mins, and format it back.
+      
+      const year = endDate.getFullYear();
+      const month = String(endDate.getMonth() + 1).padStart(2, '0');
+      const day = String(endDate.getDate()).padStart(2, '0');
+      const hours = String(endDate.getHours()).padStart(2, '0');
+      const minutes = String(endDate.getMinutes()).padStart(2, '0');
+      
+      const endTimeString = `${year}-${month}-${day}T${hours}:${minutes}`;
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value,
+        end_time: endTimeString
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date || !message) return;
+    if (!formData.start_time || !formData.end_time) return;
 
     try {
       setIsSubmitting(true);
-      await onSchedule(date, message);
+      await onSchedule(formData);
       onClose();
       // Reset form
-      setDate('');
-      setMessage('');
+      setFormData({
+        title: `Interview with ${consultantName}`,
+        description: '',
+        start_time: '',
+        end_time: '',
+        meeting_platform: 'Google Meet',
+        meeting_url: '',
+        meeting_id: '',
+        meeting_password: ''
+      });
     } catch (error) {
       console.error('Error scheduling interview:', error);
     } finally {
@@ -80,42 +134,143 @@ export default function InterviewSchedulingModal({
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
                     <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-                      Schedule Interview with {consultantName}
+                      Schedule Interview
                     </Dialog.Title>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Propose a time for an initial discussion. The consultant will be notified of your request.
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        Set up a meeting with {consultantName}.
                       </p>
                       
-                      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                      <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                          <label htmlFor="interview-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Proposed Date & Time
+                          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Meeting Title
                           </label>
                           <input
-                            type="datetime-local"
-                            name="interview-date"
-                            id="interview-date"
+                            type="text"
+                            name="title"
+                            id="title"
                             required
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            value={formData.title}
+                            onChange={handleChange}
                           />
                         </div>
 
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="start_time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Start Time
+                            </label>
+                            <input
+                              type="datetime-local"
+                              name="start_time"
+                              id="start_time"
+                              required
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              value={formData.start_time}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="end_time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              End Time
+                            </label>
+                            <input
+                              type="datetime-local"
+                              name="end_time"
+                              id="end_time"
+                              required
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              value={formData.end_time}
+                              onChange={handleChange}
+                            />
+                          </div>
+                        </div>
+
                         <div>
-                          <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Message
+                          <label htmlFor="meeting_platform" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Platform
+                          </label>
+                          <select
+                            name="meeting_platform"
+                            id="meeting_platform"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value={formData.meeting_platform}
+                            onChange={handleChange}
+                          >
+                            <option value="Google Meet">Google Meet</option>
+                            <option value="Zoom">Zoom</option>
+                            <option value="Teams">Microsoft Teams</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label htmlFor="meeting_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Meeting URL
+                          </label>
+                          <div className="relative mt-1 rounded-md shadow-sm">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                              <HiLink className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            </div>
+                            <input
+                              type="url"
+                              name="meeting_url"
+                              id="meeting_url"
+                              className="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              placeholder="https://meet.google.com/..."
+                              value={formData.meeting_url}
+                              onChange={handleChange}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="meeting_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Meeting ID (Optional)
+                            </label>
+                            <input
+                              type="text"
+                              name="meeting_id"
+                              id="meeting_id"
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              value={formData.meeting_id}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="meeting_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Password (Optional)
+                            </label>
+                            <div className="relative mt-1 rounded-md shadow-sm">
+                              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <HiLockClosed className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                              </div>
+                              <input
+                                type="text"
+                                name="meeting_password"
+                                id="meeting_password"
+                                className="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                value={formData.meeting_password}
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Additional Notes
                           </label>
                           <textarea
-                            id="message"
-                            name="message"
+                            id="description"
+                            name="description"
                             rows={3}
-                            required
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            placeholder="e.g., We'd like to discuss your proposal in more detail..."
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
+                            value={formData.description}
+                            onChange={handleChange}
                           />
                         </div>
 
@@ -125,7 +280,7 @@ export default function InterviewSchedulingModal({
                             disabled={isSubmitting}
                             className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {isSubmitting ? 'Sending Request...' : 'Send Request'}
+                            {isSubmitting ? 'Scheduling...' : 'Schedule Interview'}
                           </button>
                           <button
                             type="button"

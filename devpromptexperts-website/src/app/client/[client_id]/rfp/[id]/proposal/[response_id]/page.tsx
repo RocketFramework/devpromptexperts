@@ -5,8 +5,8 @@ import Link from "next/link";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import InterviewSchedulingModal from "@/components/client/InterviewSchedulingModal";
 import ProposalMessagesComponent from "@/components/client/ProposalMessagesComponent";
-import { ExtendedProjectResponsesService } from "@/services/extended";
-import { HiUser, HiCalendar, HiCurrencyDollar, HiArrowLeft, HiClock, HiCheckCircle, HiLocationMarker, HiBriefcase, HiStar, HiGlobeAlt, HiX, HiThumbUp, HiThumbDown, HiChatAlt } from "react-icons/hi";
+import { ExtendedProjectResponsesService, ProposalInterviewsService } from "@/services/extended";
+import { HiUser, HiCalendar, HiCurrencyDollar, HiArrowLeft, HiClock, HiCheckCircle, HiLocationMarker, HiBriefcase, HiStar, HiGlobeAlt, HiX, HiThumbUp, HiThumbDown, HiChatAlt, HiVideoCamera, HiLink } from "react-icons/hi";
 
 export default function ProposalDetailPage() {
   const router = useRouter();
@@ -16,6 +16,7 @@ export default function ProposalDetailPage() {
   const responseId = params.response_id as string;
 
   const [response, setResponse] = useState<any>(null);
+  const [interviews, setInterviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -26,6 +27,7 @@ export default function ProposalDetailPage() {
   useEffect(() => {
     if (responseId) {
       loadResponse(responseId);
+      loadInterviews(responseId);
     }
   }, [responseId]);
 
@@ -42,6 +44,15 @@ export default function ProposalDetailPage() {
       console.error("Error loading response:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadInterviews = async (id: string) => {
+    try {
+      const data = await ProposalInterviewsService.getInterviews(id);
+      setInterviews(data || []);
+    } catch (error) {
+      console.error("Error loading interviews:", error);
     }
   };
 
@@ -76,12 +87,33 @@ export default function ProposalDetailPage() {
     }
   };
 
-  const handleScheduleInterview = async (date: string, message: string) => {
+  const handleScheduleInterview = async (data: any) => {
     try {
-      const updatedResponse = await ExtendedProjectResponsesService.scheduleInterview(responseId, date, message);
-      setResponse({ ...response, status: updatedResponse.status });
-      // In a real app, we might show a success toast here
-      alert("Interview request sent successfully!");
+      // Create the interview record
+      await ProposalInterviewsService.createInterview({
+        project_response_id: responseId,
+        organizer_id: clientId, // Assuming clientId is the user ID
+        attendee_id: response.consultant_id, // This might need to be the user_id of the consultant
+        title: data.title,
+        description: data.description,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        meeting_url: data.meeting_url,
+        meeting_platform: data.meeting_platform,
+        meeting_id: data.meeting_id,
+        meeting_password: data.meeting_password
+      });
+
+      // Update status if needed
+      if (response.status !== 'interview_requested') {
+        const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, 'interview_requested');
+        setResponse({ ...response, status: updatedResponse.status });
+      }
+
+      // Reload interviews
+      loadInterviews(responseId);
+      
+      alert("Interview scheduled successfully!");
     } catch (error) {
       console.error("Error scheduling interview:", error);
       alert("Failed to schedule interview. Please try again.");
@@ -281,6 +313,54 @@ export default function ProposalDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Scheduled Interviews */}
+            {interviews.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Scheduled Interviews</h2>
+                <div className="space-y-4">
+                  {interviews.map((interview) => (
+                    <div key={interview.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-white">{interview.title}</h3>
+                          <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <HiCalendar className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                            <p>
+                              {new Date(interview.start_time).toLocaleDateString()} at {new Date(interview.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <HiVideoCamera className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                            <p>{interview.meeting_platform}</p>
+                          </div>
+                          {interview.meeting_url && (
+                            <div className="mt-2">
+                              <a 
+                                href={interview.meeting_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                              >
+                                <HiLink className="mr-1 h-4 w-4" />
+                                Join Meeting
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          interview.status === 'scheduled' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
+                          interview.status === 'completed' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' : 
+                          'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        }`}>
+                          {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Cover Letter */}
             {response.cover_letter && (
