@@ -39,7 +39,7 @@ export default function HomePage() {
           <p className="text-xl mb-12 text-blue-100">Your gateway to world-class AI consultants and developers</p>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Link href="/consumer">
+            <Link href="/findconsultants">
               <button className="bg-white text-blue-900 p-8 rounded-2xl shadow-2xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all group">
                 <div className="text-6xl mb-4">🔍</div>
                 <h3 className="text-2xl font-bold mb-3">Find a Consultant</h3>

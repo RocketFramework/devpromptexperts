@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FaBars,
   FaTimes,
@@ -12,6 +12,9 @@ import {
   FaBell,
   FaGraduationCap,
 } from "react-icons/fa";
+import { supabase } from "@/lib/supabase";
+import { NotificationService, Notification } from "@/services/business/NotificationService";
+import NotificationDropdown from "./notifications/NotificationDropdown";
 
 // Navigation configuration - KEEP EXISTING
 const getMainNavigation = (userRole: string) => {
@@ -109,19 +112,89 @@ export default function Navbar() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); 
   const [inductionProgress, setInductionProgress] = useState<{completed: number; total: number} | null>(null);
 
+  // Notification State
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+
   const userRole = session?.user?.role || "client";
   const userId = session?.user?.id || "";
 
   const mainNavigation = getMainNavigation(userRole);
   const dashboardNavigation = getDashboardNavigation(userRole, userId);
 
-  // Mock induction progress
+  // Fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) return;
+    
+    try {
+      setLoadingNotifications(true);
+      const [data, count] = await Promise.all([
+        NotificationService.getUserNotifications(userId),
+        NotificationService.getUnreadCount(userId)
+      ]);
+      
+      setNotifications(data);
+      setUnreadCount(count);
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, [userId]);
+
+  // Initial load and Real-time subscription
+  useEffect(() => {
+    if (userId) {
+      fetchNotifications();
+
+      // Subscribe to real-time changes
+      const channel = supabase
+        .channel('public:notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            console.log('Notification update received:', payload);
+            fetchNotifications(); // Refresh list on any change
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [userId, fetchNotifications]);
+
+  // Mock induction progress (Keep existing logic for now, or move to notifications too)
   useEffect(() => {
     if (session?.user?.id) {
       // Mock data - replace with actual API call
       setInductionProgress({completed: 1, total: 4});
     }
   }, [session]);
+
+  const handleMarkAsRead = async (id: string) => {
+    // Optimistic update
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    
+    await NotificationService.markAsRead(id);
+  };
+
+  const handleMarkAllAsRead = async () => {
+    // Optimistic update
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+    
+    await NotificationService.markAllAsRead(userId);
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -216,70 +289,29 @@ export default function Navbar() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsNotificationsOpen(!isNotificationsOpen);
+                      if (!isNotificationsOpen) {
+                        // Mark as read when opening? Or maybe just let user click individual items.
+                        // For now, we'll keep unread status until interaction.
+                      }
                     }}
                   >
                     <FaBell className="text-lg" />
-                    {hasIncompleteInduction && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                        {inductionProgress.total - inductionProgress.completed}
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse">
+                        {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </button>
 
                   {/* Notifications Dropdown */}
                   {isNotificationsOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-80 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200">
-                      <div className="p-4 border-b border-slate-200">
-                        <h3 className="font-semibold text-sm">Notifications</h3>
-                      </div>
-                      
-                      {/* Induction Notification */}
-                      {hasIncompleteInduction && (
-                        <div className="p-4 border-b border-slate-100">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-8 h-8 bg-linear-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center mt-1">
-                              <FaGraduationCap className="text-white text-sm" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="font-semibold text-sm">Complete Your Induction</p>
-                                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">
-                                  {inductionProgress.completed}/{inductionProgress.total}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-600 mb-3">
-                                Finish your induction to unlock all platform features
-                              </p>
-                              <Link
-                                href={`/${userRole}/induction`}
-                                className="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3 py-2 rounded-lg font-medium transition"
-                                onClick={closeAllMenus}
-                              >
-                                Continue Induction
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Empty State */}
-                      {!hasIncompleteInduction && (
-                        <div className="p-8 text-center">
-                          <FaBell className="text-gray-400 text-2xl mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">No new notifications</p>
-                        </div>
-                      )}
-
-                      <div className="p-2 border-t border-slate-200">
-                        <Link
-                          href="/notifications"
-                          className="block text-center text-xs text-blue-600 hover:text-blue-700 py-2"
-                          onClick={closeAllMenus}
-                        >
-                          View All Notifications
-                        </Link>
-                      </div>
-                    </div>
+                    <NotificationDropdown 
+                      notifications={notifications}
+                      isLoading={loadingNotifications}
+                      onMarkAsRead={handleMarkAsRead}
+                      onMarkAllAsRead={handleMarkAllAsRead}
+                      onClose={() => setIsNotificationsOpen(false)}
+                    />
                   )}
                 </div>
 

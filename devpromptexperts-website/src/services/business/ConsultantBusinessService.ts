@@ -6,6 +6,7 @@ import {
   ExtendedConnectedObPartnerMeetsService,
   UserWithFullRelations,
 } from "@/services/extended";
+import { supabase } from "@/lib/supabase";
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 import {
   UsersService,
@@ -636,5 +637,36 @@ export class ConsultantsBusinessService {
         onboardingTier?.selectedTier === "general" ? 3 : 0, // Example logic
       active_referrals_count: 0,
     };
+  }
+
+  static async getConsultantPublicProfile(consultantId: string) {
+    try {
+      // 1. Fetch consultant with user details
+      const consultant = await ExtendedConsultantsService.findByUser_Id(consultantId);
+      
+      if (!consultant) {
+        return null;
+      }
+
+      const user = await UsersService.findById(consultantId);
+
+      // 2. Fetch projects
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('consultant_id', consultantId)
+        .order('end_date', { ascending: false });
+
+      return {
+        consultant: {
+          ...consultant,
+          user: user
+        },
+        projects: projects || []
+      };
+    } catch (error) {
+      console.error('Error fetching consultant public profile:', error);
+      throw error;
+    }
   }
 }

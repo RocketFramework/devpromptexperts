@@ -8,6 +8,7 @@ import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import { ProjectRequestsService, ProjectRequests } from "@/services/generated";
 import { ExtendedProjectRequestsService } from "@/services/extended";
   import { ProjectRequestStatus as ProjectStatus } from "@/types";
+import { NotificationTriggerService } from "@/services/business/NotificationTriggerService";
 import { HiPlus, HiPencil, HiTrash, HiEye, HiCheckCircle, HiXCircle } from "react-icons/hi";
 
 export default function RFPListPage() {
@@ -47,6 +48,10 @@ export default function RFPListPage() {
         status: ProjectStatus.OPEN,
         published_at: new Date().toISOString(),
       });
+      
+      // Trigger notifications to matching consultants
+      await NotificationTriggerService.notifyConsultantsOfNewRFP(id);
+      
       // Reload projects
       if (clientId) loadProjects(clientId);
     } catch (error) {

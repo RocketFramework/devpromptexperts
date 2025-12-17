@@ -7,6 +7,7 @@ import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import InterviewSchedulingModal, { InterviewData } from '@/components/client/InterviewSchedulingModal';
 import ProposalMessagesComponent from "@/components/client/ProposalMessagesComponent";
 import { ExtendedProjectResponsesService, ProposalInterviewsService } from "@/services/extended";
+import { NotificationTriggerService } from "@/services/business/NotificationTriggerService";
 import { HiUser, HiCalendar, HiCurrencyDollar, HiArrowLeft, HiClock, HiCheckCircle, HiLocationMarker, HiBriefcase, HiStar, HiGlobeAlt, HiThumbUp, HiThumbDown, HiChatAlt, HiVideoCamera, HiLink } from "react-icons/hi";
 import { ProposalInterviews } from "@/services/generated";
 import { ProjectResponseWithDetails } from "@/types/extended";
@@ -67,6 +68,13 @@ export default function ProposalDetailPage() {
       setIsUpdating(true);
       const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, newStatus);
       setResponse({ ...response, attachments: updatedResponse.attachments??[], status: updatedResponse.status });
+      
+      // Trigger notifications based on status
+      if (newStatus === ProjectStatus.ACCEPTED) {
+        await NotificationTriggerService.notifyProposalAccepted(responseId);
+      } else if (newStatus === ProjectStatus.REJECTED) {
+        await NotificationTriggerService.notifyProposalRejected(responseId, feedback);
+      }
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status. Please try again.");
@@ -97,7 +105,7 @@ export default function ProposalDetailPage() {
   const handleScheduleInterview = async (data: InterviewData) => {
     try {
       // Create the interview record
-      await ProposalInterviewsService.createInterview({
+      const interview = await ProposalInterviewsService.createInterview({
         project_response_id: responseId,
         organizer_id: clientId, // Assuming clientId is the user ID
         attendee_id: response?.consultant_id || "", // This might need to be the user_id of the consultant
@@ -115,6 +123,11 @@ export default function ProposalDetailPage() {
       if (response && response.status !== ProjectStatus.INTERVIEWING) {
         const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, ProjectStatus.INTERVIEWING);
         setResponse({ ...response, status: updatedResponse.status });
+      }
+
+      // Trigger interview notification
+      if (interview?.id) {
+        await NotificationTriggerService.notifyInterviewScheduled(interview.id);
       }
 
       // Reload interviews

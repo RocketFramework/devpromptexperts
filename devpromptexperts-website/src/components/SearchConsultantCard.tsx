@@ -1,6 +1,7 @@
 // components/consultants/SearchConsultantCard.tsx
 import { ConsultantDTO as Consultant } from "@/types/dtos/Consultant.dto";
 import { CountryToFlag as countryToFlag } from "@/types/dtos/CountryToFlag.dto";
+import Link from "next/link";
 import { useState } from "react";
 
 interface SearchConsultantCardProps {
@@ -129,19 +130,21 @@ export default function SearchConsultantCard({
 
             <div className="min-w-0 flex-1">
               {/* Name with truncation and tooltip */}
-              <h3
-                className="text-lg font-semibold text-gray-900 truncate"
-                onMouseEnter={(e) => {
-                  if (
-                    e.currentTarget.scrollWidth > e.currentTarget.clientWidth
-                  ) {
-                    showTooltip(consultant.name || "", e);
-                  }
-                }}
-                onMouseLeave={hideTooltip}
-              >
-                {consultant.name}
-              </h3>
+              <Link href={`/findconsultants/${consultant.user_id}`} className="hover:underline">
+                <h3
+                  className="text-lg font-semibold text-gray-900 truncate"
+                  onMouseEnter={(e) => {
+                    if (
+                      e.currentTarget.scrollWidth > e.currentTarget.clientWidth
+                    ) {
+                      showTooltip(consultant.name || "", e);
+                    }
+                  }}
+                  onMouseLeave={hideTooltip}
+                >
+                  {consultant.name}
+                </h3>
+              </Link>
 
               {/* Title with truncation and tooltip */}
               <p
@@ -272,12 +275,13 @@ export default function SearchConsultantCard({
           >
             Contact
           </button>
-          <button
-            className="flex-1 border border-gray-300 text-gray-700 py-3 px-3 rounded-xl text-sm font-semibold hover:bg-white hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 whitespace-nowrap"
+          <Link
+            href={`/findconsultants/${consultant.user_id}`}
+            className="flex-1 border border-gray-300 text-gray-700 py-3 px-3 rounded-xl text-sm font-semibold hover:bg-white hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 whitespace-nowrap text-center"
             title="View Full Profile"
           >
             View
-          </button>
+          </Link>
         </div>
       </div>
     </div>
