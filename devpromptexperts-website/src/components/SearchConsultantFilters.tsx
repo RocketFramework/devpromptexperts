@@ -20,17 +20,17 @@ export default function SearchConsultantFilters({
   ).sort();
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-6 sticky top-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-8 sticky top-6">
       <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
 
       {/* Expertise Filter */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
           AI Expertise
         </label>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
+        <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
           {AI_EXPERTISE.map(expertise => (
-            <label key={expertise} className="flex items-center">
+            <label key={expertise} className="flex items-center group cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.expertise.includes(expertise)}
@@ -40,9 +40,9 @@ export default function SearchConsultantFilters({
                     : filters.expertise.filter(exp => exp !== expertise);
                   onFiltersChange({ expertise: newExpertise });
                 }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
               />
-              <span className="ml-2 text-sm text-gray-700">{expertise}</span>
+              <span className="ml-3 text-sm text-gray-600 group-hover:text-gray-900 transition-colors font-normal">{expertise}</span>
             </label>
           ))}
         </div>
@@ -50,12 +50,12 @@ export default function SearchConsultantFilters({
 
       {/* Skills Filter */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
           Technical Skills
         </label>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
+        <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
           {AI_SKILLS.map(skill => (
-            <label key={skill} className="flex items-center">
+            <label key={skill} className="flex items-center group cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.skills.includes(skill)}
@@ -65,9 +65,9 @@ export default function SearchConsultantFilters({
                     : filters.skills.filter(s => s !== skill);
                   onFiltersChange({ skills: newSkills });
                 }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
               />
-              <span className="ml-2 text-sm text-gray-700">{skill}</span>
+              <span className="ml-3 text-sm text-gray-600 group-hover:text-gray-900 transition-colors font-normal">{skill}</span>
             </label>
           ))}
         </div>
@@ -75,12 +75,12 @@ export default function SearchConsultantFilters({
 
       {/* Availability Filter */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
           Availability
         </label>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {AVAILABILITY_OPTIONS.map(availability => (
-            <label key={availability} className="flex items-center">
+            <label key={availability} className="flex items-center group cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.availability.includes(availability)}
@@ -90,9 +90,9 @@ export default function SearchConsultantFilters({
                     : filters.availability.filter(a => a !== availability);
                   onFiltersChange({ availability: newAvailability });
                 }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
               />
-              <span className="ml-2 text-sm text-gray-700">{availability}</span>
+              <span className="ml-3 text-sm text-gray-600 group-hover:text-gray-900 transition-colors font-normal">{availability}</span>
             </label>
           ))}
         </div>
@@ -100,17 +100,22 @@ export default function SearchConsultantFilters({
 
       {/* Experience Range */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Experience: {filters.minExperience} - {filters.maxExperience} years
-        </label>
-        <div className="space-y-4">
+        <div className="flex justify-between items-center mb-4">
+          <label className="block text-sm font-semibold text-gray-600 uppercase tracking-wider">
+            Experience
+          </label>
+          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+            {filters.minExperience}-{filters.maxExperience} yrs
+          </span>
+        </div>
+        <div className="space-y-6">
           <input
             type="range"
             min="0"
             max="50"
             value={filters.minExperience}
             onChange={(e) => onFiltersChange({ minExperience: parseInt(e.target.value) })}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
           <input
             type="range"
@@ -118,26 +123,25 @@ export default function SearchConsultantFilters({
             max="50"
             value={filters.maxExperience}
             onChange={(e) => onFiltersChange({ maxExperience: parseInt(e.target.value) })}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
         </div>
       </div>
 
       {/* Rating Filter */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Minimum Rating: {filters.minRating}+
+        <label className="block text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
+          Minimum Rating
         </label>
-        <div className="flex space-x-1">
+        <div className="flex space-x-2">
           {[1, 2, 3, 4, 5].map(rating => (
             <button
               key={rating}
               onClick={() => onFiltersChange({ minRating: rating })}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg ${
-                filters.minRating === rating
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all border ${filters.minRating === rating
+                ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100'
+                : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100 hover:text-gray-700'
+                }`}
             >
               {rating}+
             </button>
@@ -147,17 +151,17 @@ export default function SearchConsultantFilters({
 
       {/* Country Filter */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">
           Country
         </label>
         <select
           value={filters.country}
           onChange={(e) => onFiltersChange({ country: e.target.value })}
-          className="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          className="w-full rounded-xl border-gray-200 bg-gray-50 text-sm font-medium focus:border-blue-500 focus:ring-blue-500 transition-all py-2.5"
         >
           <option value="">All Countries</option>
           {uniqueCountries.map(country => (
-            <option key={country} value={country??"No Country"}>
+            <option key={country} value={country ?? "No Country"}>
               {country}
             </option>
           ))}
@@ -165,15 +169,15 @@ export default function SearchConsultantFilters({
       </div>
 
       {/* Featured Only */}
-      <div>
-        <label className="flex items-center">
+      <div className="pt-6 border-t border-gray-100">
+        <label className="flex items-center group cursor-pointer">
           <input
             type="checkbox"
             checked={filters.featuredOnly}
             onChange={(e) => onFiltersChange({ featuredOnly: e.target.checked })}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
           />
-          <span className="ml-2 text-sm font-medium text-gray-700">
+          <span className="ml-3 text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">
             Featured Experts Only
           </span>
         </label>
@@ -192,7 +196,7 @@ export default function SearchConsultantFilters({
           country: '',
           featuredOnly: false,
         })}
-        className="w-full py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full py-3 px-4 border border-gray-200 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-50 hover:text-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       >
         Reset All Filters
       </button>

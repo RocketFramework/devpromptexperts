@@ -1,58 +1,92 @@
 "use client";
 
 import React, { useState } from "react";
-import { featuredConsultants } from "@/data/consultants";
 import ConsultantCard from "@/components/ConsultantCard";
+import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 
-export default function FeaturedConsultantsCarousel() {
+interface FeaturedConsultantsCarouselProps {
+  consultants: ConsultantDTO[];
+  loading?: boolean;
+}
+
+export default function FeaturedConsultantsCarousel({
+  consultants,
+  loading = false
+}: FeaturedConsultantsCarouselProps) {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const visibleCount = 3;
-  const total = featuredConsultants.length;
+  const total = consultants.length;
 
   const handlePrev = () => {
+    if (total === 0) return;
     setCarouselIndex((prev) => (prev - 1 + total) % total);
   };
   const handleNext = () => {
+    if (total === 0) return;
     setCarouselIndex((prev) => (prev + 1) % total);
   };
 
-  const visibleConsultants = Array.from({ length: visibleCount }, (_, i) => {
-    return featuredConsultants[(carouselIndex + i) % total];
+  if (loading) {
+    return (
+      <div className="grid md:grid-cols-3 gap-8">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-80 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>
+        ))}
+      </div>
+    );
+  }
+
+  if (total === 0) {
+    return (
+      <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <p className="text-slate-400 font-medium">No featured consultants found at the moment.</p>
+      </div>
+    );
+  }
+
+  const visibleConsultants = Array.from({ length: Math.min(visibleCount, total) }, (_, i) => {
+    return consultants[(carouselIndex + i) % total];
   });
 
   return (
     <div className="relative">
       <div className="grid md:grid-cols-3 gap-8 transition-all duration-500">
         {visibleConsultants.map(consultant => (
-          <ConsultantCard key={consultant.id} consultant={ consultant } />
+          <ConsultantCard key={consultant.user_id} consultant={consultant} />
         ))}
       </div>
-      <div className="flex justify-center items-center mt-8 gap-4">
-        <button
-          onClick={handlePrev}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-blue-500 hover:text-white transition"
-          aria-label="Previous"
-        >
-          &#8592;
-        </button>
-        {featuredConsultants.map((_, idx) => (
+
+      {total > visibleCount && (
+        <div className="flex justify-center items-center mt-12 gap-4">
           <button
-            key={idx}
-            onClick={() => setCarouselIndex(idx)}
-            className={`w-4 h-4 rounded-full mx-1 transition border-2 ${
-              idx === carouselIndex ? 'bg-blue-600 border-blue-600' : 'bg-gray-300 border-gray-300'
-            }`}
-            aria-label={`Go to slide ${idx + 1}`}
-          />
-        ))}
-        <button
-          onClick={handleNext}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-blue-500 hover:text-white transition"
-          aria-label="Next"
-        >
-          &#8594;
-        </button>
-      </div>
+            onClick={handlePrev}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm active:scale-95"
+            aria-label="Previous"
+          >
+            &#8592;
+          </button>
+
+          <div className="flex space-x-2">
+            {Array.from({ length: total }).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCarouselIndex(idx)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === carouselIndex ? 'w-6 bg-blue-600' : 'bg-slate-200 hover:bg-slate-300'
+                  }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={handleNext}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm active:scale-95"
+            aria-label="Next"
+          >
+            &#8594;
+          </button>
+        </div>
+      )}
     </div>
   );
 }

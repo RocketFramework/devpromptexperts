@@ -29,7 +29,7 @@ export default function ConsultantSearchPage() {
   const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(9); // 3x3 grid
@@ -55,7 +55,7 @@ export default function ConsultantSearchPage() {
   const loadConsultants = useCallback(async (page: number = 1) => {
     try {
       setLoading(true);
-      
+
       const searchParams: SearchParams = {
         page,
         limit: itemsPerPage,
@@ -71,18 +71,18 @@ export default function ConsultantSearchPage() {
         sortBy: sortBy
       };
 
-      const response: PaginatedConsultantsResponse = 
+      const response: PaginatedConsultantsResponse =
         await ConsultantBusinessService.getConsultantsPaginated(searchParams);
 
       setConsultants(response.consultants);
       setTotalCount(response.totalCount);
       setTotalPages(response.totalPages);
       setCurrentPage(response.currentPage);
-      
+
       console.log("Data received and count is:", response.consultants.length);
       console.log("Total count:", response.totalCount);
       console.log("Sample consultant:", response.consultants[0]);
-      
+
     } catch (err) {
       setError('Failed to load consultants');
       console.error('Error loading consultants:', err);
@@ -104,13 +104,13 @@ export default function ConsultantSearchPage() {
 
   // Pagination functions
   const paginate = (pageNumber: number) => handlePageChange(pageNumber);
-  
+
   const nextPage = () => {
     if (currentPage < totalPages) {
       handlePageChange(currentPage + 1);
     }
   };
-  
+
   const prevPage = () => {
     if (currentPage > 1) {
       handlePageChange(currentPage - 1);
@@ -148,12 +148,12 @@ export default function ConsultantSearchPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <SearchConsultantHeader 
+      <SearchConsultantHeader
         searchQuery={filters.query}
         onSearchChange={(query) => updateFilters({ query })}
         resultCount={totalCount}
       />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
@@ -168,20 +168,23 @@ export default function ConsultantSearchPage() {
           {/* Results Grid */}
           <div className="flex-1">
             {/* Sorting Controls */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-sm text-gray-600">
-                {totalCount} {totalCount === 1 ? 'expert' : 'experts'} found
+            <div className="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
+                <div className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                  {totalCount} {totalCount === 1 ? 'expert' : 'experts'}
+                </div>
               </div>
-              
-              <div className="flex items-center space-x-4">
-                <label htmlFor="sort" className="text-sm font-medium text-gray-700">
-                  Sort by:
+
+              <div className="flex items-center space-x-3">
+                <label htmlFor="sort" className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  Sort by
                 </label>
                 <select
                   id="sort"
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                  className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                  className="rounded-xl border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 text-sm font-semibold py-2 pl-3 pr-10 transition-all"
                 >
                   <option value="default">Default</option>
                   <option value="projects_completed">Most Projects</option>
@@ -192,105 +195,62 @@ export default function ConsultantSearchPage() {
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center py-12">
+              <div className="flex justify-center items-center py-24">
                 <LoadingSpinner />
               </div>
             ) : (
               <>
                 <SearchConsultantGrid consultants={consultants} />
-                
+
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-8 flex justify-center items-center space-x-2">
-                    {/* Previous Button */}
-                    <button
-                      onClick={prevPage}
-                      disabled={currentPage === 1 || loading}
-                      className={`px-4 py-2 rounded-lg border ${
-                        currentPage === 1 || loading
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                      }`}
-                    >
-                      Previous
-                    </button>
-
-                    {/* Page Numbers */}
-                    <div className="flex space-x-1">
-                      {/* First Page */}
-                      {startPage > 1 && (
-                        <>
-                          <button
-                            onClick={() => paginate(1)}
-                            disabled={loading}
-                            className={`w-10 h-10 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 border-gray-300 ${
-                              loading ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            1
-                          </button>
-                          {startPage > 2 && (
-                            <span className="w-10 h-10 flex items-center justify-center text-gray-500">
-                              ...
-                            </span>
-                          )}
-                        </>
-                      )}
-
-                      {/* Page Numbers */}
-                      {pageNumbers.map(number => (
-                        <button
-                          key={number}
-                          onClick={() => paginate(number)}
-                          disabled={loading}
-                          className={`w-10 h-10 rounded-lg border ${
-                            currentPage === number
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          {number}
-                        </button>
-                      ))}
-
-                      {/* Last Page */}
-                      {endPage < totalPages && (
-                        <>
-                          {endPage < totalPages - 1 && (
-                            <span className="w-10 h-10 flex items-center justify-center text-gray-500">
-                              ...
-                            </span>
-                          )}
-                          <button
-                            onClick={() => paginate(totalPages)}
-                            disabled={loading}
-                            className={`w-10 h-10 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 border-gray-300 ${
-                              loading ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            {totalPages}
-                          </button>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Next Button */}
-                    <button
-                      onClick={nextPage}
-                      disabled={currentPage === totalPages || loading}
-                      className={`px-4 py-2 rounded-lg border ${
-                        currentPage === totalPages || loading
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                      }`}
-                    >
-                      Next
-                    </button>
-
-                    {/* Results Count */}
-                    <div className="text-sm text-gray-600 ml-4">
+                  <div className="mt-12 flex flex-col sm:flex-row justify-between items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 sm:space-y-0">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                       Showing {((currentPage - 1) * itemsPerPage) + 1}-
                       {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} experts
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {/* Previous Button */}
+                      <button
+                        onClick={prevPage}
+                        disabled={currentPage === 1 || loading}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${currentPage === 1 || loading
+                          ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                          : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200 shadow-sm'
+                          }`}
+                      >
+                        Prev
+                      </button>
+
+                      {/* Page Numbers */}
+                      <div className="flex space-x-1">
+                        {pageNumbers.map(number => (
+                          <button
+                            key={number}
+                            onClick={() => paginate(number)}
+                            disabled={loading}
+                            className={`w-10 h-10 rounded-xl text-xs font-bold transition-all border ${currentPage === number
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100'
+                              : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200 shadow-sm'
+                              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {number}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Next Button */}
+                      <button
+                        onClick={nextPage}
+                        disabled={currentPage === totalPages || loading}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${currentPage === totalPages || loading
+                          ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                          : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200 shadow-sm'
+                          }`}
+                      >
+                        Next
+                      </button>
                     </div>
                   </div>
                 )}

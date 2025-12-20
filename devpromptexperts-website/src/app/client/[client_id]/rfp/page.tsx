@@ -7,7 +7,7 @@ import Link from "next/link";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import { ProjectRequestsService, ProjectRequests } from "@/services/generated";
 import { ExtendedProjectRequestsService } from "@/services/extended";
-  import { ProjectRequestStatus as ProjectStatus } from "@/types";
+import { ProjectRequestStatus as ProjectStatus } from "@/types";
 import { NotificationTriggerService } from "@/services/business/NotificationTriggerService";
 import { HiPlus, HiPencil, HiTrash, HiEye, HiCheckCircle, HiXCircle } from "react-icons/hi";
 
@@ -41,17 +41,17 @@ export default function RFPListPage() {
 
   const handlePublish = async (id: string) => {
     if (!confirm("Are you sure you want to publish this RFP?")) return;
-    
+
     try {
       setIsUpdating(id);
       await ProjectRequestsService.update(id, {
         status: ProjectStatus.OPEN,
         published_at: new Date().toISOString(),
       });
-      
+
       // Trigger notifications to matching consultants
       await NotificationTriggerService.notifyConsultantsOfNewRFP(id);
-      
+
       // Reload projects
       if (clientId) loadProjects(clientId);
     } catch (error) {
@@ -97,12 +97,24 @@ export default function RFPListPage() {
     }
   };
 
+  const activeRFPs = projects.filter(p =>
+    p.status === ProjectStatus.OPEN ||
+    p.status === ProjectStatus.DRAFT ||
+    p.status === ProjectStatus.ON_HOLD
+  );
+
+  const acceptedProjects = projects.filter(p =>
+    p.status === ProjectStatus.ACCEPTED ||
+    p.status === ProjectStatus.IN_PROGRESS ||
+    p.status === ProjectStatus.COMPLETED
+  );
+
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-10">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My RFPs</h1>
-          <Link 
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Project Dashboard</h1>
+          <Link
             href={`/client/${clientId}/rfp/create`}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center"
           >
@@ -111,97 +123,165 @@ export default function RFPListPage() {
           </Link>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading projects...</div>
-          ) : projects.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="mx-auto h-12 w-12 text-gray-400">
-                <HiPlus className="h-12 w-12" />
-              </div>
-              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No RFPs</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new Request for Proposal.</p>
-              <div className="mt-6">
-                <Link
-                  href={`/client/${clientId}/rfp/create`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <HiPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                  New RFP
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700/50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Title</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Budget</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {projects.map((project) => (
-                    <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Link href={`/client/${clientId}/rfp/${project.id}`} className="block group">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {project.title}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_summary}</div>
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(project.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {project.budget_range}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(project.created_at??'').toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-3">
-                          <Link 
-                            href={`/client/${clientId}/rfp/${project.id}/edit`}
-                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                            title="Edit"
-                          >
-                            <HiPencil className="w-5 h-5" />
-                          </Link>
-                          
-                          {project.status === ProjectStatus.DRAFT && (
-                            <button
-                              onClick={() => handlePublish(project.id)}
-                              disabled={isUpdating === project.id}
-                              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 disabled:opacity-50"
-                              title="Publish"
-                            >
-                              <HiCheckCircle className="w-5 h-5" />
-                            </button>
-                          )}
+        {/* My Projects Section */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">My Projects</h2>
+          </div>
 
-                          {project.status === ProjectStatus.OPEN && (
-                            <button
-                              onClick={() => handleClose(project.id)}
-                              disabled={isUpdating === project.id}
-                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50"
-                              title="Close RFP"
-                            >
-                              <HiXCircle className="w-5 h-5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading projects...</div>
+            ) : acceptedProjects.length === 0 ? (
+              <div className="p-12 text-center bg-gray-50/50 dark:bg-gray-900/20">
+                <p className="text-sm text-gray-500 dark:text-gray-400">No active or completed projects yet.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700/50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Title</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Budget</th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {acceptedProjects.map((project) => (
+                      <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Link href={`/client/${clientId}/rfp/${project.id}`} className="block group">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              {project.title}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_summary}</div>
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(project.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {project.budget_range}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <Link
+                            href={`/client/${clientId}/rfp/${project.id}`}
+                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center"
+                          >
+                            <HiEye className="w-5 h-5 mr-1" />
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* My RFPs Section */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">My RFPs</h2>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading RFPs...</div>
+            ) : activeRFPs.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="mx-auto h-12 w-12 text-gray-400">
+                  <HiPlus className="h-12 w-12" />
+                </div>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No active RFPs</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new Request for Proposal.</p>
+                <div className="mt-6">
+                  <Link
+                    href={`/client/${clientId}/rfp/create`}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <HiPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                    New RFP
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700/50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Title</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Budget</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {activeRFPs.map((project) => (
+                      <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Link href={`/client/${clientId}/rfp/${project.id}`} className="block group">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              {project.title}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_summary}</div>
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(project.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {project.budget_range}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(project.created_at ?? '').toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-3">
+                            <Link
+                              href={`/client/${clientId}/rfp/${project.id}/edit`}
+                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                              title="Edit"
+                            >
+                              <HiPencil className="w-5 h-5" />
+                            </Link>
+
+                            {project.status === ProjectStatus.DRAFT && (
+                              <button
+                                onClick={() => handlePublish(project.id)}
+                                disabled={isUpdating === project.id}
+                                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 disabled:opacity-50"
+                                title="Publish"
+                              >
+                                <HiCheckCircle className="w-5 h-5" />
+                              </button>
+                            )}
+
+                            {project.status === ProjectStatus.OPEN && (
+                              <button
+                                onClick={() => handleClose(project.id)}
+                                disabled={isUpdating === project.id}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50"
+                                title="Close RFP"
+                              >
+                                <HiXCircle className="w-5 h-5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </ClientDashboardLayout>

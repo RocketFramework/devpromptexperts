@@ -22,15 +22,50 @@ export class ExtendedProjectResponsesService {
   }
 
   static async updateStatus(id: string, status: string) {
-    const { data, error } = await supabase
+    // 1. Update the response status
+    const { data: response, error: responseError } = await supabase
       .from('project_responses')
       .update({ status })
       .eq('id', id)
       .select()
       .single()
     
-    if (error) throw error
-    return data
+    if (responseError) throw responseError
+
+    // 2. If accepted, also update the project request status
+    if (status === 'accepted') {
+      const { error: requestError } = await supabase
+        .from('project_requests')
+        .update({ status: 'accepted' })
+        .eq('id', response.project_request_id)
+      
+      if (requestError) {
+        console.error('Error updating project request status:', requestError)
+        // We don't throw here to avoid failing the response update, 
+        // but in a real app we might want a transaction.
+      }
+    }
+
+    return response
+  }
+
+  static async recordView(id: string, currentStatus: string) {
+    const updateData: any = { viewed_at: new Date().toISOString() };
+    
+    // Only update status to 'viewed' if it's currently 'submitted'
+    if (currentStatus === 'submitted') {
+      updateData.status = 'viewed';
+    }
+
+    const { data, error } = await supabase
+      .from('project_responses')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   static async updateFeedback(id: string, rating: number, feedback: string) {
