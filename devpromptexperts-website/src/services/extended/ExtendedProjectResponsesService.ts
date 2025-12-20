@@ -68,12 +68,13 @@ export class ExtendedProjectResponsesService {
     return data;
   }
 
-  static async updateFeedback(id: string, rating: number, feedback: string) {
+  static async updateFeedback(id: string, rating: number, feedback: string, status: string) {
     const { data, error } = await supabase
       .from('project_responses')
       .update({ 
         client_rating: rating,
-        client_feedback: feedback 
+        client_feedback: feedback,
+        status: status,
       })
       .eq('id', id)
       .select()

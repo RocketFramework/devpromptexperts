@@ -171,6 +171,108 @@ export const NotificationTriggerService = {
     }
   },
 
+  async notifyProposalInterviewing(proposalId: string) {
+    try {
+      const { data: proposal, error } = await supabase
+        .from('project_responses')
+        .select(`
+          *,
+          project_requests!inner(title),
+          consultants!inner(user_id)
+        `)
+        .eq('id', proposalId)
+        .single();
+
+      if (error || !proposal) throw error;
+
+      await NotificationService.createNotification({
+        user_id: proposal.consultants.user_id,
+        type: 'project',
+        title: 'Proposal Interviewing',
+        message: `Your proposal for "${proposal.project_requests.title}" is being interviewed by the client`,
+        link: `/consultant/${proposal.consultants.user_id}/dashboard/projects`,
+        metadata: {
+          proposal_id: proposalId,
+          rfp_id: proposal.project_request_id,
+          client_id: proposal.project_requests.client_id
+        }
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error notifying proposal interviewing:', error);
+      return { success: false, error };
+    }
+  },  
+
+  async notifyProposalShortlisting(proposalId: string) {
+    try {
+      const { data: proposal, error } = await supabase
+        .from('project_responses')
+        .select(`
+          *,
+          project_requests!inner(title),
+          consultants!inner(user_id)
+        `)
+        .eq('id', proposalId)
+        .single();
+
+      if (error || !proposal) throw error;
+
+      await NotificationService.createNotification({
+        user_id: proposal.consultants.user_id,
+        type: 'project',
+        title: 'Proposal Shortlisting',
+        message: `Your proposal for "${proposal.project_requests.title}" is shortlisted`,
+        link: `/consultant/${proposal.consultants.user_id}/dashboard/projects`,
+        metadata: {
+          proposal_id: proposalId,
+          rfp_id: proposal.project_request_id,
+          client_id: proposal.project_requests.client_id
+        }
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error notifying proposal shortlisting:', error);
+      return { success: false, error };
+    }
+  },
+
+  async notifyProposalReview(proposalId: string) {
+    try {
+      const { data: proposal, error } = await supabase
+        .from('project_responses')
+        .select(`
+          *,
+          project_requests!inner(title),
+          consultants!inner(user_id)
+        `)
+        .eq('id', proposalId)
+        .single();
+
+      if (error || !proposal) throw error;
+
+      await NotificationService.createNotification({
+        user_id: proposal.consultants.user_id,
+        type: 'project',
+        title: 'Proposal Review',
+        message: `Your proposal for "${proposal.project_requests.title}" is being reviewed`,
+        link: `/consultant/${proposal.consultants.user_id}/dashboard/projects`,
+        metadata: {
+          proposal_id: proposalId,
+          rfp_id: proposal.project_request_id,
+          client_id: proposal.project_requests.client_id
+        }
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error notifying proposal review:', error);
+      return { success: false, error };
+    }
+  },  
+  
   /**
    * Notify consultant when a proposal is rejected
    */
