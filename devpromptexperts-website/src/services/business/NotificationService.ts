@@ -10,6 +10,7 @@ export const NotificationService = {
    */
   async getUserNotifications(userId: string, limit = 20) {
     try {
+      console.log('Fetching notifications for user:', userId);
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
@@ -18,6 +19,7 @@ export const NotificationService = {
         .limit(limit);
 
       if (error) throw error;
+      console.log('Notifications fetched successfully:', data);
       return data || [];
     } catch (error) {
       console.error('Error fetching notifications:', error);

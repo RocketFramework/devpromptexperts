@@ -143,50 +143,6 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          id: string
-          user_id: string
-          type: 'system' | 'project' | 'message' | 'induction' | 'payment'
-          title: string
-          message: string
-          link: string | null
-          is_read: boolean
-          created_at: string
-          metadata: Json | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          type: 'system' | 'project' | 'message' | 'induction' | 'payment'
-          title: string
-          message: string
-          link?: string | null
-          is_read?: boolean
-          created_at?: string
-          metadata?: Json | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          type?: 'system' | 'project' | 'message' | 'induction' | 'payment'
-          title?: string
-          message?: string
-          link?: string | null
-          is_read?: boolean
-          created_at?: string
-          metadata?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       clients: {
         Row: {
           avg_consultant_rating: number | null
@@ -979,6 +935,50 @@ export type Database = {
           uuid_id?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string
+          metadata: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ob_partners: {
         Row: {

@@ -6,6 +6,7 @@ import { ExtendedProjectRequestsService } from "@/services/extended/ExtendedProj
 import { supabase } from "@/lib/supabase";
 import { HiArrowLeft, HiCurrencyDollar, HiClock } from "react-icons/hi";
 import { ProjectRequests, ProjectResponses } from "@/services/generated";
+import { ProjectRequestStatus } from "@/types/enums";
 
 export default function RespondToProjectPage() {
   const params = useParams();
@@ -82,7 +83,7 @@ export default function RespondToProjectPage() {
         proposed_budget: parseFloat(formData.proposed_budget),
         proposed_timeline: formData.proposed_timeline,
         proposed_solution: formData.proposed_solution,
-        status: 'submitted',
+        status: ProjectRequestStatus.OPEN,
         submitted_at: new Date().toISOString(),
       };
 
