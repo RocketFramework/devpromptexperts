@@ -12,6 +12,9 @@ export class ExtendedProjectResponsesService {
           users (
             *
           )
+        ),
+        project_requests (
+          *
         )
       `)
       .eq('id', id)
@@ -32,17 +35,39 @@ export class ExtendedProjectResponsesService {
     
     if (responseError) throw responseError
 
-    // 2. If accepted, also update the project request status
+    // 2. If accepted, also update the project request status and create project record
     if (status === 'accepted') {
-      const { error: requestError } = await supabase
+      const { data: projectRequest, error: requestFetchError } = await supabase
         .from('project_requests')
         .update({ status: 'accepted' })
         .eq('id', response.project_request_id)
+        .select()
+        .single();
       
-      if (requestError) {
-        console.error('Error updating project request status:', requestError)
-        // We don't throw here to avoid failing the response update, 
-        // but in a real app we might want a transaction.
+      if (requestFetchError) {
+        console.error('Error updating project request status:', requestFetchError)
+      }
+
+      // 3. Create the project record
+      if (projectRequest) {
+        const { error: projectCreateError } = await supabase
+          .from('projects')
+          .insert({
+            client_id: projectRequest.client_id,
+            consultant_id: response.consultant_id,
+            contract_value: response.proposed_budget, // Using proposed budget as contract value
+            project_request_id: response.project_request_id,
+            project_response_id: response.id,
+            start_date: new Date().toISOString().split('T')[0], // Default to today
+            status: 'assigned', // Initial status for a project
+            payment_terms: 'As per proposal', // Default payment terms
+            estimated_duration: response.proposed_timeline,
+            total_hours_estimated: response.estimated_hours,
+          });
+
+        if (projectCreateError) {
+          console.error('Error creating project record:', projectCreateError);
+        }
       }
     }
 

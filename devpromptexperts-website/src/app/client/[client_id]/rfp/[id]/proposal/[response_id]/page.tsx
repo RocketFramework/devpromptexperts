@@ -11,7 +11,7 @@ import ProposalMessagesComponent from "@/components/client/ProposalMessagesCompo
 import { ExtendedProjectResponsesService, ProposalInterviewsService } from "@/services/extended";
 import { NotificationTriggerService } from "@/services/business/NotificationTriggerService";
 import { HiUser, HiCalendar, HiCurrencyDollar, HiArrowLeft, HiClock, HiCheckCircle, HiLocationMarker, HiBriefcase, HiStar, HiGlobeAlt, HiThumbUp, HiThumbDown, HiChatAlt, HiVideoCamera, HiLink } from "react-icons/hi";
-import { ProposalInterviews } from "@/services/generated";
+import { ProposalInterviews, ProjectsService, ProjectPaymentsInsert } from "@/services/generated";
 import { ProjectResponseWithDetails } from "@/types/extended";
 import { ProjectResponseStatus as ProjectStatus } from "@/types";
 
@@ -31,13 +31,14 @@ export default function ProposalDetailPage() {
 	const [rating, setRating] = useState(0);
 	const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 	const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+	const [newStatus, setNewStatus] = useState('');
 
 	useEffect(() => {
 		if (responseId) {
 			loadResponse(responseId);
 			loadInterviews(responseId);
 			// Record view (updates status to 'viewed' only if currently 'submitted')
-			ExtendedProjectResponsesService.recordView(responseId, response?.status || 'submitted').catch(console.error);
+			ExtendedProjectResponsesService.recordView(responseId, response?.status || ProjectStatus.OPEN).catch(console.error);
 		}
 	}, [responseId, response?.status]);
 
@@ -49,6 +50,7 @@ export default function ProposalDetailPage() {
 			if (data) {
 				setFeedback(data.client_feedback || "");
 				setRating(data.client_rating || 0);
+				setNewStatus(data.status || '');
 			}
 		} catch (error) {
 			console.error("Error loading response:", error);
@@ -72,12 +74,18 @@ export default function ProposalDetailPage() {
 			setIsUpdating(true);
 			const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, newStatus);
 			setResponse({ ...response, attachments: updatedResponse.attachments ?? [], status: updatedResponse.status });
-
+			setNewStatus(newStatus);
 			// Trigger notifications based on status
 			if (newStatus === ProjectStatus.ACCEPTED) {
 				await NotificationTriggerService.notifyProposalAccepted(responseId);
+			} else if (newStatus === ProjectStatus.INTERVIEWING) {
+				await NotificationTriggerService.notifyProposalInterviewing(responseId);
+			} else if (newStatus === ProjectStatus.SHORTLISTING) {
+				await NotificationTriggerService.notifyProposalShortlisting(responseId);
 			} else if (newStatus === ProjectStatus.REJECTED) {
 				await NotificationTriggerService.notifyProposalRejected(responseId, feedback);
+			} else if (newStatus === ProjectStatus.IN_REVIEW) {
+				await NotificationTriggerService.notifyProposalReview(responseId);
 			}
 		} catch (error) {
 			console.error("Error updating status:", error);
@@ -91,11 +99,14 @@ export default function ProposalDetailPage() {
 		if (!response) return;
 		try {
 			setIsUpdating(true);
-			const updatedResponse = await ExtendedProjectResponsesService.updateFeedback(responseId, rating, feedback);
+			setNewStatus(ProjectStatus.IN_REVIEW);
+			console.log("New Status:", newStatus);
+			const updatedResponse = await ExtendedProjectResponsesService.updateFeedback(responseId, rating, feedback, newStatus);
 			setResponse({
 				...response,
 				client_rating: updatedResponse.client_rating,
-				client_feedback: updatedResponse.client_feedback
+				client_feedback: updatedResponse.client_feedback,
+				status: updatedResponse.status
 			});
 			setShowFeedbackForm(false);
 		} catch (error) {
@@ -144,17 +155,22 @@ export default function ProposalDetailPage() {
 		}
 	};
 
-	const getStatusBadge = (status: string) => {
-		const badges: Record<string, string> = {
-			submitted: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-			viewed: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-			shortlisted: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-			accepted: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
-			rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-			interview_requested: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+	const getStatusBadge = (status: ProjectStatus) => {
+		const badges: Record<ProjectStatus, string> = {
+			[ProjectStatus.OPEN]: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+			[ProjectStatus.VIEWED]: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+			[ProjectStatus.SHORTLISTING]: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+			[ProjectStatus.ACCEPTED]: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+			[ProjectStatus.REJECTED]: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+			[ProjectStatus.INTERVIEWING]: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+			[ProjectStatus.IN_REVIEW]: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+			[ProjectStatus.ON_HOLD]: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+			[ProjectStatus.CANCELLED]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
+			[ProjectStatus.DRAFT]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
+			[ProjectStatus.ASSIGNED]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
 		};
 
-		const style = badges[status] || badges.submitted;
+		const style = badges[status] || badges.open;
 
 		return (
 			<span className={`px-3 py-1 text-sm font-semibold rounded-full ${style}`}>
@@ -226,6 +242,14 @@ export default function ProposalDetailPage() {
 									{user?.full_name}
 								</h1>
 								<div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+									{response.project_requests?.title && (
+										<>
+											<span className="font-medium text-blue-600 dark:text-blue-400">
+												{response.project_requests.title}
+											</span>
+											<span>•</span>
+										</>
+									)}
 									<span>
 										{response.viewed_at
 											? `Viewed on ${new Date(response.viewed_at).toLocaleDateString()}`
@@ -233,7 +257,7 @@ export default function ProposalDetailPage() {
 										}
 									</span>
 									<span>•</span>
-									{getStatusBadge(response.status)}
+									{getStatusBadge(response.status as ProjectStatus)}
 								</div>
 							</div>
 						</div>
@@ -311,14 +335,14 @@ export default function ProposalDetailPage() {
 									className="inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 whitespace-nowrap"
 								>
 									<HiChatAlt className="h-4 w-4 mr-2 text-gray-500" />
-									{showFeedbackForm ? 'Hide' : 'Evaluate'}
+									{showFeedbackForm ? 'Hide' : 'Review'}
 								</button>
 							</div>
 
 							{/* Evaluation Form */}
 							{showFeedbackForm && (
 								<div className="mt-6 border-t border-gray-100 dark:border-gray-700 pt-6">
-									<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Internal Evaluation (Private)</h3>
+									<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Internal Review (Private)</h3>
 									<div className="space-y-4">
 										<div>
 											<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating</label>
@@ -350,7 +374,7 @@ export default function ProposalDetailPage() {
 												disabled={isUpdating}
 												className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
 											>
-												{isUpdating ? 'Saving...' : 'Save Evaluation'}
+												{isUpdating ? 'Saving...' : 'Save Review'}
 											</button>
 										</div>
 									</div>
@@ -471,7 +495,7 @@ export default function ProposalDetailPage() {
 						{(response.client_feedback || response.client_rating) && !showFeedbackForm && (
 							<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
 								<div className="flex justify-between items-center mb-4">
-									<h2 className="text-lg font-semibold text-gray-900 dark:text-white">Internal Evaluation</h2>
+									<h2 className="text-lg font-semibold text-gray-900 dark:text-white">Internal Review</h2>
 									<button
 										onClick={() => setShowFeedbackForm(true)}
 										className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400"
