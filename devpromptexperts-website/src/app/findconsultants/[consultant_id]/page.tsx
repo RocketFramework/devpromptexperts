@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ConsultantsBusinessService } from '@/services/business/ConsultantBusinessService';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { UserRoles } from '@/types';
 import Image from 'next/image';
 
 // Define types for the profile data
@@ -43,6 +42,10 @@ interface Consultant {
   rating: number | null;
   projects_completed: number | null;
   founder_number: number | null;
+  onboarding_completed_at: string | null;
+  referred_by: string | null;
+  assigned_free_consultation_count: number | null;
+  completed_free_consultation_count: number | null;
   user: User;
 }
 
@@ -146,12 +149,22 @@ export default function ConsultantProfilePage() {
                       <div className="flex flex-col md:flex-row items-center gap-3 mb-2">
                         <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">{user?.full_name}</h1>
                         {consultant.founder_number && (
-                          <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-md border border-indigo-100">
-                            #{consultant.founder_number}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black rounded-lg shadow-sm tracking-tighter uppercase text-center">
+                              Founder #{consultant.founder_number}
+                            </span>
+                            <span className="text-[10px] text-amber-600 font-bold text-center">Founding Member</span>
+                          </div>
                         )}
                       </div>
-                      <p className="text-2xl text-indigo-600 font-semibold mb-6 tracking-tight">{consultant.title}</p>
+                      <p className="text-2xl text-indigo-600 font-semibold mb-6 tracking-tight">
+                        {consultant.title}
+                        {consultant.onboarding_completed_at && (
+                          <span className="ml-3 text-xs text-slate-400 font-medium">
+                            Onboarded: {new Date(consultant.onboarding_completed_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                          </span>
+                        )}
+                      </p>
 
                       <div className="flex flex-wrap justify-center md:justify-start gap-y-3 gap-x-6 text-sm text-slate-500 font-medium">
                         {user?.country && (
@@ -179,17 +192,34 @@ export default function ConsultantProfilePage() {
                             {consultant.availability}
                           </div>
                         )}
+                        {consultant.referred_by && (
+                          <div className="flex items-center bg-violet-50 px-3 py-1.5 rounded-full border border-violet-100 text-violet-700">
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Supervised by: {consultant.referred_by}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto mt-6 lg:mt-0">
-                      <button className="flex-1 lg:flex-none px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-[0_10px_20px_-5px_rgba(79,70,229,0.3)] flex items-center justify-center active:scale-95">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        Contact Consultant
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        <button className="flex-1 lg:flex-none px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-[0_10px_20px_-5px_rgba(79,70,229,0.3)] flex items-center justify-center active:scale-95">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          Connect Now
+                        </button>
+                        {consultant.assigned_free_consultation_count &&
+                          (consultant.completed_free_consultation_count || 0) < consultant.assigned_free_consultation_count && (
+                            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+                              <p className="text-emerald-700 text-xs font-bold mb-1">FREE CONSULTATION AVAILABLE</p>
+                              <p className="text-[10px] text-emerald-600">Test this consultant at no cost ({consultant.assigned_free_consultation_count - (consultant.completed_free_consultation_count || 0)} slots left)</p>
+                            </div>
+                          )}
+                      </div>
                       {consultant.linkedinUrl && (
                         <a
                           href={consultant.linkedinUrl}
