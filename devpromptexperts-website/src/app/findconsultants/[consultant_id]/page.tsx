@@ -443,7 +443,7 @@ export default function ConsultantProfilePage() {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mb-2">No projects yet</h3>
-              <p className="text-slate-500 max-w-sm mx-auto">This consultant hasn't completed any projects on the platform yet.</p>
+              <p className="text-slate-500 max-w-sm mx-auto">This consultant hasn&#39;t completed any projects on the platform yet.</p>
             </div>
           )}
         </div>

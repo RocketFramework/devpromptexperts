@@ -12,12 +12,12 @@ interface NotificationDropdownProps {
   onClose: () => void;
 }
 
-export default function NotificationDropdown({ 
-  notifications, 
-  isLoading, 
-  onMarkAsRead, 
+export default function NotificationDropdown({
+  notifications,
+  isLoading,
+  onMarkAsRead,
   onMarkAllAsRead,
-  onClose 
+  onClose
 }: NotificationDropdownProps) {
   return (
     <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white text-gray-800 rounded-xl shadow-xl z-50 border border-slate-200 overflow-hidden ring-1 ring-black ring-opacity-5">
@@ -25,7 +25,7 @@ export default function NotificationDropdown({
       <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white">
         <h3 className="font-bold text-gray-900">Notifications</h3>
         {notifications.some(n => !n.is_read) && (
-          <button 
+          <button
             onClick={onMarkAllAsRead}
             className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
           >
@@ -33,7 +33,7 @@ export default function NotificationDropdown({
           </button>
         )}
       </div>
-      
+
       {/* List */}
       <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
         {isLoading ? (
@@ -44,9 +44,9 @@ export default function NotificationDropdown({
         ) : notifications.length > 0 ? (
           <div>
             {notifications.map(notification => (
-              <NotificationItem 
-                key={notification.id} 
-                notification={notification} 
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
                 onRead={onMarkAsRead}
                 onClick={onClose}
               />
@@ -58,7 +58,7 @@ export default function NotificationDropdown({
               <FaBell className="text-gray-400 text-xl" />
             </div>
             <p className="text-sm font-medium text-gray-900">No notifications</p>
-            <p className="text-xs text-gray-500 mt-1">You're all caught up!</p>
+            <p className="text-xs text-gray-500 mt-1">You&#39;re all caught up!</p>
           </div>
         )}
       </div>

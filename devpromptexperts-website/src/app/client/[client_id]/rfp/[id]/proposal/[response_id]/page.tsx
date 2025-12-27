@@ -7,13 +7,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import InterviewSchedulingModal, { InterviewData } from '@/components/client/InterviewSchedulingModal';
+import ProjectAcceptanceModal, { ProjectAcceptanceData } from "@/components/client/ProjectAcceptanceModal";
 import ProposalMessagesComponent from "@/components/client/ProposalMessagesComponent";
 import { ExtendedProjectResponsesService, ProposalInterviewsService } from "@/services/extended";
 import { NotificationTriggerService } from "@/services/business/NotificationTriggerService";
 import { HiUser, HiCalendar, HiCurrencyDollar, HiArrowLeft, HiClock, HiCheckCircle, HiLocationMarker, HiBriefcase, HiStar, HiGlobeAlt, HiThumbUp, HiThumbDown, HiChatAlt, HiVideoCamera, HiLink } from "react-icons/hi";
 import { ProposalInterviews, ProjectsService, ProjectPaymentsInsert } from "@/services/generated";
 import { ProjectResponseWithDetails } from "@/types/extended";
-import { ProjectResponseStatus as ProjectStatus } from "@/types";
+import { ProjectResponseStatus as ProjectResStatus, ProjectStatus } from "@/types";
 
 
 export default function ProposalDetailPage() {
@@ -31,6 +32,7 @@ export default function ProposalDetailPage() {
 	const [rating, setRating] = useState(0);
 	const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 	const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+	const [isAcceptanceModalOpen, setIsAcceptanceModalOpen] = useState(false);
 	const [newStatus, setNewStatus] = useState('');
 
 	useEffect(() => {
@@ -38,7 +40,7 @@ export default function ProposalDetailPage() {
 			loadResponse(responseId);
 			loadInterviews(responseId);
 			// Record view (updates status to 'viewed' only if currently 'submitted')
-			ExtendedProjectResponsesService.recordView(responseId, response?.status || ProjectStatus.OPEN).catch(console.error);
+			ExtendedProjectResponsesService.recordView(responseId, response?.status || ProjectResStatus.OPEN).catch(console.error);
 		}
 	}, [responseId, response?.status]);
 
@@ -68,28 +70,34 @@ export default function ProposalDetailPage() {
 		}
 	};
 
-	const handleStatusUpdate = async (newStatus: string) => {
+	const handleStatusUpdate = async (newStatus: string, projectData?: ProjectAcceptanceData) => {
 		if (!response) return;
 		try {
 			setIsUpdating(true);
-			const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, newStatus);
+			console.log("Updating status to:", newStatus);
+
+			const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, newStatus, projectData);
 			setResponse({ ...response, attachments: updatedResponse.attachments ?? [], status: updatedResponse.status });
 			setNewStatus(newStatus);
+
+			// Close modal if it was open
+			setIsAcceptanceModalOpen(false);
+
 			// Trigger notifications based on status
-			if (newStatus === ProjectStatus.ACCEPTED) {
+			if (newStatus === ProjectResStatus.ACCEPTED) {
 				await NotificationTriggerService.notifyProposalAccepted(responseId);
-			} else if (newStatus === ProjectStatus.INTERVIEWING) {
+			} else if (newStatus === ProjectResStatus.INTERVIEWING) {
 				await NotificationTriggerService.notifyProposalInterviewing(responseId);
-			} else if (newStatus === ProjectStatus.SHORTLISTING) {
+			} else if (newStatus === ProjectResStatus.SHORTLISTING) {
 				await NotificationTriggerService.notifyProposalShortlisting(responseId);
-			} else if (newStatus === ProjectStatus.REJECTED) {
+			} else if (newStatus === ProjectResStatus.REJECTED) {
 				await NotificationTriggerService.notifyProposalRejected(responseId, feedback);
-			} else if (newStatus === ProjectStatus.IN_REVIEW) {
+			} else if (newStatus === ProjectResStatus.IN_REVIEW) {
 				await NotificationTriggerService.notifyProposalReview(responseId);
 			}
 		} catch (error) {
 			console.error("Error updating status:", error);
-			alert("Failed to update status. Please try again.");
+			alert(error instanceof Error ? error.message : "Failed to update status. Please try again.");
 		} finally {
 			setIsUpdating(false);
 		}
@@ -99,7 +107,7 @@ export default function ProposalDetailPage() {
 		if (!response) return;
 		try {
 			setIsUpdating(true);
-			setNewStatus(ProjectStatus.IN_REVIEW);
+			setNewStatus(ProjectResStatus.IN_REVIEW);
 			console.log("New Status:", newStatus);
 			const updatedResponse = await ExtendedProjectResponsesService.updateFeedback(responseId, rating, feedback, newStatus);
 			setResponse({
@@ -135,8 +143,8 @@ export default function ProposalDetailPage() {
 			});
 
 			// Update status if needed
-			if (response && response.status !== ProjectStatus.INTERVIEWING) {
-				const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, ProjectStatus.INTERVIEWING);
+			if (response && response.status !== ProjectResStatus.INTERVIEWING) {
+				const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, ProjectResStatus.INTERVIEWING);
 				setResponse({ ...response, status: updatedResponse.status });
 			}
 
@@ -155,19 +163,19 @@ export default function ProposalDetailPage() {
 		}
 	};
 
-	const getStatusBadge = (status: ProjectStatus) => {
-		const badges: Record<ProjectStatus, string> = {
-			[ProjectStatus.OPEN]: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-			[ProjectStatus.VIEWED]: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-			[ProjectStatus.SHORTLISTING]: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-			[ProjectStatus.ACCEPTED]: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
-			[ProjectStatus.REJECTED]: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-			[ProjectStatus.INTERVIEWING]: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-			[ProjectStatus.IN_REVIEW]: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-			[ProjectStatus.ON_HOLD]: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-			[ProjectStatus.CANCELLED]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
-			[ProjectStatus.DRAFT]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
-			[ProjectStatus.ASSIGNED]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
+	const getStatusBadge = (status: ProjectResStatus) => {
+		const badges: Record<ProjectResStatus, string> = {
+			[ProjectResStatus.OPEN]: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+			[ProjectResStatus.VIEWED]: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+			[ProjectResStatus.SHORTLISTING]: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+			[ProjectResStatus.ACCEPTED]: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+			[ProjectResStatus.REJECTED]: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+			[ProjectResStatus.INTERVIEWING]: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+			[ProjectResStatus.IN_REVIEW]: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+			[ProjectResStatus.ON_HOLD]: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+			[ProjectResStatus.CANCELLED]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
+			[ProjectResStatus.DRAFT]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
+			[ProjectResStatus.ASSIGNED]: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
 		};
 
 		const style = badges[status] || badges.open;
@@ -221,43 +229,56 @@ export default function ProposalDetailPage() {
 				</button>
 
 				{/* Header Card */}
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-					<div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-						<div className="flex items-start space-x-4">
-							{user?.profile_image_url ? (
-								<Image
-									src={user.profile_image_url}
-									alt=""
-									width={64}
-									height={64}
-									className="h-16 w-16 rounded-full border-2 border-gray-100 dark:border-gray-700 object-cover"
-								/>
-							) : (
-								<div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-100 dark:border-gray-700">
-									<HiUser className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-								</div>
-							)}
+				<div className="bg-white dark:bg-gray-900/50 border-y border-gray-200 dark:border-gray-800 py-6 px-4 md:px-0">
+					<div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+						<div className="flex items-center space-x-6">
+							<div className="relative">
+								{user?.profile_image_url ? (
+									<Image
+										src={user.profile_image_url}
+										alt=""
+										width={80}
+										height={80}
+										className="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 object-cover shadow-md"
+									/>
+								) : (
+									<div className="h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-md">
+										<HiUser className="h-10 w-10 text-gray-400 dark:text-gray-500" />
+									</div>
+								)}
+								<div className="absolute -bottom-1 -right-1 bg-green-500 border-2 border-white dark:border-gray-900 h-5 w-5 rounded-full" title="Online"></div>
+							</div>
+
 							<div>
-								<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-									{user?.full_name}
-								</h1>
-								<div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-									{response.project_requests?.title && (
-										<>
-											<span className="font-medium text-blue-600 dark:text-blue-400">
-												{response.project_requests.title}
-											</span>
-											<span>•</span>
-										</>
+								<div className="flex items-center gap-3 mb-1">
+									<h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+										{user?.full_name}
+									</h1>
+									{consultant?.rating && (
+										<div className="flex items-center px-2 py-0.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded text-xs font-bold border border-yellow-100 dark:border-yellow-900/30">
+											<HiStar className="h-3 w-3 mr-1 fill-current" />
+											{consultant.rating.toFixed(1)}
+										</div>
 									)}
-									<span>
+								</div>
+
+								<div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 dark:text-gray-400 mt-2">
+									{response.project_requests?.title && (
+										<div className="flex items-center font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
+											{response.project_requests.title}
+										</div>
+									)}
+									<span className="flex items-center">
+										<HiCalendar className="h-4 w-4 mr-1.5 opacity-70" />
 										{response.viewed_at
-											? `Viewed on ${new Date(response.viewed_at).toLocaleDateString()}`
+											? `First viewed on ${new Date(response.viewed_at).toLocaleDateString()}`
 											: `Submitted on ${new Date(response.submitted_at || response.created_at || new Date().toISOString()).toLocaleDateString()}`
 										}
 									</span>
-									<span>•</span>
-									{getStatusBadge(response.status as ProjectStatus)}
+									<span className="flex items-center">
+										<span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 mr-2"></span>
+										{getStatusBadge(response.status as ProjectResStatus)}
+									</span>
 								</div>
 							</div>
 						</div>
@@ -265,9 +286,9 @@ export default function ProposalDetailPage() {
 						<div className="flex flex-wrap gap-3">
 							<Link
 								href={`/findconsultants/${user?.id}`}
-								className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+								className="inline-flex items-center px-5 py-2.5 border border-gray-200 dark:border-gray-700 shadow-sm text-sm font-bold rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all hover:shadow-md"
 							>
-								<HiUser className="h-4 w-4 mr-2" />
+								<HiUser className="h-4 w-4 mr-2 text-blue-500" />
 								View Profile
 							</Link>
 						</div>
@@ -289,13 +310,9 @@ export default function ProposalDetailPage() {
 									Schedule
 								</button>
 
-								{response.status !== ProjectStatus.ACCEPTED && (
+								{response.status !== ProjectResStatus.ACCEPTED && (
 									<button
-										onClick={() => {
-											if (window.confirm('Are you sure you want to accept this proposal? This indicates your intent to hire the consultant.')) {
-												handleStatusUpdate(ProjectStatus.ACCEPTED);
-											}
-										}}
+										onClick={() => setIsAcceptanceModalOpen(true)}
 										disabled={isUpdating}
 										className="inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 whitespace-nowrap"
 									>
@@ -304,11 +321,11 @@ export default function ProposalDetailPage() {
 									</button>
 								)}
 
-								{response.status !== ProjectStatus.SHORTLISTING && response.status !== ProjectStatus.ACCEPTED && (
+								{response.status !== ProjectResStatus.SHORTLISTING && response.status !== ProjectResStatus.ACCEPTED && (
 									<button
 										onClick={() => {
 											if (window.confirm('Are you sure you want to shortlist this proposal?')) {
-												handleStatusUpdate(ProjectStatus.SHORTLISTING);
+												handleStatusUpdate(ProjectResStatus.SHORTLISTING);
 											}
 										}}
 										disabled={isUpdating}
@@ -319,9 +336,9 @@ export default function ProposalDetailPage() {
 									</button>
 								)}
 
-								{response.status !== ProjectStatus.REJECTED && response.status !== ProjectStatus.ACCEPTED && (
+								{response.status !== ProjectResStatus.REJECTED && response.status !== ProjectResStatus.ACCEPTED && (
 									<button
-										onClick={() => handleStatusUpdate(ProjectStatus.REJECTED)}
+										onClick={() => handleStatusUpdate(ProjectResStatus.REJECTED)}
 										disabled={isUpdating}
 										className="inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 whitespace-nowrap"
 									>
@@ -689,6 +706,22 @@ export default function ProposalDetailPage() {
 				onSchedule={handleScheduleInterview}
 				consultantName={user?.full_name || 'Consultant'}
 			/>
+
+			{response && (
+				<ProjectAcceptanceModal
+					isOpen={isAcceptanceModalOpen}
+					onClose={() => setIsAcceptanceModalOpen(false)}
+					onSubmit={(data) => handleStatusUpdate(ProjectResStatus.ACCEPTED, data)}
+					isUpdating={isUpdating}
+					proposalDetails={{
+						title: response.project_requests?.title || 'Project',
+						proposedBudget: response.proposed_budget,
+						proposedTimeline: response.proposed_timeline,
+						estimatedHours: response.estimated_hours || undefined,
+						status: ProjectStatus.ACTIVE
+					}}
+				/>
+			)}
 		</ClientDashboardLayout>
 	);
 }

@@ -437,3 +437,5 @@ export const CONSULTANT_TRAITS: string[] = [
   "Remote/Global",
   "Onsite Preferred",
 ];
+
+

@@ -115,6 +115,9 @@ export default function RFPLifecyclePage() {
     );
   }
 
+  // Check if project is accepted (should disable edit)
+  const isAccepted = project.status === ProjectStatus.ACCEPTED;
+
   return (
     <ClientDashboardLayout>
       <div className="max-w-7xl mx-auto space-y-8">
@@ -138,13 +141,25 @@ export default function RFPLifecyclePage() {
 
             {/* Action Buttons - Moved to bottom */}
             <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Link
-                href={`/client/${clientId}/rfp/${id}/edit`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
-              >
-                <HiPencil className="mr-2 h-4 w-4" />
-                Edit RFP
-              </Link>
+              {isAccepted ? (
+                // Disabled state when project is accepted
+                <span
+                  className="inline-flex items-center px-4 py-2 border border-gray-200 shadow-sm text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                  title="Cannot edit accepted projects"
+                >
+                  <HiPencil className="mr-2 h-4 w-4" />
+                  Edit RFP
+                </span>
+              ) : (
+                // Enabled state when project is NOT accepted
+                <Link
+                  href={`/client/${clientId}/rfp/${id}/edit`}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  <HiPencil className="mr-2 h-4 w-4" />
+                  Edit RFP
+                </Link>
+              )}
 
               {project.status === ProjectStatus.OPEN && (
                 <>

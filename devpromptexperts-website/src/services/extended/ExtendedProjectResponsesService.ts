@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { ProjectResponseWithDetails } from '@/types/extended'
+import { ProjectStatus } from '@/types'
 
 export class ExtendedProjectResponsesService {
   static async findByIdWithDetails(id: string): Promise<ProjectResponseWithDetails | null> {
@@ -24,7 +25,14 @@ export class ExtendedProjectResponsesService {
     return data as ProjectResponseWithDetails
   }
 
-  static async updateStatus(id: string, status: string) {
+  static async updateStatus(id: string, status: string, project_data?: {
+    contract_value: number;
+    start_date: string;
+    estimated_duration: string;
+    payment_terms: string;
+    total_hours_estimated?: number;
+    status: ProjectStatus;
+  }) {
     // 1. Update the response status
     const { data: response, error: responseError } = await supabase
       .from('project_responses')
@@ -50,23 +58,30 @@ export class ExtendedProjectResponsesService {
 
       // 3. Create the project record
       if (projectRequest) {
+        const insertData = {
+          client_id: projectRequest.client_id,
+          consultant_id: response.consultant_id,
+          contract_value: project_data?.contract_value || response.proposed_budget,
+          project_request_id: response.project_request_id,
+          project_response_id: response.id,
+          start_date: project_data?.start_date || new Date().toISOString().split('T')[0],
+          status: project_data?.status || ProjectStatus.ACTIVE,
+          payment_terms: project_data?.payment_terms || 'Fixed Price', // Defaulting to something common if not provided
+          estimated_duration: project_data?.estimated_duration || response.proposed_timeline,
+          total_hours_estimated: project_data?.total_hours_estimated || response.estimated_hours,
+        };
+
         const { error: projectCreateError } = await supabase
           .from('projects')
-          .insert({
-            client_id: projectRequest.client_id,
-            consultant_id: response.consultant_id,
-            contract_value: response.proposed_budget, // Using proposed budget as contract value
-            project_request_id: response.project_request_id,
-            project_response_id: response.id,
-            start_date: new Date().toISOString().split('T')[0], // Default to today
-            status: 'assigned', // Initial status for a project
-            payment_terms: 'As per proposal', // Default payment terms
-            estimated_duration: response.proposed_timeline,
-            total_hours_estimated: response.estimated_hours,
-          });
+          .insert(insertData);
 
         if (projectCreateError) {
           console.error('Error creating project record:', projectCreateError);
+          // If it's a constraint error, we might want to throw it to inform the UI
+          if (projectCreateError.code === '23514') {
+             throw new Error(`Database Constraint Violation: ${projectCreateError.message}. Please check 'Payment Terms' value.`);
+          }
+          throw projectCreateError;
         }
       }
     }
@@ -75,7 +90,7 @@ export class ExtendedProjectResponsesService {
   }
 
   static async recordView(id: string, currentStatus: string) {
-    const updateData: any = { viewed_at: new Date().toISOString() };
+    const updateData: { viewed_at: string; status?: string } = { viewed_at: new Date().toISOString() };
     
     // Only update status to 'viewed' if it's currently 'submitted'
     if (currentStatus === 'submitted') {

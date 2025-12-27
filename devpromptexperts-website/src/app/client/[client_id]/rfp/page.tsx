@@ -6,34 +6,45 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import { ProjectRequestsService, ProjectRequests } from "@/services/generated";
-import { ExtendedProjectRequestsService } from "@/services/extended";
-import { ProjectRequestStatus as ProjectStatus } from "@/types";
+import { ExtendedProjectRequestsService, ExtendedProjectsService, Project } from "@/services/extended";
+import { ProjectRequestStatus as RFPStatus } from "@/types";
 import { NotificationTriggerService } from "@/services/business/NotificationTriggerService";
-import { HiPlus, HiPencil, HiTrash, HiEye, HiCheckCircle, HiXCircle } from "react-icons/hi";
+import { HiPlus, HiPencil, HiTrash, HiEye, HiCheckCircle, HiXCircle, HiChatAlt2 } from "react-icons/hi";
 
 export default function RFPListPage() {
   const router = useRouter();
   const params = useParams();
   const clientId = params.client_id as string;
   const { data: session } = useSession();
-  const [projects, setProjects] = useState<ProjectRequests[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [rfps, setRFPs] = useState<ProjectRequests[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
   useEffect(() => {
     if (clientId) {
-      loadProjects(clientId);
+      loadData(clientId);
     }
   }, [clientId]);
 
-  const loadProjects = async (clientId: string) => {
+  const loadData = async (clientId: string) => {
     try {
       setIsLoading(true);
-      console.log("Loading projects for client ID:", clientId);
-      const data = await ExtendedProjectRequestsService.findByClientId(clientId);
-      setProjects(data || []);
+      console.log("Loading projects and RFPs for client ID:", clientId);
+
+      const [projectsData, rfpsData] = await Promise.all([
+        ExtendedProjectsService.findByClientId(clientId),
+        ExtendedProjectRequestsService.findByClientId(clientId)
+      ]);
+
+      setProjects(projectsData || []);
+      // Only show RFPs that are NOT in an "accepted" or "completed" state if we want to separate them,
+      // but usually RFPs stay in their table. The user said: "My RFPs populated from Project Request Page".
+      // We should probably filter out RFPs that have corresponding projects if we want a clean separation,
+      // but let's start by just fetching all project requests for now.
+      setRFPs(rfpsData || []);
     } catch (error) {
-      console.error("Error loading projects:", error);
+      console.error("Error loading data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -45,15 +56,15 @@ export default function RFPListPage() {
     try {
       setIsUpdating(id);
       await ProjectRequestsService.update(id, {
-        status: ProjectStatus.OPEN,
+        status: RFPStatus.OPEN,
         published_at: new Date().toISOString(),
       });
 
       // Trigger notifications to matching consultants
       await NotificationTriggerService.notifyConsultantsOfNewRFP(id);
 
-      // Reload projects
-      if (clientId) loadProjects(clientId);
+      // Reload data
+      if (clientId) loadData(clientId);
     } catch (error) {
       console.error("Error publishing project:", error);
       alert("Failed to publish project");
@@ -68,10 +79,10 @@ export default function RFPListPage() {
     try {
       setIsUpdating(id);
       await ProjectRequestsService.update(id, {
-        status: ProjectStatus.CANCELLED,
+        status: RFPStatus.CANCELLED,
       });
-      // Reload projects
-      if (clientId) loadProjects(clientId);
+      // Reload data
+      if (clientId) loadData(clientId);
     } catch (error) {
       console.error("Error closing project:", error);
       alert("Failed to close project");
@@ -82,32 +93,26 @@ export default function RFPListPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case ProjectStatus.OPEN:
+      case RFPStatus.OPEN:
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Open</span>;
-      case ProjectStatus.DRAFT:
+      case RFPStatus.DRAFT:
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Draft</span>;
-      case ProjectStatus.IN_PROGRESS:
+      case RFPStatus.IN_PROGRESS:
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">In Progress</span>;
-      case ProjectStatus.COMPLETED:
+      case RFPStatus.COMPLETED:
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">Completed</span>;
-      case ProjectStatus.CANCELLED:
+      case RFPStatus.CANCELLED:
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Closed</span>;
+      case 'active':
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Active</span>;
       default:
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Unknown</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{status}</span>;
     }
   };
 
-  const activeRFPs = projects.filter(p =>
-    p.status === ProjectStatus.OPEN ||
-    p.status === ProjectStatus.DRAFT ||
-    p.status === ProjectStatus.ON_HOLD
-  );
+  const activeRFPs = rfps;
 
-  const acceptedProjects = projects.filter(p =>
-    p.status === ProjectStatus.ACCEPTED ||
-    p.status === ProjectStatus.IN_PROGRESS ||
-    p.status === ProjectStatus.COMPLETED
-  );
+  const displayProjects = projects;
 
   return (
     <ClientDashboardLayout>
@@ -133,7 +138,7 @@ export default function RFPListPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             {isLoading ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading projects...</div>
-            ) : acceptedProjects.length === 0 ? (
+            ) : displayProjects.length === 0 ? (
               <div className="p-12 text-center bg-gray-50/50 dark:bg-gray-900/20">
                 <p className="text-sm text-gray-500 dark:text-gray-400">No active or completed projects yet.</p>
               </div>
@@ -149,30 +154,46 @@ export default function RFPListPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {acceptedProjects.map((project) => (
+                    {displayProjects.map((project) => (
                       <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <Link href={`/client/${clientId}/rfp/${project.id}`} className="block group">
+                          <Link href={`/client/${clientId}/projects/${project.id}`} className="block group">
                             <div className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                              {project.title}
+                              {project.project_requests?.title}
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_summary}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{project.project_requests?.project_summary}</div>
                           </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(project.status)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {project.budget_range}
+                          {project.project_requests?.budget_range}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link
-                            href={`/client/${clientId}/rfp/${project.id}`}
-                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center"
-                          >
-                            <HiEye className="w-5 h-5 mr-1" />
-                            View
-                          </Link>
+                          <div className="flex justify-end space-x-3">
+                            <Link
+                              href={`/client/${clientId}/projects/${project.id}/milestones`}
+                              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                              title="Milestones"
+                            >
+                              <HiCheckCircle className="w-5 h-5" />
+                            </Link>
+                            <Link
+                              href={`/client/${clientId}/projects/${project.id}/communication`}
+                              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                              title="Communication"
+                            >
+                              <HiChatAlt2 className="w-5 h-5" />
+                            </Link>
+                            <Link
+                              href={`/client/${clientId}/projects/${project.id}`}
+                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                              title="View Details"
+                            >
+                              <HiEye className="w-5 h-5" />
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -245,14 +266,24 @@ export default function RFPListPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-3">
                             <Link
-                              href={`/client/${clientId}/rfp/${project.id}/edit`}
+                              href={`/client/${clientId}/rfp/${project.id}`}
                               className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                              title="Edit"
+                              title="View"
                             >
-                              <HiPencil className="w-5 h-5" />
+                              <HiEye className="w-5 h-5" />
                             </Link>
 
-                            {project.status === ProjectStatus.DRAFT && (
+                            {project.status !== RFPStatus.ACCEPTED && (
+                              <Link
+                                href={`/client/${clientId}/rfp/${project.id}/edit`}
+                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                title="Edit"
+                              >
+                                <HiPencil className="w-5 h-5" />
+                              </Link>
+                            )}
+
+                            {project.status === RFPStatus.DRAFT && (
                               <button
                                 onClick={() => handlePublish(project.id)}
                                 disabled={isUpdating === project.id}
@@ -263,7 +294,7 @@ export default function RFPListPage() {
                               </button>
                             )}
 
-                            {project.status === ProjectStatus.OPEN && (
+                            {project.status === RFPStatus.OPEN && (
                               <button
                                 onClick={() => handleClose(project.id)}
                                 disabled={isUpdating === project.id}

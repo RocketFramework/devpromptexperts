@@ -48,7 +48,7 @@ export default function NotificationItem({ notification, onRead, onClick }: Noti
         </div>
         <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notification.message}</p>
         <p className="text-[10px] text-gray-400 mt-1">
-          {new Date(notification.created_at).toLocaleDateString()} • {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {notification.created_at && new Date(notification.created_at).toLocaleDateString()} • {notification.created_at && new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
     </div>

@@ -46,7 +46,7 @@ export default function NotificationsPage() {
           <div className="p-6 border-b border-gray-100 flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
             {notifications.some(n => !n.is_read) && (
-              <button 
+              <button
                 onClick={handleMarkAllAsRead}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
               >
@@ -58,9 +58,9 @@ export default function NotificationsPage() {
           <div className="divide-y divide-gray-100">
             {notifications.length > 0 ? (
               notifications.map(notification => (
-                <NotificationItem 
-                  key={notification.id} 
-                  notification={notification} 
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
                   onRead={handleMarkAsRead}
                 />
               ))
@@ -70,7 +70,7 @@ export default function NotificationsPage() {
                   <FaBell className="text-gray-400 text-2xl" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">No notifications</h3>
-                <p className="text-gray-500 mt-1">You don't have any notifications right now.</p>
+                <p className="text-gray-500 mt-1">You don&#39;t have any notifications right now.</p>
               </div>
             )}
           </div>

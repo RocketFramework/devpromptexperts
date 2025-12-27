@@ -6,6 +6,22 @@ export enum ProjectMode {
   CONSULTATION = 'consultation'
 }
 
+export enum ProjectStatus {
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
+}
+
+export enum PaymentTermTypes {
+    FIXED_PRICE = "Fixed Price",
+    MILESTONE_BASED = "Milestone-based",
+    HOURLY = "Time & Materials (Hourly)",
+    MONTHLY_RETAINER = "Monthly Retainer",
+    UPFRONT_COMPLETION = "Upfront + Completion",
+    NET_30 = "Net 30",
+    CUSTOM = "Custom"
+}
+
 export enum ProjectResponseStatus {
   DRAFT = "draft",
   OPEN = "open",
