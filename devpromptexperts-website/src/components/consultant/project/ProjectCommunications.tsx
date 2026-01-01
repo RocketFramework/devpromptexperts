@@ -1,9 +1,7 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
-import { ExtendedProjectCommunicationsService, ProjectCommunication } from "@/services/extended";
+import { ExtendedProjectCommunicationsService, ProjectCommunication, ExtendedProjectMilestonesService, ProjectMilestone } from "@/services/extended";
 import { useSession } from "next-auth/react";
-import { UserRoles } from "@/types";
+import { UserRoles, ProjectCommunicationType } from "@/types";
 
 interface ProjectCommunicationsProps {
     projectId: string;
@@ -12,12 +10,14 @@ interface ProjectCommunicationsProps {
 export default function ProjectCommunications({ projectId }: ProjectCommunicationsProps) {
     const { data: session } = useSession();
     const [messages, setMessages] = useState<ProjectCommunication[]>([]);
+    const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
     const [newMessage, setNewMessage] = useState("");
+    const [selectedMilestoneId, setSelectedMilestoneId] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        loadMessages();
+        loadData();
         // In a real app, subscribe to realtime updates here
     }, [projectId]);
 
@@ -25,13 +25,17 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
         scrollToBottom();
     }, [messages]);
 
-    const loadMessages = async () => {
+    const loadData = async () => {
         try {
             setIsLoading(true);
-            const data = await ExtendedProjectCommunicationsService.findByProjectId(projectId);
-            setMessages(data);
+            const [msgs, mstones] = await Promise.all([
+                ExtendedProjectCommunicationsService.findByProjectId(projectId),
+                ExtendedProjectMilestonesService.findByProjectId(projectId)
+            ]);
+            setMessages(msgs);
+            setMilestones(mstones);
         } catch (error) {
-            console.error("Error loading messages:", error);
+            console.error("Error loading data:", error);
         } finally {
             setIsLoading(false);
         }
@@ -52,14 +56,21 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
                 message: newMessage,
                 sender_id: session.user.id,
                 sender_type: senderType,
-                message_type: 'text',
+                message_type: ProjectCommunicationType.MESSAGE,
+                milestone_id: selectedMilestoneId || null
             });
             setMessages([...messages, sentMessage]);
             setNewMessage("");
+            setSelectedMilestoneId(""); // Reset selection after send? Or keep it? keeping it might be better for threaded convo
         } catch (error) {
             console.error("Error sending message:", error);
             alert("Failed to send message");
         }
+    };
+
+    const getMilestoneName = (id: string | null) => {
+        if (!id) return null;
+        return milestones.find(m => m.id === id)?.milestone;
     };
 
     return (
@@ -84,7 +95,7 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
                 ) : (
                     messages.map((msg, idx) => {
                         const isMe = msg.sender_id === session?.user?.id;
-                        const showAvatar = idx === 0 || messages[idx - 1].sender_id !== msg.sender_id;
+                        const milestoneName = getMilestoneName(msg.milestone_id as string | null);
 
                         return (
                             <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -93,6 +104,11 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
                                         ? 'bg-blue-600 text-white rounded-br-lg'
                                         : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700/50 rounded-bl-lg'
                                         }`}>
+                                        {milestoneName && (
+                                            <span className={`block text-[10px] font-bold uppercase tracking-widest mb-1 ${isMe ? 'text-blue-200' : 'text-blue-500'}`}>
+                                                Ref: {milestoneName}
+                                            </span>
+                                        )}
                                         <p className="text-[15px] leading-relaxed font-medium">{msg.message}</p>
                                         <div className={`text-[10px] mt-2 font-bold uppercase tracking-wider opacity-60 ${isMe ? 'text-white' : 'text-gray-400'}`}>
                                             {new Date(msg.created_at || "").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -108,11 +124,40 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
 
             {/* Input Area */}
             <div className="p-6 bg-white/50 dark:bg-gray-900/30 backdrop-blur-md border-t border-white dark:border-gray-700/50">
+                {/* Context Selector */}
+                {milestones.length > 0 && (
+                    <div className="mb-3 flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <button
+                            type="button"
+                            onClick={() => setSelectedMilestoneId("")}
+                            className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${!selectedMilestoneId
+                                ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                                }`}
+                        >
+                            General
+                        </button>
+                        {milestones.map(m => (
+                            <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => setSelectedMilestoneId(m.id)}
+                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${selectedMilestoneId === m.id
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                                    }`}
+                            >
+                                {m.milestone}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 <form onSubmit={handleSend} className="relative group">
                     <input
                         type="text"
                         className="w-full pl-6 pr-16 py-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:text-white transition-all shadow-lg placeholder-gray-400 dark:placeholder-gray-600 font-medium"
-                        placeholder="Type your message here..."
+                        placeholder={selectedMilestoneId ? `Message about ${getMilestoneName(selectedMilestoneId)}...` : "Type your message here..."}
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                     />

@@ -26,6 +26,11 @@ export type Project = Database['public']['Tables']['projects']['Row'] & {
       profile_image_url: string | null;
     } | null;
   } | null;
+  clients?: {
+    company_name: string;
+    city: string | null;
+    country: string | null;
+  } | null;
 }
 
 export class ExtendedProjectsService {
@@ -101,5 +106,30 @@ export class ExtendedProjectsService {
     
     if (error) throw error;
     return data as unknown as Project;
+  }
+
+  static async findByConsultantId(consultant_id: string): Promise<Project[]> {
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        clients (
+          company_name,
+          country: metadata->>'country',
+          city: metadata->>'city'
+        ),
+        project_requests (
+          title,
+          project_summary,
+          budget_range,
+          description
+        )
+      `)
+      .eq('consultant_id', consultant_id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data as unknown as Project[];
   }
 }

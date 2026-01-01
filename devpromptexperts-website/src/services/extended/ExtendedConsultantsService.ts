@@ -130,15 +130,25 @@ export class ExtendedConsultantsService {
 
     // Apply text search
     if (search) {
-      query = query.or(`
-        name.ilike.%${search}%,
-        title.ilike.%${search}%,
-        bio_summary.ilike.%${search}%,
-        expertise.cs.{${search}},
-        skills.cs.{${search}}
-      `);
-    }
+      // First, find users matching the search query in their full name
+      const { data: matchedUsers } = await supabase
+        .from("users")
+        .select("id")
+        .ilike("full_name", `%${search}%`);
 
+      const matchedUserIds = matchedUsers?.map((u) => u.id) || [];
+
+      // Build the OR filter for title and bio
+      let orFilter = `title.ilike.*${search}*,bio_summary.ilike.*${search}*`;
+
+      // If we found matching users, add their IDs to the OR filter
+      if (matchedUserIds.length > 0) {
+        orFilter += `,user_id.in.(${matchedUserIds.join(",")})`;
+      }
+
+      query = query.or(orFilter);
+    }
+    console.log("Query for you", query);
     // Apply array filters
     if (expertise.length > 0) {
       query = query.overlaps("expertise", expertise);

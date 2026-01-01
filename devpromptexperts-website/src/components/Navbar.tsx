@@ -55,7 +55,7 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
       },
       {
         name: "Earnings",
-        href: `/consultant/${userId}/dashboard/earnings`,
+        href: `/consultant/${userId}/earnings`,
         icon: "💰",
       },
       {
@@ -75,6 +75,11 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         href: `/findconsultants`,
         icon: "🔍",
       },
+      {
+        name: "Earnings",
+        href: `/client/${userId}/earnings`,
+        icon: "💰",
+      },
     ],
     seller: [
       {
@@ -86,6 +91,11 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         name: "Commissions",
         href: `/seller/commissions`,
         icon: "💸",
+      },
+      {
+        name: "Earnings",
+        href: `/seller/${userId}/earnings`,
+        icon: "💰",
       },
     ],
   };

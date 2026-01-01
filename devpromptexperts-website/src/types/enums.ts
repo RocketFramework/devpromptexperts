@@ -8,6 +8,8 @@ export enum ProjectMode {
 
 export enum ProjectStatus {
   ACTIVE = 'active',
+  IN_PROGRESS = 'in-progress',
+  FAILED = 'failed',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled'
 }
@@ -94,4 +96,22 @@ export enum PreferredContactMethod {
   EMAIL = 'email',
   PHONE = 'phone',
   BOTH = 'both'
+}
+
+export enum ProjectMilestoneStatus {
+  PENDING = 'pending',
+  IN_PROGRESS = 'in-progress',
+  COMPLETED = 'completed',
+  SUBMITTED = 'submitted',
+  DISPUTED = 'disputed',
+  CANCELLED = 'cancelled',
+  DELAYED = 'delayed'
+}
+
+export enum ProjectCommunicationType {
+  MESSAGE = 'message',
+  UPDATE = 'update',
+  MILESTONE_SUBMISSION = 'milestone-submission',
+  FILE = 'file',
+  SYSTEM = 'system'
 }
