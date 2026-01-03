@@ -27,6 +27,7 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
 
     const loadData = async () => {
         try {
+            console.log("loading data for project", projectId);
             setIsLoading(true);
             const [msgs, mstones] = await Promise.all([
                 ExtendedProjectCommunicationsService.findByProjectId(projectId),
@@ -47,16 +48,24 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log("newMessage", newMessage);
+        console.log("session", session);
         if (!newMessage.trim() || !session?.user?.id) return;
 
         try {
             const senderType = session.user.role === UserRoles.CLIENT ? UserRoles.CLIENT : UserRoles.CONSULTANT;
+            console.log("senderType", senderType);
             const sentMessage = await ExtendedProjectCommunicationsService.send({
+                subject: "",
                 project_id: projectId,
                 message: newMessage,
                 sender_id: session.user.id,
                 sender_type: senderType,
                 message_type: ProjectCommunicationType.MESSAGE,
+                is_read: false,
+                read_at: null,
+                created_at: new Date().toISOString(),
+                attachments: [],
                 milestone_id: selectedMilestoneId || null
             });
             setMessages([...messages, sentMessage]);

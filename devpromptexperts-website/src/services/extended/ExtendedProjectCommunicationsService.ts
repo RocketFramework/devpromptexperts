@@ -31,6 +31,7 @@ export class ExtendedProjectCommunicationsService {
     return data
   }
 
+  
   static async markAsRead(id: string, read_at: string): Promise<void> {
     const { error } = await supabase
       .from('project_communications')

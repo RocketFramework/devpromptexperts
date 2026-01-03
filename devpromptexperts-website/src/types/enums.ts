@@ -105,7 +105,8 @@ export enum ProjectMilestoneStatus {
   SUBMITTED = 'submitted',
   DISPUTED = 'disputed',
   CANCELLED = 'cancelled',
-  DELAYED = 'delayed'
+  DELAYED = 'delayed',
+  PAYMENT_CONFIRMED = 'payment-confirmed'
 }
 
 export enum ProjectCommunicationType {
