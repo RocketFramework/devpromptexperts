@@ -194,9 +194,9 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
         try {
             await ExtendedProjectMilestonesService.startMilestone(id);
             loadMilestones();
-        } catch (error: any) {
+        } catch (error: Error | unknown) {
             console.error("Error starting milestone:", error);
-            alert(error.message || "Failed to start milestone");
+            alert((error as Error)?.message || "Failed to start milestone");
         }
     }
 
