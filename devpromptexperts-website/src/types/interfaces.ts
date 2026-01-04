@@ -185,6 +185,7 @@ export interface OnboardingSubmissionData {
     duration: number;
     probationTermsAccepted: boolean;
   };
+  paymentMethods?: Json | null;
 }
 
 export interface UpsertPayload {

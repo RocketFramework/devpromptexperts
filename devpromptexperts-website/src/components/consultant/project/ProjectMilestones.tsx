@@ -4,6 +4,9 @@ import { HiPlus, HiPencil, HiTrash, HiCheck, HiX, HiUpload, HiExclamation, HiPla
 import { useSession } from "next-auth/react";
 import { UserRoles } from "@/types";
 import { ProjectMilestoneStatus } from "@/types";
+import { ExtendedProjectsService } from "@/services/extended/ExtendedProjectsService";
+import { ExtendedConsultantsService } from "@/services/extended/ExtendedConsultantsService";
+import { HiCreditCard, HiClipboardCheck, HiExclamationCircle } from "react-icons/hi";
 
 interface ProjectMilestonesProps {
     projectId: string;
@@ -18,6 +21,12 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
     const [submittingId, setSubmittingId] = useState<string | null>(null);
     const [submissionFile, setSubmissionFile] = useState<File | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [consultantId, setConsultantId] = useState<string | null>(null);
+    const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+    const [transactionId, setTransactionId] = useState("");
+    const [confirmingId, setConfirmingId] = useState<string | null>(null);
+    const [paymentNotes, setPaymentNotes] = useState("");
+    const [isSavingPaymentInfo, setIsSavingPaymentInfo] = useState(false);
 
     const [newMilestone, setNewMilestone] = useState({
         milestone: "",
@@ -38,8 +47,18 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
     const loadMilestones = async () => {
         try {
             setIsLoading(true);
-            const data = await ExtendedProjectMilestonesService.findByProjectId(projectId);
+            const [data, projectData] = await Promise.all([
+                ExtendedProjectMilestonesService.findByProjectId(projectId),
+                ExtendedProjectsService.findById(projectId)
+            ]);
             setMilestones(data);
+            if (projectData && projectData.consultant_id) {
+                setConsultantId(projectData.consultant_id);
+                const consultant = await ExtendedConsultantsService.findByUser_Id(projectData.consultant_id);
+                if (consultant && consultant.payment_methods) {
+                    setPaymentMethods(consultant.payment_methods as any[]);
+                }
+            }
         } catch (error) {
             console.error("Error loading milestones:", error);
         } finally {
@@ -158,9 +177,10 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
     };
 
     const handleConfirmPayment = async (id: string) => {
-        if (!confirm("Confirm that you have received payment for this milestone?")) return;
+        if (!confirm("Confirm that you have received payment for this milestone? This will finalize the project phase and record commissions.")) return;
         try {
             await ExtendedProjectMilestonesService.confirmPayment(id);
+            setConfirmingId(null);
             loadMilestones();
         } catch (error) {
             console.error("Error confirming payment:", error);
@@ -199,6 +219,23 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
             alert((error as Error)?.message || "Failed to start milestone");
         }
     }
+
+    const handleSavePaymentInfo = async (milestoneId: string) => {
+        try {
+            setIsSavingPaymentInfo(true);
+            const { ExtendedProjectPaymentsService } = await import("@/services/extended/ExtendedProjectPaymentsService");
+            await ExtendedProjectPaymentsService.updatePaymentProof(milestoneId, transactionId, paymentNotes);
+            alert("Payment information updated successfully! The consultant will be notified.");
+            setTransactionId("");
+            setPaymentNotes("");
+            loadMilestones(); // Refresh to update UI
+        } catch (error) {
+            console.error("Error updating payment info:", error);
+            alert("Failed to update payment information.");
+        } finally {
+            setIsSavingPaymentInfo(false);
+        }
+    };
 
     return (
         <div className="space-y-10">
@@ -509,61 +546,176 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center space-x-4">
-                                                                {/* Status Guidance */}
-                                                                {milestone.status === 'pending' && <span className="text-sm text-gray-400 italic">Work has not started</span>}
-                                                                {milestone.status === ProjectMilestoneStatus.IN_PROGRESS && <span className="text-sm text-blue-500 font-medium">Work in progress</span>}
-                                                                {milestone.status === ProjectMilestoneStatus.SUBMITTED && <span className="text-sm text-amber-500 font-medium">Waiting for client review</span>}
+                                                        <>
+                                                            {/* Payment Instructions for Client */}
+                                                            {isClient && milestone.status === ProjectMilestoneStatus.COMPLETED && paymentMethods.length > 0 && (
+                                                                <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-800/50 p-6 animate-in fade-in slide-in-from-top-4 mb-6">
+                                                                    <div className="flex items-center gap-3 mb-4">
+                                                                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                                                            <HiCreditCard className="w-6 h-6" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <h4 className="font-bold text-slate-900 dark:text-blue-100">Payment Instructions</h4>
+                                                                            <p className="text-xs text-slate-500 dark:text-blue-300/70">Please send the milestone payment using one of the methods below.</p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="grid gap-3">
+                                                                        {paymentMethods.map((method: any) => (
+                                                                            <div key={method.id} className={`p-4 rounded-xl border ${method.isPrimary ? 'bg-white dark:bg-slate-800 border-blue-200 dark:border-blue-800 shadow-sm' : 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800'}`}>
+                                                                                <div className="flex justify-between items-start">
+                                                                                    <div>
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <span className="font-bold text-sm text-slate-900 dark:text-slate-100">{method.type}</span>
+                                                                                            {method.isPrimary && <span className="text-[9px] font-black uppercase tracking-tighter bg-blue-600 text-white px-1.5 py-0.5 rounded">Primary</span>}
+                                                                                        </div>
+                                                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 font-mono whitespace-pre-wrap">{method.details}</p>
+                                                                                    </div>
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            navigator.clipboard.writeText(method.details);
+                                                                                            alert("Details copied to clipboard!");
+                                                                                        }}
+                                                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all"
+                                                                                    >
+                                                                                        <HiClipboardCheck className="w-4 h-4" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+
+                                                                    <div className="mt-4 flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-200">
+                                                                        <HiExclamationCircle className="w-4 h-4 shrink-0" />
+                                                                        <p>Once you've sent the payment, please notify the consultant. They will confirm receipt to finalize this phase.</p>
+                                                                    </div>
+
+                                                                    <div className="mt-6 pt-6 border-t border-blue-100/50 dark:border-blue-900/30">
+                                                                        {milestone.project_payments?.[0]?.transaction_id ? (
+                                                                            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-800/50">
+                                                                                <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white shadow-sm">
+                                                                                    <HiCheck className="w-5 h-5" />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-sm font-bold text-green-800 dark:text-green-200">Payment information recorded</p>
+                                                                                    <p className="text-xs text-green-600 dark:text-green-400/70">Ref: {milestone.project_payments[0].transaction_id}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <>
+                                                                                <h5 className="text-[10px] uppercase font-black text-blue-800 dark:text-blue-300 tracking-[0.2em] mb-4">Record Your Payment</h5>
+                                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                    <div>
+                                                                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Transaction ID / Reference</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            placeholder="e.g. TXN-12345678"
+                                                                                            className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                                                                                            value={transactionId}
+                                                                                            onChange={(e) => setTransactionId(e.target.value)}
+                                                                                        />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Optional Notes</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            placeholder="Sent via Bank Transfer..."
+                                                                                            className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                                                                                            value={paymentNotes}
+                                                                                            onChange={(e) => setPaymentNotes(e.target.value)}
+                                                                                        />
+                                                                                    </div>
+                                                                                </div>
+                                                                                <button
+                                                                                    onClick={() => handleSavePaymentInfo(milestone.id)}
+                                                                                    disabled={isSavingPaymentInfo || !transactionId}
+                                                                                    className="mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none transition-all"
+                                                                                >
+                                                                                    {isSavingPaymentInfo ? 'Saving...' : 'Mark as Sent & Notify Consultant'}
+                                                                                </button>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {isConsultant && milestone.status === ProjectMilestoneStatus.COMPLETED && milestone.project_payments?.[0]?.transaction_id && (
+                                                                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <HiClipboardCheck className="w-4 h-4 text-blue-600" />
+                                                                        <h5 className="text-[10px] uppercase font-black text-blue-800 dark:text-blue-300 tracking-[0.2em]">Client Payment Proof</h5>
+                                                                    </div>
+                                                                    <div className="space-y-2">
+                                                                        <div>
+                                                                            <span className="text-[10px] font-bold text-slate-500 uppercase block">Transaction Reference</span>
+                                                                            <p className="text-sm font-mono font-bold text-slate-900 dark:text-white">{milestone.project_payments[0].transaction_id}</p>
+                                                                        </div>
+                                                                        {milestone.project_payments[0].notes && (
+                                                                            <div>
+                                                                                <span className="text-[10px] font-bold text-slate-500 uppercase block">Notes from Client</span>
+                                                                                <p className="text-xs text-slate-600 dark:text-slate-400 italic">"{milestone.project_payments[0].notes}"</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center space-x-4">
+                                                                    {/* Status Guidance */}
+                                                                    {milestone.status === 'pending' && <span className="text-sm text-gray-400 italic">Work has not started</span>}
+                                                                    {milestone.status === ProjectMilestoneStatus.IN_PROGRESS && <span className="text-sm text-blue-500 font-medium">Work in progress</span>}
+                                                                    {milestone.status === ProjectMilestoneStatus.SUBMITTED && <span className="text-sm text-amber-500 font-medium">Waiting for client review</span>}
+                                                                </div>
+
+                                                                <div className="flex items-center space-x-2">
+                                                                    {/* Consultant Actions */}
+                                                                    {isConsultant && milestone.status === 'pending' && (
+                                                                        <button onClick={() => handleStart(milestone.id)} className="flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors">
+                                                                            <HiPlay className="w-4 h-4 mr-2" /> Start
+                                                                        </button>
+                                                                    )}
+                                                                    {isConsultant && (milestone.status === ProjectMilestoneStatus.IN_PROGRESS || milestone.status === ProjectMilestoneStatus.DISPUTED) && (
+                                                                        <button onClick={() => setSubmittingId(milestone.id)} className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors">
+                                                                            <HiUpload className="w-4 h-4 mr-2" /> Submit
+                                                                        </button>
+                                                                    )}
+
+                                                                    {/* Client Actions */}
+                                                                    {isClient && milestone.status === ProjectMilestoneStatus.SUBMITTED && (
+                                                                        <>
+                                                                            <button onClick={() => handleDispute(milestone.id)} className="flex items-center px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm font-bold transition-colors">
+                                                                                <HiX className="w-4 h-4 mr-2" /> Request Changes
+                                                                            </button>
+                                                                            <button onClick={() => handleApprove(milestone.id)} className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition-colors">
+                                                                                <HiCheck className="w-4 h-4 mr-2" /> Approve & Pay
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+
+                                                                    {/* Edit/Delete if Pending */}
+                                                                    {isClient && milestone.status === 'pending' && (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => handleEdit(milestone)}
+                                                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                                                                                title="Edit Phase"
+                                                                            >
+                                                                                <HiPencil className="h-5 w-5" />
+                                                                            </button>
+                                                                            <button onClick={() => handleDelete(milestone.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Remove Phase">
+                                                                                <HiTrash className="h-5 w-5" />
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                    {isConsultant && milestone.status === ProjectMilestoneStatus.COMPLETED && (
+                                                                        <button onClick={() => handleConfirmPayment(milestone.id)} className="flex items-center px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-sm font-bold transition-colors">
+                                                                            <HiCheck className="w-4 h-4 mr-2" /> Confirm Payment Received
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
-
-                                                            <div className="flex items-center space-x-2">
-                                                                {/* Consultant Actions */}
-                                                                {isConsultant && milestone.status === 'pending' && (
-                                                                    <button onClick={() => handleStart(milestone.id)} className="flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors">
-                                                                        <HiPlay className="w-4 h-4 mr-2" /> Start
-                                                                    </button>
-                                                                )}
-                                                                {isConsultant && (milestone.status === ProjectMilestoneStatus.IN_PROGRESS || milestone.status === ProjectMilestoneStatus.DISPUTED) && (
-                                                                    <button onClick={() => setSubmittingId(milestone.id)} className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors">
-                                                                        <HiUpload className="w-4 h-4 mr-2" /> Submit
-                                                                    </button>
-                                                                )}
-
-                                                                {/* Client Actions */}
-                                                                {isClient && milestone.status === ProjectMilestoneStatus.SUBMITTED && (
-                                                                    <>
-                                                                        <button onClick={() => handleDispute(milestone.id)} className="flex items-center px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm font-bold transition-colors">
-                                                                            <HiX className="w-4 h-4 mr-2" /> Request Changes
-                                                                        </button>
-                                                                        <button onClick={() => handleApprove(milestone.id)} className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition-colors">
-                                                                            <HiCheck className="w-4 h-4 mr-2" /> Approve & Pay
-                                                                        </button>
-                                                                    </>
-                                                                )}
-
-                                                                {/* Edit/Delete if Pending */}
-                                                                {isClient && milestone.status === 'pending' && (
-                                                                    <>
-                                                                        <button
-                                                                            onClick={() => handleEdit(milestone)}
-                                                                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                                                                            title="Edit Phase"
-                                                                        >
-                                                                            <HiPencil className="h-5 w-5" />
-                                                                        </button>
-                                                                        <button onClick={() => handleDelete(milestone.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Remove Phase">
-                                                                            <HiTrash className="h-5 w-5" />
-                                                                        </button>
-                                                                    </>
-                                                                )}
-                                                                {isConsultant && milestone.status === ProjectMilestoneStatus.COMPLETED && (
-                                                                    <button onClick={() => handleConfirmPayment(milestone.id)} className="flex items-center px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-sm font-bold transition-colors">
-                                                                        <HiCheck className="w-4 h-4 mr-2" /> Confirm Payment Received
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </div>
+                                                        </>
                                                     )}
                                                 </div>
                                             </>
@@ -575,6 +727,6 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
                     </div>
                 )
             }
-        </div >
+        </div>
     );
 }

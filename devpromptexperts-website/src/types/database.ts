@@ -799,6 +799,7 @@ export type Database = {
           notice_period: string | null
           onboarding_completed_at: string | null
           onboarding_tier: string | null
+          payment_methods: Json | null
           portfolio_url: string | null
           preferred_engagement_type: string[] | null
           probation_completed: boolean | null
@@ -839,6 +840,7 @@ export type Database = {
           notice_period?: string | null
           onboarding_completed_at?: string | null
           onboarding_tier?: string | null
+          payment_methods?: Json | null
           portfolio_url?: string | null
           preferred_engagement_type?: string[] | null
           probation_completed?: boolean | null
@@ -879,6 +881,7 @@ export type Database = {
           notice_period?: string | null
           onboarding_completed_at?: string | null
           onboarding_tier?: string | null
+          payment_methods?: Json | null
           portfolio_url?: string | null
           preferred_engagement_type?: string[] | null
           probation_completed?: boolean | null

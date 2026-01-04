@@ -245,6 +245,7 @@ export class ConsultantsBusinessService {
       advisory_interest: founderBenefits.wantAdvisoryRole,
       referred_by: existingConsultant?.referred_by,
       special_requests: founderBenefits.specialRequests,
+      payment_methods: (onboardingData as any).paymentMethods || null,
       onboarding_tier: onboardingTier?.selectedTier as string,
       probation_completed:
         existingConsultant?.stage === UserStages.PROBATION_DONE ||
@@ -462,6 +463,7 @@ export class ConsultantsBusinessService {
         duration: 90,
         probationTermsAccepted: consultant.probation_completed || false,
       },
+      paymentMethods: consultant.payment_methods || null,
     };
   }
 
@@ -615,6 +617,7 @@ export class ConsultantsBusinessService {
       advisory_interest: founderBenefits.wantAdvisoryRole,
       referral_contacts: founderBenefits.referralContacts,
       special_requests: founderBenefits.specialRequests,
+      payment_methods: (onboardingData as any).paymentMethods || null,
 
       // Onboarding Tier & Probation
       onboarding_tier: onboardingTier?.selectedTier,

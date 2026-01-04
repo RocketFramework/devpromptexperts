@@ -4,7 +4,13 @@ import { uploadMilestoneProofAction } from '@/app/actions/milestone-actions'
 import { Database } from '@/types/database'
 import { ProjectMilestoneStatus } from '@/types/enums'
 
-export type ProjectMilestone = Database['public']['Tables']['project_milestones']['Row']
+export type ProjectMilestone = Database['public']['Tables']['project_milestones']['Row'] & {
+  project_payments?: {
+    transaction_id: string | null;
+    notes: string | null;
+    status: string | null;
+  }[]
+}
 export type ProjectMilestoneInsert = Database['public']['Tables']['project_milestones']['Insert']
 export type ProjectMilestoneUpdate = Database['public']['Tables']['project_milestones']['Update']
 
@@ -12,7 +18,7 @@ export class ExtendedProjectMilestonesService {
   static async findByProjectId(project_id: string): Promise<ProjectMilestone[]> {
     const { data, error } = await supabase
       .from('project_milestones')
-      .select('*')
+      .select('*, project_payments!project_payments_project_milestone_id_fkey(transaction_id, notes, status)')
       .eq('project_id', project_id)
       .order('due_date', { ascending: true })
 
@@ -68,9 +74,19 @@ export class ExtendedProjectMilestonesService {
   }
 
   static async confirmPayment(id: string): Promise<ProjectMilestone> {
-      return this.update(id, {
-          status: ProjectMilestoneStatus.PAYMENT_CONFIRMED
-      })
+    // Trigger commission processing
+    try {
+        const { PaymentBusinessService } = await import('@/services/business/PaymentBusinessService')
+        await PaymentBusinessService.processPaymentConfirmation(id)
+    } catch (error) {
+        console.error("Error processing commission:", error)
+        // We still want to update the status even if commission calculation fails, 
+        // to avoid blocking the user flow, though ideally this should be atomic.
+    }
+
+    return this.update(id, {
+        status: ProjectMilestoneStatus.PAYMENT_CONFIRMED
+    })
   }
 
   static async create(milestone: ProjectMilestoneInsert): Promise<ProjectMilestone> {

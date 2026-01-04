@@ -63,6 +63,11 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         href: `/consultant/${userId}/dashboard/network`,
         icon: "👥",
       },
+      {
+        name: "Settings",
+        href: `/consultant/${userId}/settings`,
+        icon: "⚙️",
+      },
     ],
     client: [
       {
