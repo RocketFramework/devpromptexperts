@@ -40,7 +40,7 @@ export default function FindProjectsPage() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      
+
       // 1. Fetch Projects (Critical)
       let projectsData: (ProjectRequests & { response_count: number })[] = [];
       try {
@@ -75,7 +75,7 @@ export default function FindProjectsPage() {
 
         // Industry Match
         if (project.preferred_industries && consultantData?.industries) {
-           const matchedIndustries = project.preferred_industries.filter((ind: string) =>
+          const matchedIndustries = project.preferred_industries.filter((ind: string) =>
             consultantData.industries.includes(ind)
           );
           if (matchedIndustries.length > 0) {
@@ -104,8 +104,8 @@ export default function FindProjectsPage() {
     }
   };
 
-  const filteredProjects = filter === "matched" 
-    ? projects.filter(p => p.matchScore > 0) 
+  const filteredProjects = filter === "matched"
+    ? projects.filter(p => p.matchScore > 0)
     : projects;
 
   if (isLoading) {
@@ -129,21 +129,19 @@ export default function FindProjectsPage() {
           <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setFilter("all")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                filter === "all"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${filter === "all"
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
             >
               All Projects
             </button>
             <button
               onClick={() => setFilter("matched")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                filter === "matched"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${filter === "matched"
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
             >
               Matched for You
             </button>
@@ -181,7 +179,7 @@ export default function FindProjectsPage() {
                     <p className="text-gray-600 dark:text-gray-300 line-clamp-2">
                       {project.project_summary}
                     </p>
-                    
+
                     <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center">
                         <HiCurrencyDollar className="mr-1.5 h-4 w-4" />
@@ -208,6 +206,12 @@ export default function FindProjectsPage() {
                       className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       Respond
+                    </Link>
+                    <Link
+                      href={`/consultant/${consultantId}/find-projects/${project.id}/view`}
+                      className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      View
                     </Link>
                     <span className="text-xs text-gray-400">
                       Posted {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'N/A'}
