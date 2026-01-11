@@ -40,7 +40,7 @@ export default function SearchConsultantFilters({
                     : filters.expertise.filter(exp => exp !== expertise);
                   onFiltersChange({ expertise: newExpertise });
                 }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
               />
               <span className="ml-3 text-sm text-gray-600 group-hover:text-gray-900 transition-colors font-normal">{expertise}</span>
             </label>
@@ -65,7 +65,7 @@ export default function SearchConsultantFilters({
                     : filters.skills.filter(s => s !== skill);
                   onFiltersChange({ skills: newSkills });
                 }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
               />
               <span className="ml-3 text-sm text-gray-600 group-hover:text-gray-900 transition-colors font-normal">{skill}</span>
             </label>
@@ -90,7 +90,7 @@ export default function SearchConsultantFilters({
                     : filters.availability.filter(a => a !== availability);
                   onFiltersChange({ availability: newAvailability });
                 }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
               />
               <span className="ml-3 text-sm text-gray-600 group-hover:text-gray-900 transition-colors font-normal">{availability}</span>
             </label>
@@ -175,7 +175,7 @@ export default function SearchConsultantFilters({
             type="checkbox"
             checked={filters.featuredOnly}
             onChange={(e) => onFiltersChange({ featuredOnly: e.target.checked })}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+            className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
           />
           <span className="ml-3 text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">
             Featured Experts Only

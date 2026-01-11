@@ -9,6 +9,7 @@ import SearchConsultantFilters from '@/components/SearchConsultantFilters';
 import SearchConsultantGrid from '@/components/SearchConsultantGrid';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { ConsultantDTO as Consultant } from '@/types/dtos/Consultant.dto';
+import { HiSquares2X2, HiListBullet } from 'react-icons/hi2';
 
 export interface SearchFilters {
   query: string;
@@ -38,6 +39,7 @@ export default function ConsultantSearchPage() {
 
   // Sorting state
   const [sortBy, setSortBy] = useState<SortOption>('default');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
@@ -167,8 +169,8 @@ export default function ConsultantSearchPage() {
 
           {/* Results Grid */}
           <div className="flex-1">
-            {/* Sorting Controls */}
-            <div className="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+            {/* Sorting & Layout Controls */}
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm gap-4">
               <div className="flex items-center space-x-2">
                 <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
                 <div className="text-sm font-bold text-gray-700 uppercase tracking-wider">
@@ -176,21 +178,42 @@ export default function ConsultantSearchPage() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
-                <label htmlFor="sort" className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                  Sort by
-                </label>
-                <select
-                  id="sort"
-                  value={sortBy}
-                  onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                  className="rounded-xl border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 text-sm font-semibold py-2 pl-3 pr-10 transition-all"
-                >
-                  <option value="default">Default</option>
-                  <option value="projects_completed">Most Projects</option>
-                  <option value="work_experience">Most Experience</option>
-                  <option value="rating">Highest Rating</option>
-                </select>
+              <div className="flex items-center gap-6">
+                {/* View Toggle */}
+                <div className="flex items-center bg-slate-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="Grid View"
+                  >
+                    <HiSquares2X2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="List View"
+                  >
+                    <HiListBullet className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Sort Control */}
+                <div className="flex items-center space-x-3">
+                  <label htmlFor="sort" className="text-xs font-bold text-gray-400 uppercase tracking-widest hidden sm:block">
+                    Sort by
+                  </label>
+                  <select
+                    id="sort"
+                    value={sortBy}
+                    onChange={(e) => handleSortChange(e.target.value as SortOption)}
+                    className="rounded-xl border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 text-sm font-semibold py-2 pl-3 pr-10 transition-all outline-none"
+                  >
+                    <option value="default">Default</option>
+                    <option value="projects_completed">Most Projects</option>
+                    <option value="work_experience">Most Experience</option>
+                    <option value="rating">Highest Rating</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -200,7 +223,7 @@ export default function ConsultantSearchPage() {
               </div>
             ) : (
               <>
-                <SearchConsultantGrid consultants={consultants} />
+                <SearchConsultantGrid consultants={consultants} viewMode={viewMode} />
 
                 {/* Pagination */}
                 {totalPages > 1 && (
