@@ -7,7 +7,7 @@ import Image from "next/image";
 import ClientDashboardLayout from "@/components/client/ClientDashboardLayout";
 import { ExtendedProjectRequestsService, ExtendedProjectResponsesService } from "@/services/extended";
 import { ProjectRequestsService } from "@/services/generated";
-import { ProjectRequestStatus as ProjectStatus } from "@/types";
+import { ProjectRequestStatus } from "@/types";
 import { ProjectResponsesService, ProjectRequests, ProjectResponses } from "@/services/generated";
 
 type ProjectWithResponses = ProjectRequests & {
@@ -42,32 +42,32 @@ export default function RFPLifecyclePage() {
 
   useEffect(() => {
     if (id) {
-      loadProject(id);
+      loadProjectRequestWithResponses(id);
     }
   }, [id]);
 
-  const loadProject = async (projectId: string) => {
+  const loadProjectRequestWithResponses = async (projectRequestId: string) => {
     try {
       setIsLoading(true);
-      console.log("Loading project with responses for ID:", projectId);
-      const data = await ExtendedProjectRequestsService.findWithResponses(projectId);
-      console.log("Loaded Project Data:", data);
+      console.log("Loading project requests with responses for ID:", projectRequestId);
+      const data = await ExtendedProjectRequestsService.findWithResponses(projectRequestId);
+      console.log("Loaded Project request/response Data:", data);
       console.log("Project Responses:", data?.project_responses);
       setProject(data);
     } catch (error) {
-      console.error("Error loading project:", error);
+      console.error("Error loading project request/response:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStatusUpdate = async (newStatus: ProjectStatus) => {
+  const handleStatusUpdate = async (newStatus: ProjectRequestStatus) => {
     if (!confirm(`Are you sure you want to change status to ${newStatus}?`)) return;
 
     try {
       setIsUpdating(true);
       await ProjectRequestsService.update(id, { status: newStatus });
-      loadProject(id); // Reload data
+      loadProjectRequestWithResponses(id); // Reload data
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status");
@@ -76,19 +76,44 @@ export default function RFPLifecyclePage() {
     }
   };
 
-  const getStatusBadge = (status: ProjectStatus) => {
+  const handleExtendDeadline = async () => {
+    if (!project) return;
+
+    try {
+      setIsUpdating(true);
+      const today = new Date();
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 7);
+
+      await ProjectRequestsService.update(id, {
+        deadline: nextWeek.toISOString(),
+        // If it was somehow not OPEN (e.g. implicitly closed by logic), ensure it is logically OPEN
+        status: ProjectRequestStatus.OPEN
+      });
+
+      loadProjectRequestWithResponses(id);
+      alert("Deadline extended by 7 days.");
+    } catch (error) {
+      console.error("Error extending deadline:", error);
+      alert("Failed to extend deadline");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const getStatusBadge = (status: ProjectRequestStatus) => {
     switch (status) {
-      case ProjectStatus.OPEN:
+      case ProjectRequestStatus.OPEN:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Open</span>;
-      case ProjectStatus.DRAFT:
+      case ProjectRequestStatus.DRAFT:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Draft</span>;
-      case ProjectStatus.IN_PROGRESS:
+      case ProjectRequestStatus.IN_PROGRESS:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">In Progress</span>;
-      case ProjectStatus.ACCEPTED:
+      case ProjectRequestStatus.ACCEPTED:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">Accepted</span>;
-      case ProjectStatus.COMPLETED:
+      case ProjectRequestStatus.COMPLETED:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">Completed</span>;
-      case ProjectStatus.CANCELLED:
+      case ProjectRequestStatus.CANCELLED:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Closed</span>;
       default:
         return <span className="px-3 py-1 text-sm font-semibold rounded-full bg-gray-100 text-gray-800">Unknown</span>;
@@ -116,7 +141,7 @@ export default function RFPLifecyclePage() {
   }
 
   // Check if project is accepted (should disable edit)
-  const isAccepted = project.status === ProjectStatus.ACCEPTED;
+  const isAccepted = project.status === ProjectRequestStatus.ACCEPTED;
 
   return (
     <ClientDashboardLayout>
@@ -128,7 +153,7 @@ export default function RFPLifecyclePage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{project.title}</h1>
-                {getStatusBadge(project.status as ProjectStatus)}
+                {getStatusBadge(project.status as ProjectRequestStatus)}
               </div>
             </div>
 
@@ -138,6 +163,36 @@ export default function RFPLifecyclePage() {
                 {project.project_summary}
               </p>
             </div>
+
+            {/* Deadline Status Banner */}
+            {project.deadline && new Date(project.deadline) < new Date() && project.status === ProjectRequestStatus.OPEN && (
+              <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <HiClock className="h-5 w-5 text-red-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Submission Deadline Passed</h3>
+                    <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                      <p>
+                        The deadline ({new Date(project.deadline).toLocaleDateString()}) has passed. Consultants can no longer respond.
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <div className="-mx-2 -my-1.5 flex">
+                        <button
+                          type="button"
+                          onClick={() => handleExtendDeadline()}
+                          className="bg-red-100 dark:bg-red-900/40 px-2 py-1.5 rounded-md text-sm font-medium text-red-800 dark:text-red-200 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
+                        >
+                          Extend by 7 Days
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons - Moved to bottom */}
             <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -161,10 +216,10 @@ export default function RFPLifecyclePage() {
                 </Link>
               )}
 
-              {project.status === ProjectStatus.OPEN && (
+              {project.status === ProjectRequestStatus.OPEN && (
                 <>
                   <button
-                    onClick={() => handleStatusUpdate(ProjectStatus.ON_HOLD)}
+                    onClick={() => handleStatusUpdate(ProjectRequestStatus.ON_HOLD)}
                     disabled={isUpdating}
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                   >
@@ -172,7 +227,7 @@ export default function RFPLifecyclePage() {
                     On Hold
                   </button>
                   <button
-                    onClick={() => handleStatusUpdate(ProjectStatus.CANCELLED)}
+                    onClick={() => handleStatusUpdate(ProjectRequestStatus.CANCELLED)}
                     disabled={isUpdating}
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
@@ -183,9 +238,9 @@ export default function RFPLifecyclePage() {
               )}
 
               {/* Resume from Hold */}
-              {project.status === ProjectStatus.ON_HOLD && (
+              {project.status === ProjectRequestStatus.ON_HOLD && (
                 <button
-                  onClick={() => handleStatusUpdate(ProjectStatus.OPEN)}
+                  onClick={() => handleStatusUpdate(ProjectRequestStatus.OPEN)}
                   disabled={isUpdating}
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
@@ -317,12 +372,12 @@ export default function RFPLifecyclePage() {
                             </p>
                           </div>
                         </div>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${response.status === ProjectStatus.ACCEPTED ? 'bg-green-100 text-green-800' :
-                          response.status === ProjectStatus.REJECTED ? 'bg-red-100 text-red-800' :
-                            response.status === ProjectStatus.VIEWED ? 'bg-blue-100 text-blue-800' :
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${response.status === ProjectRequestStatus.ACCEPTED ? 'bg-green-100 text-green-800' :
+                          response.status === ProjectRequestStatus.REJECTED ? 'bg-red-100 text-red-800' :
+                            response.status === ProjectRequestStatus.VIEWED ? 'bg-blue-100 text-blue-800' :
                               'bg-yellow-100 text-yellow-800'
                           }`}>
-                          {response.status || ProjectStatus.OPEN}
+                          {response.status || ProjectRequestStatus.OPEN}
                         </span>
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
@@ -345,7 +400,7 @@ export default function RFPLifecyclePage() {
                         onClick={async () => {
                           // Record view (updates status to 'viewed' only if currently 'submitted')
                           try {
-                            await ExtendedProjectResponsesService.recordView(response.id, response.status || ProjectStatus.OPEN);
+                            await ExtendedProjectResponsesService.recordView(response.id, response.status || ProjectRequestStatus.OPEN);
                           } catch (error) {
                             console.error("Error recording view:", error);
                           }

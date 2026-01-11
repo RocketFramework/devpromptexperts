@@ -255,12 +255,22 @@ export default function ViewProjectPage() {
                         >
                             Back to List
                         </Link>
-                        <Link
-                            href={`/consultant/${consultantId}/find-projects/${project.id}/respond`}
-                            className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            Respond to Request
-                        </Link>
+                        {project.deadline && new Date(project.deadline) < new Date() ? (
+                            <button
+                                disabled
+                                className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed"
+                                title="The submission deadline for this project has passed."
+                            >
+                                Deadline Passed
+                            </button>
+                        ) : (
+                            <Link
+                                href={`/consultant/${consultantId}/find-projects/${project.id}/respond`}
+                                className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                Respond to Request
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

@@ -85,6 +85,11 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         href: `/client/${userId}/earnings`,
         icon: "💰",
       },
+      {
+        name: "Settings",
+        href: `/client/${userId}/settings`,
+        icon: "⚙️",
+      },
     ],
     seller: [
       {
@@ -101,6 +106,11 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         name: "Earnings",
         href: `/seller/${userId}/earnings`,
         icon: "💰",
+      },
+      {
+        name: "Settings",
+        href: `/seller/${userId}/settings`,
+        icon: "⚙️",
       },
     ],
   };
@@ -423,14 +433,6 @@ export default function Navbar() {
 
                       {/* Settings & Sign Out */}
                       <div className="p-2">
-                        <Link
-                          href="/settings"
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-slate-100 rounded transition"
-                          onClick={closeAllMenus}
-                        >
-                          <span>⚙️</span>
-                          <span>Settings</span>
-                        </Link>
                         <button
                           onClick={handleSignOut}
                           className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition mt-2"
@@ -645,16 +647,7 @@ export default function Navbar() {
                       </div>
                     </div>
 
-                    <div className="space-y-2 mb-3">
-                      <Link
-                        href="/settings"
-                        className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gray-600 hover:bg-gray-700 rounded transition"
-                        onClick={closeAllMenus}
-                      >
-                        <span>⚙️</span>
-                        <span>Settings</span>
-                      </Link>
-                    </div>
+
 
                     <button
                       onClick={handleSignOut}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ConsultantCard from "@/components/ConsultantCard";
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 
@@ -14,8 +14,19 @@ export default function FeaturedConsultantsCarousel({
   loading = false
 }: FeaturedConsultantsCarouselProps) {
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const visibleCount = 3;
   const total = consultants.length;
+
+  useEffect(() => {
+    if (loading || total <= visibleCount || isPaused) return;
+
+    const interval = setInterval(() => {
+      setCarouselIndex((prev) => (prev + 1) % total);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [loading, total, isPaused, visibleCount]);
 
   const handlePrev = () => {
     if (total === 0) return;
@@ -30,7 +41,7 @@ export default function FeaturedConsultantsCarousel({
     return (
       <div className="grid md:grid-cols-3 gap-8">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-80 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>
+          <div key={i} className="h-96 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>
         ))}
       </div>
     );
@@ -49,7 +60,11 @@ export default function FeaturedConsultantsCarousel({
   });
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       <div className="grid md:grid-cols-3 gap-8 transition-all duration-500">
         {visibleConsultants.map(consultant => (
           <ConsultantCard key={consultant.user_id} consultant={consultant} />

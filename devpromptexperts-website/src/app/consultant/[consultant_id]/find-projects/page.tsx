@@ -158,68 +158,93 @@ export default function FindProjectsPage() {
               </p>
             </div>
           ) : (
-            filteredProjects.map((project) => (
-              <div
-                key={project.id}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
-              >
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {project.title}
-                      </h2>
-                      {project.matchScore > 0 && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                          <HiCheckCircle className="mr-1 h-3 w-3" />
-                          {project.matchReasons[0]}
-                        </span>
+            filteredProjects.map((project) => {
+              const isExpired = project.deadline && new Date(project.deadline) < new Date();
+
+              return (
+                <div
+                  key={project.id}
+                  className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors ${isExpired ? 'opacity-75 border-gray-200 dark:border-gray-700' : 'hover:border-blue-300 dark:hover:border-blue-500'
+                    }`}
+                >
+                  <div className="flex flex-col md:flex-row justify-between gap-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          {project.title}
+                        </h2>
+                        {isExpired && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800">
+                            Deadline Passed
+                          </span>
+                        )}
+                        {project.matchScore > 0 && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            <HiCheckCircle className="mr-1 h-3 w-3" />
+                            {project.matchReasons[0]}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 line-clamp-2">
+                        {project.project_summary}
+                      </p>
+
+                      <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center">
+                          <HiCurrencyDollar className="mr-1.5 h-4 w-4" />
+                          {project.budget_range}
+                        </div>
+                        <div className="flex items-center">
+                          <HiClock className="mr-1.5 h-4 w-4" />
+                          {project.timeline}
+                        </div>
+                        <div className="flex items-center">
+                          <HiLightningBolt className="mr-1.5 h-4 w-4" />
+                          {project.urgency_level}
+                        </div>
+                        <div className="flex items-center">
+                          <HiOutlineClipboardList className="mr-1.5 h-4 w-4" />
+                          {project.response_count} Responses
+                        </div>
+                        {project.deadline && (
+                          <div className={`flex items-center ${isExpired ? 'text-red-600 dark:text-red-400 font-medium' : ''}`}>
+                            <span className="mr-1.5">📅</span>
+                            Due: {new Date(project.deadline).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col justify-center items-end gap-3 min-w-[150px]">
+                      {isExpired ? (
+                        <button
+                          disabled
+                          className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-200 shadow-sm text-sm font-medium rounded-md text-gray-400 bg-gray-50 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                        >
+                          Applications Closed
+                        </button>
+                      ) : (
+                        <Link
+                          href={`/consultant/${consultantId}/find-projects/${project.id}/respond`}
+                          className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Respond
+                        </Link>
                       )}
+                      <Link
+                        href={`/consultant/${consultantId}/find-projects/${project.id}/view`}
+                        className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+                      >
+                        View Details
+                      </Link>
+                      <span className="text-xs text-gray-400">
+                        Posted {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'N/A'}
+                      </span>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300 line-clamp-2">
-                      {project.project_summary}
-                    </p>
-
-                    <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <HiCurrencyDollar className="mr-1.5 h-4 w-4" />
-                        {project.budget_range}
-                      </div>
-                      <div className="flex items-center">
-                        <HiClock className="mr-1.5 h-4 w-4" />
-                        {project.timeline}
-                      </div>
-                      <div className="flex items-center">
-                        <HiLightningBolt className="mr-1.5 h-4 w-4" />
-                        {project.urgency_level}
-                      </div>
-                      <div className="flex items-center">
-                        <HiOutlineClipboardList className="mr-1.5 h-4 w-4" />
-                        {project.response_count} Responses
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col justify-center items-end gap-3 min-w-[150px]">
-                    <Link
-                      href={`/consultant/${consultantId}/find-projects/${project.id}/respond`}
-                      className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      Respond
-                    </Link>
-                    <Link
-                      href={`/consultant/${consultantId}/find-projects/${project.id}/view`}
-                      className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      View
-                    </Link>
-                    <span className="text-xs text-gray-400">
-                      Posted {project.created_at ? new Date(project.created_at).toLocaleDateString() : 'N/A'}
-                    </span>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

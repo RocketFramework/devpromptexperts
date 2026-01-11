@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
+import { HiStar, HiMapPin, HiBriefcase } from "react-icons/hi2";
 
 export default function ConsultantCard({
   consultant,
@@ -13,107 +14,112 @@ export default function ConsultantCard({
   const showImage = consultant.image && !imageError;
   const showInitials = !showImage;
 
-  const renderStars = (rating: number = 0) => {
-    return (
-      <div className="flex items-center space-x-1">
-        <span className="text-amber-400 text-xs">★</span>
-        <span className="text-[11px] font-bold text-gray-700">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
-
   return (
     <Link
       href={`/findconsultants/${consultant.user_id}`}
-      className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-blue-200 transition-all duration-300 group cursor-pointer"
+      className="group relative flex flex-col h-full bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:border-slate-200 transition-all duration-300"
     >
-      {/* Header */}
-      <div className="p-5 border-b border-gray-50 bg-white group-hover:bg-blue-50/30 transition-colors">
-        <div className="flex items-center space-x-4 min-w-0">
-          {/* Image/Initials */}
-          <div className="relative flex-shrink-0">
-            {showImage && (
-              <img
-                src={consultant.image ?? ""}
-                alt={consultant.name}
-                className={`w-14 h-14 rounded-full object-cover shadow-sm border border-gray-100 ${imageLoaded ? "opacity-100" : "opacity-0"
-                  } transition-opacity duration-200`}
-                onLoad={() => setImageLoaded(true)}
-                onError={() => setImageError(true)}
-              />
-            )}
+      {/* 
+        Hover gradient sheen effect 
+      */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 via-blue-50/0 to-blue-50/30 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-            {showInitials && (
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-base">
-                {consultant.name
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("")}
+      {/* Card Header: Avatar & Key Info */}
+      <div className="p-8 pb-4 flex items-start gap-5 relative z-10">
+        <div className="relative shrink-0">
+          {showImage ? (
+            <img
+              src={consultant.image ?? ""}
+              alt={consultant.name}
+              className={`w-16 h-16 rounded-2xl object-cover shadow-sm ring-1 ring-slate-100 ${imageLoaded ? "opacity-100" : "opacity-0"
+                } transition-opacity duration-300`}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center text-slate-500 font-bold text-xl ring-1 ring-slate-100">
+              {consultant.name
+                ?.split(" ")
+                .map((n) => n[0])
+                .join("")
+                .substring(0, 2)}
+            </div>
+          )}
+          {/* Online/Active Indicator (Optional visual flair) */}
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+        </div>
+
+        <div className="flex-1 min-w-0 pt-0.5">
+          <h3 className="text-lg font-bold text-slate-900 truncate leading-tight group-hover:text-blue-600 transition-colors">
+            {consultant.name}
+          </h3>
+          <p className="text-blue-600 font-medium text-sm truncate mt-0.5 mb-2">
+            {consultant.title || "AI Consultant"}
+          </p>
+
+          <div className="flex items-center gap-3 text-xs font-medium text-slate-500">
+            <div className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md">
+              <HiStar className="w-3.5 h-3.5" />
+              <span>{consultant.rating?.toFixed(1) || "5.0"}</span>
+            </div>
+            {consultant.country && (
+              <div className="flex items-center gap-1 truncate max-w-[120px]">
+                <HiMapPin className="w-3.5 h-3.5 text-slate-400" />
+                <span>{consultant.country}</span>
               </div>
             )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h3 className="text-base font-bold text-gray-900 truncate tracking-tight group-hover:text-blue-600 transition-colors">
-              {consultant.name}
-            </h3>
-            <p className="text-blue-600 font-semibold truncate text-xs mt-0.5">
-              {consultant.title}
-            </p>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-5 space-y-5 flex-1 flex flex-col">
-        {/* Rating and Experience - Compact */}
-        <div className="flex items-center justify-between text-[11px] py-2 border-y border-gray-50">
-          {renderStars(consultant.rating ?? 0)}
-          {consultant.work_experience && (
-            <span className="text-gray-500 font-bold uppercase tracking-wider">
-              {consultant.work_experience}+ Yrs Exp
-            </span>
-          )}
+      {/* Card Body */}
+      <div className="px-8 py-2 flex-1 flex flex-col relative z-10">
+
+        {/* Bio */}
+        <div className="mb-6">
+          <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">
+            {consultant.bioSummary ||
+              "Experienced AI specialist focused on delivering scalable solutions and optimizing prompt engineering workflows for enterprise clients."}
+          </p>
         </div>
 
-        {/* Expertise - Compact Tags */}
-        {consultant.expertise && consultant.expertise.length > 0 && (
-          <div>
-            <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-              Expertise
-            </h4>
-            <div className="flex flex-wrap gap-1">
-              {consultant.expertise.slice(0, 2).map((exp) => (
+        {/* Expertise Tags */}
+        <div className="mt-auto">
+          {consultant.expertise && consultant.expertise.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {consultant.expertise.slice(0, 3).map((exp) => (
                 <span
                   key={exp}
-                  className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-medium rounded-md border border-blue-100/50 truncate max-w-[120px]"
+                  className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 group-hover:border-blue-100 group-hover:bg-blue-50/50 group-hover:text-blue-700 transition-colors duration-300"
                 >
                   {exp}
                 </span>
               ))}
-              {consultant.expertise.length > 2 && (
-                <span className="px-2 py-0.5 bg-gray-50 text-gray-400 text-[10px] font-medium rounded-md border border-gray-100">
-                  +{consultant.expertise.length - 2}
+              {consultant.expertise.length > 3 && (
+                <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-slate-50 text-slate-400 border border-slate-100">
+                  +{consultant.expertise.length - 3}
                 </span>
               )}
             </div>
-          </div>
-        )}
-
-        {/* Stats */}
-        <div className="mt-auto pt-2 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-          <span>{consultant.projectsCompleted} Projects</span>
-          <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-            {consultant.availability}
-          </span>
+          )}
         </div>
       </div>
 
-      {/* Footer - Subtle indicator */}
-      <div className="px-5 py-3 bg-gray-50/50 border-t border-gray-50 flex justify-center items-center group-hover:bg-blue-50 transition-colors">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
-          View Profile
-        </span>
+      {/* Card Footer: Metrics & Action */}
+      <div className="px-8 pb-8 pt-4 border-t border-slate-50 flex items-center justify-between relative z-10">
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Project Exp</span>
+          <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
+            <HiBriefcase className="w-4 h-4 text-slate-400" />
+            {consultant.projectsCompleted || 0} Finished
+          </div>
+        </div>
+
+        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
       </div>
     </Link>
   );
