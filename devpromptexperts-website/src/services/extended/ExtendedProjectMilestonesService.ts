@@ -74,16 +74,15 @@ export class ExtendedProjectMilestonesService {
   }
 
   static async confirmPayment(id: string): Promise<ProjectMilestone> {
-    // Trigger commission processing
-    try {
-        const { PaymentBusinessService } = await import('@/services/business/PaymentBusinessService')
-        await PaymentBusinessService.processPaymentConfirmation(id)
-    } catch (error) {
-        console.error("Error processing commission:", error)
-        // We still want to update the status even if commission calculation fails, 
-        // to avoid blocking the user flow, though ideally this should be atomic.
-    }
+    // 1. Process Financials (Atomic Payment + Commission)
+    // We import dynamically to avoid circular dependencies if any, though ideally structure should prevent this.
+    const { PaymentBusinessService } = await import('@/services/business/PaymentBusinessService')
+    
+    // This calls the RPC. If it fails (e.g. network, DB constraint), it throws.
+    // We do NOT catch here, letting it propagate so the UI knows it failed.
+    await PaymentBusinessService.processPaymentConfirmation(id)
 
+    // 2. Update Milestone Status to reflect completion of this phase
     return this.update(id, {
         status: ProjectMilestoneStatus.PAYMENT_CONFIRMED
     })
