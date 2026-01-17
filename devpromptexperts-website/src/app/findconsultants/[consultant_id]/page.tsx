@@ -5,66 +5,11 @@ import { useParams } from 'next/navigation';
 import { ConsultantsBusinessService } from '@/services/business/ConsultantBusinessService';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Image from 'next/image';
-
-// Define types for the profile data
-interface User {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  profile_image_url: string | null;
-  country: string | null;
-  company: string | null;
-  timezone: string | null;
-  role: string | null;
-}
-
-interface Consultant {
-  id: string;
-  user_id: string;
-  title: string | null;
-  work_experience: number | null;
-  bio_summary: string | null;
-  expertise: string[] | null;
-  skills: string[] | null;
-  hourly_rate: number | null;
-  min_project_size: number | null;
-  availability: string | null;
-  hours_per_week: number | null;
-  notice_period: string | null;
-  featured: boolean;
-  linkedinUrl: string | null;
-  portfolio_url: string | null;
-  certifications: string[] | null;
-  publications: string[] | null;
-  project_types: string[] | null;
-  industries: string[] | null;
-  preferred_engagement_type: string[] | null;
-  rating: number | null;
-  projects_completed: number | null;
-  founder_number: number | null;
-  onboarding_completed_at: string | null;
-  referred_by: string | null;
-  assigned_free_consultation_count: number | null;
-  completed_free_consultation_count: number | null;
-  user: User;
-}
-
-interface Project {
-  id: string;
-  consultant_id: string;
-  project_request_id: string | null;
-  start_date: string;
-  end_date: string | null;
-  status: string;
-  actual_duration: string | null;
-  estimated_duration: string | null;
-  actual_hours: number | null;
-  total_hours_estimated: number | null;
-}
+import { Consultants, Users, Projects } from '@/services/generated';
 
 interface ConsultantProfile {
-  consultant: Consultant;
-  projects: Project[];
+  consultant: Consultants & { user: Users };
+  projects: Projects[];
 }
 
 export default function ConsultantProfilePage() {
@@ -86,7 +31,7 @@ export default function ConsultantProfilePage() {
         if (!data) {
           setError('Consultant not found');
         } else {
-          setProfile(data);
+          setProfile(data as unknown as ConsultantProfile);
         }
       } catch (err) {
         console.error('Error loading consultant profile:', err);
@@ -407,7 +352,7 @@ export default function ConsultantProfilePage() {
 
           {projects.length > 0 ? (
             <div className="grid gap-6">
-              {projects.map((project: Project) => (
+              {projects.map((project: Projects) => (
                 <div key={project.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:border-blue-200 transition-colors">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div className="flex items-center gap-4">

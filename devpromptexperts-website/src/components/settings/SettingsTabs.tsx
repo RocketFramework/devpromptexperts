@@ -1,14 +1,13 @@
 "use client";
 
+import React, { Fragment } from "react";
 import { Tab } from "@headlessui/react";
-import { Fragment } from "react";
-import { HiBell, HiCreditCard, HiLockClosed, HiUser } from "react-icons/hi";
 
 interface SettingsTabsProps {
     children: React.ReactNode[];
     tabs: {
         name: string;
-        icon: any;
+        icon: React.ElementType;
     }[];
 }
 

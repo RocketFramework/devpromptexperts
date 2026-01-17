@@ -44,10 +44,12 @@ export class ExtendedProjectPaymentsService {
         .from('project_milestones')
         .select('*, projects(consultant_id, contract_value)')
         .eq('id', milestoneId)
-        .single();
+        .single<Database['public']['Tables']['project_milestones']['Row'] & { 
+          projects: { consultant_id: string, contract_value: number } 
+        }>();
       
       if (mError || !milestone) throw new Error('Milestone or project not found');
-      const project = milestone.projects as any;
+      const project = milestone.projects;
       const amount = (project.contract_value * milestone.payment_percentage) / 100;
 
       const { error: iError } = await supabase

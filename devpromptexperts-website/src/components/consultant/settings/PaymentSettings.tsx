@@ -1,16 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { HiCreditCard, HiPlus, HiTrash, HiCheck, HiExclamation } from "react-icons/hi";
 import { ExtendedConsultantsService } from "@/services/extended/ExtendedConsultantsService";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { Json } from "@/types/database";
+import { PaymentMethod } from "@/types/interfaces";
 
-interface PaymentMethod {
-    id: string;
-    type: string;
-    details: string;
-    isPrimary: boolean;
-}
 
 export default function PaymentSettings({ userId }: { userId: string }) {
     const [loading, setLoading] = useState(true);
@@ -20,11 +16,7 @@ export default function PaymentSettings({ userId }: { userId: string }) {
     const [newMethod, setNewMethod] = useState({ type: "Bank Transfer", details: "" });
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-    useEffect(() => {
-        loadSettings();
-    }, [userId]);
-
-    const loadSettings = async () => {
+    const loadSettings = useCallback(async () => {
         setLoading(true);
         try {
             const data = await ExtendedConsultantsService.findByUser_Id(userId);
@@ -36,14 +28,18 @@ export default function PaymentSettings({ userId }: { userId: string }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [userId]);
+
+    useEffect(() => {
+        loadSettings();
+    }, [loadSettings]);
 
     const handleSave = async (updatedMethods: PaymentMethod[]) => {
         setSaving(true);
         setMessage(null);
         try {
             const result = await ExtendedConsultantsService.updateByUser_Id(userId, {
-                payment_methods: updatedMethods as any
+                payment_methods: updatedMethods as unknown as Json
             });
             if (result) {
                 setMethods(updatedMethods);

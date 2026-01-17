@@ -65,7 +65,7 @@ export default function NotificationPreferencesForm({ userId, role }: Props) {
             <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Notification Preferences</h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Decide which communications you'd like to receive via email.
+                    Decide which communications you&#39;d like to receive via email.
                 </p>
             </div>
 

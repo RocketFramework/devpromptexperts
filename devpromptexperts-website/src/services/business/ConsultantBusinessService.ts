@@ -215,6 +215,7 @@ export class ConsultantsBusinessService {
       availability,
       founderBenefits,
       onboardingTier,
+      paymentMethods,
     } = onboardingData;
 
     const count = await RpcBusinessService.getNextFounderProfessionalCount();
@@ -245,7 +246,7 @@ export class ConsultantsBusinessService {
       advisory_interest: founderBenefits.wantAdvisoryRole,
       referred_by: existingConsultant?.referred_by,
       special_requests: founderBenefits.specialRequests,
-      payment_methods: (onboardingData as any).paymentMethods || null,
+      payment_methods: paymentMethods || null,
       onboarding_tier: onboardingTier?.selectedTier as string,
       probation_completed:
         existingConsultant?.stage === UserStages.PROBATION_DONE ||
@@ -585,6 +586,7 @@ export class ConsultantsBusinessService {
       founderBenefits,
       onboardingTier,
       probation,
+      paymentMethods,
     } = onboardingData;
 
     return {
@@ -617,7 +619,7 @@ export class ConsultantsBusinessService {
       advisory_interest: founderBenefits.wantAdvisoryRole,
       referral_contacts: founderBenefits.referralContacts,
       special_requests: founderBenefits.specialRequests,
-      payment_methods: (onboardingData as any).paymentMethods || null,
+      payment_methods: paymentMethods || null,
 
       // Onboarding Tier & Probation
       onboarding_tier: onboardingTier?.selectedTier,

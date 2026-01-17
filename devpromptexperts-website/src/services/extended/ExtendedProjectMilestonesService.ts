@@ -1,4 +1,3 @@
-import { supabaseBrowser } from '@/lib/client-browser'
 import { supabase } from '@/lib/supabase'
 import { uploadMilestoneProofAction } from '@/app/actions/milestone-actions'
 import { Database } from '@/types/database'
@@ -37,26 +36,6 @@ export class ExtendedProjectMilestonesService {
     if (mError) throw mError
 
     // 2. Check for any incomplete previous milestones
-    const { data: previousMilestones, error: pError } = await supabase
-      .from('project_milestones')
-      .select('*')
-      .eq('project_id', milestone.project_id)
-      .lt('due_date', milestone.due_date)
-      .neq('status', ProjectMilestoneStatus.PAYMENT_CONFIRMED)
-      .neq('status', ProjectMilestoneStatus.COMPLETED) // Allow completed if payment not confirmed yet? Requirement says "completed milestone... payment initiated... confirm payment". 
-      // Actually requirement says: "Client accept it which allow the consultant to start the next milestone."
-      // So previous milestone must be accepted (COMPLETED) to start next.
-      // Wait, "Consultant - for any completed milestone the status will be "payment initiated" so that consultant has the ability to confirm the payment received button."
-      // And "client can accept it which allow the consultant to start the next milestone."
-      // This implies: Client Accept -> Status=COMPLETED (Payment Initiated) -> Consultant can Start Next.
-      // Payment Confirmation is a separate step that might happen later or in parallel?
-      // "It goes on like this until all the milestones are completed"
-      // Let's enforce that previous milestones must be strictly COMPLETED or PAYMENT_CONFIRMED.
-    
-    if (pError) throw pError
-
-    // Filter strictly for incomplete ones effectively.
-    // Query above finds any that are NOT confirmed/completed? No, neq doesn't work well multiple times for "neither this nor that" usually needs OR logic or filtering in memory.
     // Let's fetch all previous ordered by date.
     const allPrevious = await this.findByProjectId(milestone.project_id);
     const myIndex = allPrevious.findIndex(m => m.id === id);

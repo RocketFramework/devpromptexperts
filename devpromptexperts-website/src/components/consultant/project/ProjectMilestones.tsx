@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ExtendedProjectMilestonesService, ProjectMilestone } from "@/services/extended";
 import { HiPlus, HiPencil, HiTrash, HiCheck, HiX, HiUpload, HiExclamation, HiPlay } from "react-icons/hi";
 import { useSession } from "next-auth/react";
@@ -7,6 +7,8 @@ import { ProjectMilestoneStatus } from "@/types";
 import { ExtendedProjectsService } from "@/services/extended/ExtendedProjectsService";
 import { ExtendedConsultantsService } from "@/services/extended/ExtendedConsultantsService";
 import { HiCreditCard, HiClipboardCheck, HiExclamationCircle } from "react-icons/hi";
+import { PaymentMethod } from "@/types/interfaces";
+
 
 interface ProjectMilestonesProps {
     projectId: string;
@@ -21,10 +23,8 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
     const [submittingId, setSubmittingId] = useState<string | null>(null);
     const [submissionFile, setSubmissionFile] = useState<File | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [consultantId, setConsultantId] = useState<string | null>(null);
-    const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [transactionId, setTransactionId] = useState("");
-    const [confirmingId, setConfirmingId] = useState<string | null>(null);
     const [paymentNotes, setPaymentNotes] = useState("");
     const [isSavingPaymentInfo, setIsSavingPaymentInfo] = useState(false);
 
@@ -40,11 +40,7 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
     const isConsultant = session?.user?.role === UserRoles.CONSULTANT;
     const isClient = session?.user?.role === UserRoles.CLIENT;
 
-    useEffect(() => {
-        loadMilestones();
-    }, [projectId]);
-
-    const loadMilestones = async () => {
+    const loadMilestones = useCallback(async () => {
         try {
             setIsLoading(true);
             const [data, projectData] = await Promise.all([
@@ -53,10 +49,9 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
             ]);
             setMilestones(data);
             if (projectData && projectData.consultant_id) {
-                setConsultantId(projectData.consultant_id);
                 const consultant = await ExtendedConsultantsService.findByUser_Id(projectData.consultant_id);
                 if (consultant && consultant.payment_methods) {
-                    setPaymentMethods(consultant.payment_methods as any[]);
+                    setPaymentMethods(consultant.payment_methods as unknown as PaymentMethod[]);
                 }
             }
         } catch (error) {
@@ -64,7 +59,11 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [projectId]);
+
+    useEffect(() => {
+        loadMilestones();
+    }, [loadMilestones]);
 
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -180,7 +179,6 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
         if (!confirm("Confirm that you have received payment for this milestone? This will finalize the project phase and record commissions.")) return;
         try {
             await ExtendedProjectMilestonesService.confirmPayment(id);
-            setConfirmingId(null);
             loadMilestones();
         } catch (error) {
             console.error("Error confirming payment:", error);
@@ -561,7 +559,7 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
                                                                     </div>
 
                                                                     <div className="grid gap-3">
-                                                                        {paymentMethods.map((method: any) => (
+                                                                        {paymentMethods.map((method: PaymentMethod) => (
                                                                             <div key={method.id} className={`p-4 rounded-xl border ${method.isPrimary ? 'bg-white dark:bg-slate-800 border-blue-200 dark:border-blue-800 shadow-sm' : 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800'}`}>
                                                                                 <div className="flex justify-between items-start">
                                                                                     <div>
@@ -587,7 +585,7 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
 
                                                                     <div className="mt-4 flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-200">
                                                                         <HiExclamationCircle className="w-4 h-4 shrink-0" />
-                                                                        <p>Once you've sent the payment, please notify the consultant. They will confirm receipt to finalize this phase.</p>
+                                                                        <p>Once you&#39;ve sent the payment, please notify the consultant. They will confirm receipt to finalize this phase.</p>
                                                                     </div>
 
                                                                     <div className="mt-6 pt-6 border-t border-blue-100/50 dark:border-blue-900/30">
@@ -653,7 +651,7 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
                                                                         {milestone.project_payments[0].notes && (
                                                                             <div>
                                                                                 <span className="text-[10px] font-bold text-slate-500 uppercase block">Notes from Client</span>
-                                                                                <p className="text-xs text-slate-600 dark:text-slate-400 italic">"{milestone.project_payments[0].notes}"</p>
+                                                                                <p className="text-xs text-slate-600 dark:text-slate-400 italic">&#34;{milestone.project_payments[0].notes}&#34;</p>
                                                                             </div>
                                                                         )}
                                                                     </div>

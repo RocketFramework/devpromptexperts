@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import { ConsultantsUpdate, Consultants, Users } from "./../generated";
-import { RpcBusinessService } from "./RpcBusinessService";
 import { Database } from "@/types/database";
 
 export type UserWithFullRelations = Users & {
@@ -45,7 +44,7 @@ export class ExtendedConsultantsService {
       .from("consultants")
       .select("*")
       .eq("user_id", user_id)
-      .maybeSingle();
+      .maybeSingle<Consultants>();
 
     if (error) throw error;
     return data;
@@ -55,11 +54,7 @@ export class ExtendedConsultantsService {
     // 1️⃣ Validate user_id
     if (!user_id || user_id.trim() === "") {
       throw new Error("Invalid user_id: empty string");
-      console.log("Invalid user_id: empty string");
     }
-
-    // Optional: stricter UUID check
-    // if (!isUuid(user_id)) throw new Error("Invalid user_id: not a valid UUID");
 
     // 2️⃣ Perform the update
     const { data: result, error } = await supabase

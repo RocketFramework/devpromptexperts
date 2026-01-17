@@ -36,7 +36,7 @@ export default function ContactPage() {
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-5xl font-bold mb-6">Contact Us</h2>
                     <p className="text-xl text-blue-100 leading-relaxed">
-                        Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                        Have questions? We&#39;d love to hear from you. Send us a message and we&#39;ll respond as soon as possible.
                     </p>
                 </div>
             </div>
@@ -48,7 +48,7 @@ export default function ContactPage() {
                         <div>
                             <h3 className="text-2xl font-bold text-slate-900 mb-6">Get in touch</h3>
                             <p className="text-slate-500 text-lg leading-relaxed mb-8">
-                                Whether you're looking for expert AI consultants or want to join our network, our team is here to help.
+                                Whether you&#39;re looking for expert AI consultants or want to join our network, our team is here to help.
                             </p>
                         </div>
 

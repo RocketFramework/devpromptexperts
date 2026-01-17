@@ -1,27 +1,3 @@
--- Migration: Setup System User and Atomic Payment Function
--- Description: Ensures system sentinel users exist and creates an atomic function for processing financial transactions.
-
--- 1. Ensure System Users exist
-DO $$
-DECLARE
-    v_sys_revenue_id UUID := '00000000-0000-0000-0000-000000000000'; -- Platform Revenue Account
-    v_sys_central_id UUID := '11111111-1111-1111-1111-111111111111'; -- Marketplace Central/Escrow
-BEGIN
-    -- Ensure Revenue Account User
-    IF NOT EXISTS (SELECT 1 FROM public.users WHERE id = v_sys_revenue_id) THEN
-        INSERT INTO public.users (id, email, full_name, role, created_at)
-        VALUES (v_sys_revenue_id, 'revenue@devpromptexperts.com', 'DevPromptExperts Revenue', 'admin', NOW())
-        ON CONFLICT (id) DO NOTHING;
-    END IF;
-
-    -- Ensure Marketplace Central User
-    IF NOT EXISTS (SELECT 1 FROM public.users WHERE id = v_sys_central_id) THEN
-        INSERT INTO public.users (id, email, full_name, role, created_at)
-        VALUES (v_sys_central_id, 'system@devpromptexperts.com', 'Marketplace Central', 'admin', NOW())
-        ON CONFLICT (id) DO NOTHING;
-    END IF;
-END $$;
-
 -- 2. Create the Atomic Payment Function
 CREATE OR REPLACE FUNCTION confirm_milestone_payment(
   p_milestone_id UUID
@@ -49,7 +25,7 @@ DECLARE
 
   -- Financial variables
   v_total_contract_value numeric;
-  v_platform_rate numeric := 20.0;
+  v_platform_rate numeric := 0.20;
   v_platform_commission numeric;
   v_referrer_rate numeric := 0;
   v_referrer_commission numeric;
@@ -62,6 +38,10 @@ DECLARE
   v_project_invoice_id uuid;
   v_platform_invoice_id uuid;
   v_referrer_invoice_id uuid;
+  
+  -- Calculation IDs
+  v_platform_calculation_id uuid;
+  v_referrer_calculation_id uuid;
   
 BEGIN
   -- 1. Fetch Milestone and Project Details -------------------------------------
@@ -153,7 +133,7 @@ BEGIN
   SELECT role INTO v_consultant_role FROM users WHERE id = v_consultant_id;
 
   -- Calculate Total Amounts
-  v_platform_commission := (v_total_contract_value * v_platform_rate) / 100;
+  v_platform_commission := v_total_contract_value * v_platform_rate;
 
   -- Normalize Roles for Entity Types (to satisfy invoices_entity_type_check)
   v_client_role := CASE 
@@ -192,8 +172,8 @@ BEGIN
     'paid', 
     NOW(), 
     NOW(),
-    v_total_contract_value, 
-    v_total_contract_value, 
+    v_total_contract_value::integer, 
+    v_total_contract_value::integer, 
     'USD',
     v_client_id, 
     v_client_role, 
@@ -204,6 +184,28 @@ BEGIN
   ) RETURNING id INTO v_project_invoice_id;
 
   -- 6. Handle Platform Commission (Consultant -> Platform 20%) ----------------
+  -- First, create the commission calculation
+  INSERT INTO commission_calculations (
+    project_id, 
+    user_id,
+    referral_relationship_id,
+    calculation_base_amount, 
+    commission_rate, 
+    commission_amount, 
+    commission_type, 
+    calculated_at
+  ) VALUES (
+    v_project.id, 
+    v_sys_revenue_id,
+    NULL, -- No referral relationship for platform commission
+    v_total_contract_value::integer, 
+    v_platform_rate::numeric(5,4), 
+    v_platform_commission::integer, 
+    'project-to-platform', -- Changed to match constraint
+    NOW()
+  ) RETURNING id INTO v_platform_calculation_id;
+
+  -- Then create the invoice with reference to the calculation
   INSERT INTO commission_invoices (
     user_id, 
     invoice_number, 
@@ -218,6 +220,7 @@ BEGIN
     to_entity_id, 
     to_entity_type, 
     invoice_type,
+    commission_calculation_id,
     notes
   ) VALUES (
     v_sys_revenue_id,
@@ -225,37 +228,17 @@ BEGIN
     'draft', 
     NOW(), 
     NOW() + interval '30 days',
-    v_platform_commission, 
-    v_platform_commission, 
+    v_platform_commission::integer, 
+    v_platform_commission::integer, 
     'USD',
     v_consultant_id, 
     v_consultant_role, 
     v_sys_revenue_id, 
     'platform', 
     'platform_commission',
+    v_platform_calculation_id,
     'Platform Fee for Project Settlement: ' || v_project.id
   ) RETURNING id INTO v_platform_invoice_id;
-
-  -- Record Platform Commission Calculation
-  INSERT INTO commission_calculations (
-    project_id, 
-    user_id, 
-    calculation_base_amount, 
-    commission_rate, 
-    commission_amount, 
-    commission_type, 
-    commission_invoice_id, 
-    calculated_at
-  ) VALUES (
-    v_project.id, 
-    v_sys_revenue_id,
-    v_total_contract_value, 
-    v_platform_rate, 
-    v_platform_commission,
-    'platform_commission', 
-    v_platform_invoice_id, 
-    NOW()
-  );
 
   -- 7. Handle Referral Commission (Platform -> Referrer) -----------------------
   SELECT * INTO v_referral
@@ -271,7 +254,7 @@ BEGIN
     
     SELECT role INTO v_referrer_role FROM users WHERE id = v_referrer_id;
 
-    -- Normalize Referrer Role
+    -- Normalize Referrer Role and determine commission type
     v_referrer_role := CASE 
       WHEN v_referrer_role = 'admin' THEN 'platform' 
       WHEN v_referrer_role = 'seller' THEN 'seller'
@@ -279,61 +262,81 @@ BEGIN
       ELSE 'client' 
     END;
 
-    -- Generate Invoice: Platform -> Referrer
-    INSERT INTO commission_invoices (
-      user_id, 
-      invoice_number, 
-      status, 
-      invoice_date, 
-      due_date, 
-      sub_total, 
-      total_amount, 
-      currency, 
-      from_entity_id, 
-      from_entity_type, 
-      to_entity_id, 
-      to_entity_type, 
-      invoice_type,
-      notes
-    ) VALUES (
-      v_referrer_id,
-      'REF-PROJ-' || floor(extract(epoch from now())) || '-' || floor(random() * 1000), 
-      'draft', 
-      NOW(), 
-      NOW() + interval '30 days',
-      v_referrer_commission, 
-      v_referrer_commission, 
-      'USD',
-      v_sys_central_id, 
-      'platform', 
-      v_referrer_id, 
-      v_referrer_role, 
-      v_referrer_role || '_commission',
-      'Referral Reward for Project Settlement: ' || v_project.id
-    ) RETURNING id INTO v_referrer_invoice_id;
+    -- Determine commission type based on referrer role
+    DECLARE
+      v_commission_type text;
+      v_invoice_type text;
+    BEGIN
+      v_commission_type := CASE v_referrer_role
+        WHEN 'consultant' THEN 'platform-to-consultant'
+        WHEN 'seller' THEN 'platform-to-seller'
+        WHEN 'client' THEN 'platform-to-client'
+        ELSE 'platform-to-consultant' -- default
+      END;
+      
+      v_invoice_type := CASE v_referrer_role
+        WHEN 'consultant' THEN 'consultant_commission'
+        WHEN 'seller' THEN 'seller_commission'
+        WHEN 'client' THEN 'client_commission'
+        ELSE 'consultant_commission' -- default
+      END;
 
-    -- Record Referral Calculation
-    INSERT INTO commission_calculations (
-      project_id, 
-      user_id, 
-      calculation_base_amount, 
-      commission_rate, 
-      commission_amount, 
-      commission_type, 
-      commission_invoice_id, 
-      referral_relationship_id, 
-      calculated_at
-    ) VALUES (
-      v_project.id, 
-      v_referrer_id,
-      v_total_contract_value, 
-      v_referrer_rate, 
-      v_referrer_commission,
-      'referral', 
-      v_referrer_invoice_id, 
-      v_referral.id, 
-      NOW()
-    );
+      -- First, create the referral commission calculation
+      INSERT INTO commission_calculations (
+        project_id, 
+        user_id,
+        referral_relationship_id,
+        calculation_base_amount, 
+        commission_rate, 
+        commission_amount, 
+        commission_type, 
+        calculated_at
+      ) VALUES (
+        v_project.id, 
+        v_referrer_id,
+        v_referral.id,
+        v_total_contract_value::integer, 
+        v_referrer_rate::numeric(5,4), 
+        v_referrer_commission::integer, 
+        v_commission_type,
+        NOW()
+      ) RETURNING id INTO v_referrer_calculation_id;
+
+      -- Then create the invoice with reference to the calculation
+      INSERT INTO commission_invoices (
+        user_id, 
+        invoice_number, 
+        status, 
+        invoice_date, 
+        due_date, 
+        sub_total, 
+        total_amount, 
+        currency, 
+        from_entity_id, 
+        from_entity_type, 
+        to_entity_id, 
+        to_entity_type, 
+        invoice_type,
+        commission_calculation_id,
+        notes
+      ) VALUES (
+        v_referrer_id,
+        'REF-PROJ-' || floor(extract(epoch from now())) || '-' || floor(random() * 1000), 
+        'draft', 
+        NOW(), 
+        NOW() + interval '30 days',
+        v_referrer_commission::integer, 
+        v_referrer_commission::integer, 
+        'USD',
+        v_sys_central_id, 
+        'platform', 
+        v_referrer_id, 
+        v_referrer_role, 
+        v_invoice_type,
+        v_referrer_calculation_id,
+        'Referral Reward for Project Settlement: ' || v_project.id
+      ) RETURNING id INTO v_referrer_invoice_id;
+    END;
   END IF;
 
   -- 8. Finalize Project Status -------------------------------------------------
@@ -348,5 +351,3 @@ BEGIN
   );
 END;
 $$;
-
-

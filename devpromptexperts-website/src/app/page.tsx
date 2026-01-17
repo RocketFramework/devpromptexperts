@@ -123,7 +123,7 @@ export default function HomePage() {
                 Featured AI Experts
               </h2>
               <p className="text-xl text-slate-400 font-medium leading-relaxed max-w-2xl">
-                Work with the industry's top 1% of AI and prompt engineering professionals, vetted for their expertise and proven track record.
+                Work with the industry&#39;s top 1% of AI and prompt engineering professionals, vetted for their expertise and proven track record.
               </p>
             </div>
             <Link href="/findconsultants" className="hidden md:block">

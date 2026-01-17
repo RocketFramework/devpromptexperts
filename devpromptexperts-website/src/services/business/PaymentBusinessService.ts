@@ -25,7 +25,7 @@ export class PaymentBusinessService {
 
       console.log('Payment processed successfully via RPC:', data);
       return { success: true, data };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to confirm payment:', err);
       throw err;
     }

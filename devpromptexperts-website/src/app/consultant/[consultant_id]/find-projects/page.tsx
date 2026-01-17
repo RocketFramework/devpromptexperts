@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ExtendedProjectRequestsService } from "@/services/extended/ExtendedProjectRequestsService";
 import { ExtendedConsultantsService } from "@/services/extended/ExtendedConsultantsService";
@@ -13,7 +13,7 @@ import {
   HiSearch,
   HiOutlineClipboardList,
 } from "react-icons/hi";
-import { ProjectRequests, Consultants } from "@/services/generated";
+import { ProjectRequests } from "@/services/generated";
 
 type ProjectWithMatch = ProjectRequests & {
   response_count: number;
@@ -50,12 +50,7 @@ export default function FindProjectsPage() {
       }
 
       // 2. Fetch Consultant (Optional for display, needed for matching)
-      let consultantData = null;
-      try {
-        consultantData = await ExtendedConsultantsService.findByUser_Id(consultantId);
-      } catch (err) {
-        console.warn("Error loading consultant profile (might not exist):", err);
-      }
+      const consultantData = await ExtendedConsultantsService.findByUser_Id(consultantId);
 
       // Calculate match scores
       const scoredProjects = projectsData.map((project) => {
@@ -64,8 +59,9 @@ export default function FindProjectsPage() {
 
         // Skill Match
         if (project.required_skills && consultantData?.expertise) {
+          const expertise = consultantData.expertise;
           const matchedSkills = project.required_skills.filter((skill: string) =>
-            consultantData.expertise.includes(skill)
+            expertise.includes(skill)
           );
           if (matchedSkills.length > 0) {
             score += matchedSkills.length * 10;
@@ -75,8 +71,9 @@ export default function FindProjectsPage() {
 
         // Industry Match
         if (project.preferred_industries && consultantData?.industries) {
+          const industries = consultantData.industries;
           const matchedIndustries = project.preferred_industries.filter((ind: string) =>
-            consultantData.industries.includes(ind)
+            industries.includes(ind)
           );
           if (matchedIndustries.length > 0) {
             score += matchedIndustries.length * 5;
