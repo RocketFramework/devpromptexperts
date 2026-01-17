@@ -29,7 +29,7 @@ interface ProjectsIntelligenceProps {
 
 export default function ProjectsIntelligence(data: ProjectsIntelligenceProps) {
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="w-full">
       <div className="max-w-7xl mx-auto">
         {/* Header with advanced filters */}
         <div className="flex justify-between items-center mb-8">
@@ -49,7 +49,7 @@ export default function ProjectsIntelligence(data: ProjectsIntelligenceProps) {
               <h3 className="font-semibold text-slate-900">Project Health</h3>
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
             </div>
-            <PerformanceGauge 
+            <PerformanceGauge
               value={data.project_success_rate * 100}
               size="lg"
             />
@@ -71,11 +71,10 @@ export default function ProjectsIntelligence(data: ProjectsIntelligenceProps) {
                   <span className="text-slate-600">Avg Project Value</span>
                   <div className="text-right">
                     <span className="font-semibold block">{formatCurrency(data.average_project_contract_value)}</span>
-                    <span className={`text-xs ${
-                      calculateTrend(data.average_project_contract_value_this_month, data.average_project_contract_value_last_month).startsWith('+') 
-                        ? 'text-green-600' 
+                    <span className={`text-xs ${calculateTrend(data.average_project_contract_value_this_month, data.average_project_contract_value_last_month).startsWith('+')
+                        ? 'text-green-600'
                         : 'text-red-600'
-                    }`}>
+                      }`}>
                       {calculateTrend(data.average_project_contract_value_this_month, data.average_project_contract_value_last_month)}
                     </span>
                   </div>

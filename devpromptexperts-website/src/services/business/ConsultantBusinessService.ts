@@ -6,6 +6,7 @@ import {
   ExtendedConnectedObPartnerMeetsService,
   UserWithFullRelations,
 } from "@/services/extended";
+import { supabase } from "@/lib/supabase";
 import { ConsultantDTO } from "@/types/dtos/Consultant.dto";
 import {
   UsersService,
@@ -214,6 +215,7 @@ export class ConsultantsBusinessService {
       availability,
       founderBenefits,
       onboardingTier,
+      paymentMethods,
     } = onboardingData;
 
     const count = await RpcBusinessService.getNextFounderProfessionalCount();
@@ -244,6 +246,7 @@ export class ConsultantsBusinessService {
       advisory_interest: founderBenefits.wantAdvisoryRole,
       referred_by: existingConsultant?.referred_by,
       special_requests: founderBenefits.specialRequests,
+      payment_methods: paymentMethods || null,
       onboarding_tier: onboardingTier?.selectedTier as string,
       probation_completed:
         existingConsultant?.stage === UserStages.PROBATION_DONE ||
@@ -461,6 +464,7 @@ export class ConsultantsBusinessService {
         duration: 90,
         probationTermsAccepted: consultant.probation_completed || false,
       },
+      paymentMethods: consultant.payment_methods || null,
     };
   }
 
@@ -582,6 +586,7 @@ export class ConsultantsBusinessService {
       founderBenefits,
       onboardingTier,
       probation,
+      paymentMethods,
     } = onboardingData;
 
     return {
@@ -614,6 +619,7 @@ export class ConsultantsBusinessService {
       advisory_interest: founderBenefits.wantAdvisoryRole,
       referral_contacts: founderBenefits.referralContacts,
       special_requests: founderBenefits.specialRequests,
+      payment_methods: paymentMethods || null,
 
       // Onboarding Tier & Probation
       onboarding_tier: onboardingTier?.selectedTier,
@@ -636,5 +642,36 @@ export class ConsultantsBusinessService {
         onboardingTier?.selectedTier === "general" ? 3 : 0, // Example logic
       active_referrals_count: 0,
     };
+  }
+
+  static async getConsultantPublicProfile(consultantId: string) {
+    try {
+      // 1. Fetch consultant with user details
+      const consultant = await ExtendedConsultantsService.findByUser_Id(consultantId);
+      
+      if (!consultant) {
+        return null;
+      }
+
+      const user = await UsersService.findById(consultantId);
+
+      // 2. Fetch projects
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('consultant_id', consultantId)
+        .order('end_date', { ascending: false });
+
+      return {
+        consultant: {
+          ...consultant,
+          user: user
+        },
+        projects: projects || []
+      };
+    } catch (error) {
+      console.error('Error fetching consultant public profile:', error);
+      throw error;
+    }
   }
 }

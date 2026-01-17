@@ -109,7 +109,7 @@ export default function Breadcrumbs() {
       "@type": "ListItem",
       position: index + 1,
       name: crumb.label,
-      item: crumb.isNavigable ? `${typeof window !== "undefined" ? window.location.origin : ""}${crumb.href}` : undefined,
+      item: crumb.isNavigable ? crumb.href : undefined,
     })),
   };
 

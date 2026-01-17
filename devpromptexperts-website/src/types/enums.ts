@@ -6,6 +6,24 @@ export enum ProjectMode {
   CONSULTATION = 'consultation'
 }
 
+export enum ProjectStatus {
+  ACTIVE = 'active',
+  IN_PROGRESS = 'in-progress',
+  FAILED = 'failed',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
+}
+
+export enum PaymentTermTypes {
+    FIXED_PRICE = "Fixed Price",
+    MILESTONE_BASED = "Milestone-based",
+    HOURLY = "Time & Materials (Hourly)",
+    MONTHLY_RETAINER = "Monthly Retainer",
+    UPFRONT_COMPLETION = "Upfront + Completion",
+    NET_30 = "Net 30",
+    CUSTOM = "Custom"
+}
+
 export enum ProjectResponseStatus {
   DRAFT = "draft",
   OPEN = "open",
@@ -78,4 +96,23 @@ export enum PreferredContactMethod {
   EMAIL = 'email',
   PHONE = 'phone',
   BOTH = 'both'
+}
+
+export enum ProjectMilestoneStatus {
+  PENDING = 'pending',
+  IN_PROGRESS = 'in-progress',
+  COMPLETED = 'completed',
+  SUBMITTED = 'submitted',
+  DISPUTED = 'disputed',
+  CANCELLED = 'cancelled',
+  DELAYED = 'delayed',
+  PAYMENT_CONFIRMED = 'payment-confirmed'
+}
+
+export enum ProjectCommunicationType {
+  MESSAGE = 'message',
+  UPDATE = 'update',
+  MILESTONE_SUBMISSION = 'milestone-submission',
+  FILE = 'file',
+  SYSTEM = 'system'
 }

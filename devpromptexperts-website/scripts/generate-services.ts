@@ -524,6 +524,7 @@ function getTablesFromFallback(): string[] {
     "consultant_reviews",
     "consultants",
     "interview_slots",
+    "notifications",
     "ob_partners",
     "project_communications",
     "project_milestones",

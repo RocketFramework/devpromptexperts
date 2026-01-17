@@ -6,13 +6,14 @@ import { ExtendedProjectRequestsService } from "@/services/extended/ExtendedProj
 import { supabase } from "@/lib/supabase";
 import { HiArrowLeft, HiCurrencyDollar, HiClock } from "react-icons/hi";
 import { ProjectRequests, ProjectResponses } from "@/services/generated";
+import { ProjectRequestStatus } from "@/types/enums";
 
 export default function RespondToProjectPage() {
   const params = useParams();
   const router = useRouter();
   const consultantId = params.consultant_id as string;
   const projectId = params.project_id as string;
-  
+
   const [project, setProject] = useState<ProjectRequests | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +43,7 @@ export default function RespondToProjectPage() {
         .select('*')
         .eq('id', projectId)
         .single();
-      
+
       if (projectError) throw projectError;
       setProject(projectData);
 
@@ -82,7 +83,7 @@ export default function RespondToProjectPage() {
         proposed_budget: parseFloat(formData.proposed_budget),
         proposed_timeline: formData.proposed_timeline,
         proposed_solution: formData.proposed_solution,
-        status: 'submitted',
+        status: ProjectRequestStatus.OPEN,
         submitted_at: new Date().toISOString(),
       };
 
@@ -143,9 +144,23 @@ export default function RespondToProjectPage() {
             <p className="text-gray-500 dark:text-gray-400">
               For: <span className="font-medium text-gray-900 dark:text-white">{project.title}</span>
             </p>
+            {project.deadline && new Date(project.deadline) < new Date() && (
+              <div className="mt-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <HiClock className="h-5 w-5 text-red-500" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700 dark:text-red-200">
+                      The submission deadline for this project has passed. You can no longer submit a proposal.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="mt-4 flex gap-4 text-sm text-gray-600 dark:text-gray-300">
-              <span className="flex items-center"><HiCurrencyDollar className="mr-1 h-4 w-4"/> Budget: {project.budget_range}</span>
-              <span className="flex items-center"><HiClock className="mr-1 h-4 w-4"/> Timeline: {project.timeline}</span>
+              <span className="flex items-center"><HiCurrencyDollar className="mr-1 h-4 w-4" /> Budget: {project.budget_range}</span>
+              <span className="flex items-center"><HiClock className="mr-1 h-4 w-4" /> Timeline: {project.timeline}</span>
             </div>
           </div>
 
@@ -222,7 +237,7 @@ export default function RespondToProjectPage() {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (!!project.deadline && new Date(project.deadline) < new Date())}
                 className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Submitting..." : (existingResponse ? "Update Proposal" : "Submit Proposal")}

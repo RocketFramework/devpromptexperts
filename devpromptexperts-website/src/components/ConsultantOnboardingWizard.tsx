@@ -46,7 +46,7 @@ export default function ConsultantOnboardingWizard() {
       image: session?.user?.image || "",
       role: session?.user?.role || UserRoles.CONSULTANT,
       founderNumber: 0,
-      interviewSlotId: "",  
+      interviewSlotId: "",
       interviewDate: "",
       interviewEndTime: "",
       interviewStartTime: "",
@@ -100,7 +100,8 @@ export default function ConsultantOnboardingWizard() {
   ) => {
     setOnboardingData((prev) => ({
       ...prev,
-      [step]: { ...prev[step], ...data },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [step]: { ...(prev[step] as any), ...data },
     }));
   };
 
@@ -371,13 +372,12 @@ export default function ConsultantOnboardingWizard() {
             {[1, 2, 3, 4, 5, 6, 7, 8].map((step) => (
               <div key={step} className="flex flex-col items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step === currentStep
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === currentStep
                       ? "bg-blue-600 text-white"
                       : step < currentStep
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
                 >
                   {step < currentStep ? "✓" : step}
                 </div>

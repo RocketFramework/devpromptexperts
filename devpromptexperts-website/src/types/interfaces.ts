@@ -15,6 +15,13 @@ export interface PaginatedConsultantsResponse {
   hasPrevPage: boolean;
 }
 
+export interface PaymentMethod {
+  id: string;
+  type: string;
+  details: string;
+  isPrimary: boolean;
+}
+
 export interface SearchParams {
   page?: number;
   limit?: number;
@@ -185,6 +192,7 @@ export interface OnboardingSubmissionData {
     duration: number;
     probationTermsAccepted: boolean;
   };
+  paymentMethods?: Json | null;
 }
 
 export interface UpsertPayload {

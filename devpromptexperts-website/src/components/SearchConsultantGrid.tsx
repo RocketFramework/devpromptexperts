@@ -1,12 +1,14 @@
 // components/consultants/ConsultantGrid.tsx
 import { ConsultantDTO as Consultant } from '@/types/dtos/Consultant.dto';
 import SearchConsultantCard from './SearchConsultantCard';
+import SearchConsultantListCard from './SearchConsultantListCard';
 
 interface SearchConsultantGridProps {
   consultants: Consultant[];
+  viewMode?: 'grid' | 'list';
 }
 
-export default function SearchConsultantGrid({ consultants }: SearchConsultantGridProps) {
+export default function SearchConsultantGrid({ consultants, viewMode = 'grid' }: SearchConsultantGridProps) {
   if (consultants.length === 0) {
     return (
       <div className="text-center py-12">
@@ -17,8 +19,18 @@ export default function SearchConsultantGrid({ consultants }: SearchConsultantGr
     );
   }
 
+  if (viewMode === 'list') {
+    return (
+      <div className="flex flex-col gap-4 pb-12">
+        {consultants.map(consultant => (
+          <SearchConsultantListCard key={consultant.user_id} consultant={consultant} />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
       {consultants.map(consultant => (
         <SearchConsultantCard key={consultant.user_id} consultant={consultant} />
       ))}

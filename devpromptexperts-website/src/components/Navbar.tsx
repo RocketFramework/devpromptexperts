@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FaBars,
   FaTimes,
@@ -12,6 +12,9 @@ import {
   FaBell,
   FaGraduationCap,
 } from "react-icons/fa";
+import { supabase } from "@/lib/supabase";
+import { NotificationService, Notification } from "@/services/business/NotificationService";
+import NotificationDropdown from "./notifications/NotificationDropdown";
 
 // Navigation configuration - KEEP EXISTING
 const getMainNavigation = (userRole: string) => {
@@ -24,7 +27,7 @@ const getMainNavigation = (userRole: string) => {
 
   if (userRole !== "consultant") {
     baseLinks.splice(2, 0, {
-      href: "/onboarding",
+      href: "/consultant",
       label: "Become a Consultant",
     });
   }
@@ -37,7 +40,7 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
     consultant: [
       {
         name: "Dashboard",
-        href: `/consultant/ /dashboard`,
+        href: `/consultant/${userId}/dashboard`,
         icon: "📊",
       },
       {
@@ -52,13 +55,18 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
       },
       {
         name: "Earnings",
-        href: `/consultant/${userId}/dashboard/earnings`,
+        href: `/consultant/${userId}/earnings`,
         icon: "💰",
       },
       {
         name: "Network",
         href: `/consultant/${userId}/dashboard/network`,
         icon: "👥",
+      },
+      {
+        name: "Settings",
+        href: `/consultant/${userId}/settings`,
+        icon: "⚙️",
       },
     ],
     client: [
@@ -72,6 +80,16 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         href: `/findconsultants`,
         icon: "🔍",
       },
+      {
+        name: "Earnings",
+        href: `/client/${userId}/earnings`,
+        icon: "💰",
+      },
+      {
+        name: "Settings",
+        href: `/client/${userId}/settings`,
+        icon: "⚙️",
+      },
     ],
     seller: [
       {
@@ -83,6 +101,16 @@ const getDashboardNavigation = (userRole: string, userId?: string) => {
         name: "Commissions",
         href: `/seller/commissions`,
         icon: "💸",
+      },
+      {
+        name: "Earnings",
+        href: `/seller/${userId}/earnings`,
+        icon: "💰",
+      },
+      {
+        name: "Settings",
+        href: `/seller/${userId}/settings`,
+        icon: "⚙️",
       },
     ],
   };
@@ -106,8 +134,13 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); 
-  const [inductionProgress, setInductionProgress] = useState<{completed: number; total: number} | null>(null);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [inductionProgress, setInductionProgress] = useState<{ completed: number; total: number } | null>(null);
+
+  // Notification State
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   const userRole = session?.user?.role || "client";
   const userId = session?.user?.id || "";
@@ -115,13 +148,78 @@ export default function Navbar() {
   const mainNavigation = getMainNavigation(userRole);
   const dashboardNavigation = getDashboardNavigation(userRole, userId);
 
-  // Mock induction progress
+  // Fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      setLoadingNotifications(true);
+      const [data, count] = await Promise.all([
+        NotificationService.getUserNotifications(userId),
+        NotificationService.getUnreadCount(userId)
+      ]);
+
+      setNotifications(data);
+      setUnreadCount(count);
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, [userId]);
+
+  // Initial load and Real-time subscription
+  useEffect(() => {
+    if (userId) {
+      fetchNotifications();
+
+      // Subscribe to real-time changes
+      const channel = supabase
+        .channel('public:notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            console.log('Notification update received:', payload);
+            fetchNotifications(); // Refresh list on any change
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [userId, fetchNotifications]);
+
+  // Mock induction progress (Keep existing logic for now, or move to notifications too)
   useEffect(() => {
     if (session?.user?.id) {
       // Mock data - replace with actual API call
-      setInductionProgress({completed: 1, total: 4});
+      setInductionProgress({ completed: 1, total: 4 });
     }
   }, [session]);
+
+  const handleMarkAsRead = async (id: string) => {
+    // Optimistic update
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+
+    await NotificationService.markAsRead(id);
+  };
+
+  const handleMarkAllAsRead = async () => {
+    // Optimistic update
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+
+    await NotificationService.markAllAsRead(userId);
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -149,7 +247,7 @@ export default function Navbar() {
   };
 
   // Check if induction is incomplete
-  const hasIncompleteInduction = inductionProgress && 
+  const hasIncompleteInduction = inductionProgress &&
     inductionProgress.completed < inductionProgress.total;
 
   // Close dropdowns when clicking outside
@@ -216,70 +314,29 @@ export default function Navbar() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsNotificationsOpen(!isNotificationsOpen);
+                      if (!isNotificationsOpen) {
+                        // Mark as read when opening? Or maybe just let user click individual items.
+                        // For now, we'll keep unread status until interaction.
+                      }
                     }}
                   >
                     <FaBell className="text-lg" />
-                    {hasIncompleteInduction && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                        {inductionProgress.total - inductionProgress.completed}
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse">
+                        {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </button>
 
                   {/* Notifications Dropdown */}
                   {isNotificationsOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-80 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200">
-                      <div className="p-4 border-b border-slate-200">
-                        <h3 className="font-semibold text-sm">Notifications</h3>
-                      </div>
-                      
-                      {/* Induction Notification */}
-                      {hasIncompleteInduction && (
-                        <div className="p-4 border-b border-slate-100">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-8 h-8 bg-linear-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center mt-1">
-                              <FaGraduationCap className="text-white text-sm" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="font-semibold text-sm">Complete Your Induction</p>
-                                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">
-                                  {inductionProgress.completed}/{inductionProgress.total}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-600 mb-3">
-                                Finish your induction to unlock all platform features
-                              </p>
-                              <Link
-                                href={`/${userRole}/induction`}
-                                className="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3 py-2 rounded-lg font-medium transition"
-                                onClick={closeAllMenus}
-                              >
-                                Continue Induction
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Empty State */}
-                      {!hasIncompleteInduction && (
-                        <div className="p-8 text-center">
-                          <FaBell className="text-gray-400 text-2xl mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">No new notifications</p>
-                        </div>
-                      )}
-
-                      <div className="p-2 border-t border-slate-200">
-                        <Link
-                          href="/notifications"
-                          className="block text-center text-xs text-blue-600 hover:text-blue-700 py-2"
-                          onClick={closeAllMenus}
-                        >
-                          View All Notifications
-                        </Link>
-                      </div>
-                    </div>
+                    <NotificationDropdown
+                      notifications={notifications}
+                      isLoading={loadingNotifications}
+                      onMarkAsRead={handleMarkAsRead}
+                      onMarkAllAsRead={handleMarkAllAsRead}
+                      onClose={() => setIsNotificationsOpen(false)}
+                    />
                   )}
                 </div>
 
@@ -364,11 +421,10 @@ export default function Navbar() {
                           <span className="text-base">🎓</span>
                           <span>Induction</span>
                           {inductionProgress && (
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              inductionProgress.completed >= inductionProgress.total 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-amber-100 text-amber-800'
-                            }`}>
+                            <span className={`text-xs px-2 py-1 rounded-full ${inductionProgress.completed >= inductionProgress.total
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-amber-100 text-amber-800'
+                              }`}>
                               {inductionProgress.completed}/{inductionProgress.total}
                             </span>
                           )}
@@ -377,14 +433,6 @@ export default function Navbar() {
 
                       {/* Settings & Sign Out */}
                       <div className="p-2">
-                        <Link
-                          href="/settings"
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-slate-100 rounded transition"
-                          onClick={closeAllMenus}
-                        >
-                          <span>⚙️</span>
-                          <span>Settings</span>
-                        </Link>
                         <button
                           onClick={handleSignOut}
                           className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition mt-2"
@@ -401,7 +449,7 @@ export default function Navbar() {
               // Not logged in - Desktop (unchanged)
               <div className="hidden md:flex items-center space-x-4">
                 <div className="relative auth-dropdown">
-                  <button 
+                  <button
                     className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition flex items-center space-x-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -411,27 +459,27 @@ export default function Navbar() {
                     <span>Sign In</span>
                     <FaChevronDown className="text-xs" />
                   </button>
-                  
+
                   {isAuthDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 w-72 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-slate-200 py-2">
-                      <Link 
-                        href="/auth/login/client" 
+                      <Link
+                        href="/auth/login/client"
                         className="flex items-center space-x-4 px-4 py-3 hover:bg-slate-100 transition text-sm"
                         onClick={closeAllMenus}
                       >
                         <span className="text-lg">👤</span>
                         <span className="font-medium">Client Login</span>
                       </Link>
-                      <Link 
-                        href="/auth/login/consultant" 
+                      <Link
+                        href="/auth/login/consultant"
                         className="flex items-center space-x-4 px-4 py-3 hover:bg-slate-100 transition text-sm"
                         onClick={closeAllMenus}
                       >
                         <span className="text-lg">💼</span>
                         <span className="font-medium">Consultant Login</span>
                       </Link>
-                      <Link 
-                        href="/auth/login/seller" 
+                      <Link
+                        href="/auth/login/seller"
                         className="flex items-center space-x-4 px-4 py-3 hover:bg-slate-100 transition text-sm"
                         onClick={closeAllMenus}
                       >
@@ -599,16 +647,7 @@ export default function Navbar() {
                       </div>
                     </div>
 
-                    <div className="space-y-2 mb-3">
-                      <Link
-                        href="/settings"
-                        className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gray-600 hover:bg-gray-700 rounded transition"
-                        onClick={closeAllMenus}
-                      >
-                        <span>⚙️</span>
-                        <span>Settings</span>
-                      </Link>
-                    </div>
+
 
                     <button
                       onClick={handleSignOut}

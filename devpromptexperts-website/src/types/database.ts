@@ -799,6 +799,7 @@ export type Database = {
           notice_period: string | null
           onboarding_completed_at: string | null
           onboarding_tier: string | null
+          payment_methods: Json | null
           portfolio_url: string | null
           preferred_engagement_type: string[] | null
           probation_completed: boolean | null
@@ -839,6 +840,7 @@ export type Database = {
           notice_period?: string | null
           onboarding_completed_at?: string | null
           onboarding_tier?: string | null
+          payment_methods?: Json | null
           portfolio_url?: string | null
           preferred_engagement_type?: string[] | null
           probation_completed?: boolean | null
@@ -879,6 +881,7 @@ export type Database = {
           notice_period?: string | null
           onboarding_completed_at?: string | null
           onboarding_tier?: string | null
+          payment_methods?: Json | null
           portfolio_url?: string | null
           preferred_engagement_type?: string[] | null
           probation_completed?: boolean | null
@@ -935,6 +938,50 @@ export type Database = {
           uuid_id?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string
+          metadata: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ob_partners: {
         Row: {
@@ -1080,6 +1127,7 @@ export type Database = {
           completed_date: string | null
           completion_proof: string | null
           created_at: string | null
+          definition_of_done: string | null
           description: string | null
           due_date: string
           id: string
@@ -1096,6 +1144,7 @@ export type Database = {
           completed_date?: string | null
           completion_proof?: string | null
           created_at?: string | null
+          definition_of_done?: string | null
           description?: string | null
           due_date: string
           id?: string
@@ -1112,6 +1161,7 @@ export type Database = {
           completed_date?: string | null
           completion_proof?: string | null
           created_at?: string | null
+          definition_of_done?: string | null
           description?: string | null
           due_date?: string
           id?: string
@@ -1152,6 +1202,7 @@ export type Database = {
           payment_type: string
           platform_commission_rate: number | null
           project_id: string
+          project_milestone_id: string | null
           status: string
           transaction_id: string | null
           updated_at: string | null
@@ -1168,6 +1219,7 @@ export type Database = {
           payment_type?: string
           platform_commission_rate?: number | null
           project_id: string
+          project_milestone_id?: string | null
           status?: string
           transaction_id?: string | null
           updated_at?: string | null
@@ -1184,6 +1236,7 @@ export type Database = {
           payment_type?: string
           platform_commission_rate?: number | null
           project_id?: string
+          project_milestone_id?: string | null
           status?: string
           transaction_id?: string | null
           updated_at?: string | null
@@ -1201,6 +1254,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_payments_project_milestone_id_fkey"
+            columns: ["project_milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
             referencedColumns: ["id"]
           },
         ]
@@ -1442,7 +1502,7 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "projects_consultant_id_fkey"
@@ -2060,6 +2120,17 @@ export type Database = {
         }[]
       }
       complete_onboarding: { Args: { p_user_id: string }; Returns: Json }
+      create_notification: {
+        Args: {
+          p_link: string
+          p_message: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       get_available_interview_slots: {
         Args: { target_partner_id: string }
         Returns: {
@@ -2082,10 +2153,30 @@ export type Database = {
           start_time: string
         }[]
       }
+      get_overdue_payments: {
+        Args: { min_days_overdue?: number }
+        Returns: {
+          amount: number
+          client_id: string
+          days_overdue: number
+          due_date: string
+          id: string
+        }[]
+      }
       get_random_available_partner_with_workload: {
         Args: never
         Returns: {
           partner_id: string
+        }[]
+      }
+      get_upcoming_payments: {
+        Args: { days_ahead?: number }
+        Returns: {
+          amount: number
+          client_id: string
+          days_until_due: number
+          due_date: string
+          id: string
         }[]
       }
       insert_partner_only_if_none: {
@@ -2099,6 +2190,8 @@ export type Database = {
           ob_partner_id: string
         }[]
       }
+      notify_overdue_payments: { Args: never; Returns: number }
+      send_payment_reminders: { Args: never; Returns: number }
       update_client_onboarding_progress: {
         Args: { p_step_data?: Json; p_user_id?: string }
         Returns: {
