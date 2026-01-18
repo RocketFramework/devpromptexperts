@@ -7,9 +7,7 @@ import {
   SocialProfile,
   UserStages,
   UserRole,
-  UserRoles,
   UserStage,
-  UserType,
 } from "@/types/";
 import { AuthSyncService } from "@/services/AuthSyncService";
 
@@ -21,7 +19,7 @@ export const authCallbacks = {
     email?: { verificationRequest?: boolean };
     credentials?: unknown;
   }) {
-    const { user, account } = params;
+    const { account } = params;
 
     console.log("🔍 Debug account.callbackUrl:", {
       callbackUrl: account?.callbackUrl,
@@ -41,8 +39,8 @@ export const authCallbacks = {
       try {
         const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
         const url = new URL(callbackUrlString, baseUrl);
-        const pendingRole = url.searchParams.get("pendingRole");
-      } catch (error) {
+        // const pendingRole = url.searchParams.get("pendingRole");
+      } catch {
         console.warn("Not a valid URL format, skipping:", callbackUrlString);
       }
     }
@@ -107,8 +105,8 @@ export const authCallbacks = {
 
         if (profile) {
           token.providerData = {
-            ...(token.providerData as any || {}),
-            [account.provider]: profile,
+            ...((token.providerData as Record<string, SocialProfile>) || {}),
+            [account.provider]: profile as SocialProfile,
           };
         }
       } catch (error: unknown) {
@@ -178,8 +176,8 @@ async function handleFallbackAuth(
   token: JWT,
   user: User | AdapterUser,
   account: Account | null,
-  profile: Profile | undefined,
-  error: unknown
+  _profile: Profile | undefined,
+  _error: unknown
 ) {
   const roleMap: Record<string, string> = {
     credentials: "admin",

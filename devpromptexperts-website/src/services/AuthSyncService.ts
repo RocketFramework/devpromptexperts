@@ -1,5 +1,5 @@
 // src/services/AuthSyncService.ts
-import { Account, User } from "next-auth";
+import { Account } from "next-auth";
 import {
   ExtendedUser,
   SocialProfile,
@@ -19,7 +19,6 @@ import {
   ConsultantsUpdate,
 } from "./generated/ConsultantsService";
 import { ClientsService } from "./generated/ClientsService";
-import { ExtendedUsersService } from "./extended/ExtendedUsersService";
 import { ExtendedClientsService } from "./extended/ExtendedClientsService";
 import { ExtendedConsultantsService } from "./extended/ExtendedConsultantsService";
 import { ProviderAccountsService } from "./generated/ProviderAccountsService";
@@ -230,20 +229,16 @@ export class AuthSyncService {
           await ConsultantsService.create(consultantData);
         }
       } else if (userRole === "client") {
-        // Check if client profile already exists
-        console.log("User user is found 1 %", userId);
         const existingClient = await ExtendedClientsService.findByUser_Id(
           userId
         );
-        console.log("User client called 2 ");
-        const clientData = {
-          ...existingClient,
-          user_id: userId,
-        };
 
         if (!existingClient) {
-          console.log("Client found %", userId);
-          await ClientsService.create(clientData);
+          await ClientsService.create({
+            user_id: userId,
+            company_name: "TBD", // Default value for NOT NULL constraint
+            stage: UserStages.BIO,
+          });
         }
       }
     } catch (error) {

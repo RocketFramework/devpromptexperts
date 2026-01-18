@@ -35,7 +35,7 @@ export const useSellerOnboarding = (): UseSellerOnboardingReturn => {
   const [loading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<SellerUser | null>(null);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const steps: OnboardingStep[] = [
     { id: "welcome", title: "Welcome", fields: [] },
