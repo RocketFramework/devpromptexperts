@@ -108,7 +108,7 @@ export class ExtendedProjectsService {
     return data as unknown as Project;
   }
 
-  static async findByConsultantId(consultant_id: string): Promise<Project[]> {
+  static async findByConsultantId(consultant_id: string, status: string = 'active'): Promise<Project[]> {
     const { data, error } = await supabase
       .from('projects')
       .select(`
@@ -126,7 +126,7 @@ export class ExtendedProjectsService {
         )
       `)
       .eq('consultant_id', consultant_id)
-      .eq('status', 'active')
+      .eq('status', status)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
