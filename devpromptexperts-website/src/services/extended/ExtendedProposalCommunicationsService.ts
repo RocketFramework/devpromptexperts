@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 
-export class ProposalCommunicationsService {
+export class ExtendedProposalCommunicationsService {
   static async getMessages(responseId: string) {
     const { data, error } = await supabase
       .from('proposal_communications')

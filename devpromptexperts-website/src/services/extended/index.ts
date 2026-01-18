@@ -9,5 +9,5 @@ export * from './ExtendedProjectsService';
 export * from './ExtendedProjectMilestonesService';
 export * from './ExtendedProjectCommunicationsService';
 export * from './ExtendedProjectPaymentsService';
-export * from './ProposalCommunicationsService';
+export * from './ExtendedProposalCommunicationsService';
 export * from './ProposalInterviewsService';

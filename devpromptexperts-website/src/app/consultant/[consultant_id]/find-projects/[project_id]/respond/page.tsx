@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ExtendedProjectRequestsService } from "@/services/extended/ExtendedProjectRequestsService";
 import { supabase } from "@/lib/supabase";
 import { HiArrowLeft, HiCurrencyDollar, HiClock } from "react-icons/hi";
 import { ProjectRequests, ProjectResponses } from "@/services/generated";
 import { ProjectRequestStatus } from "@/types/enums";
+import ProposalCommunications from "@/components/consultant/project/ProposalCommunications";
 
 export default function RespondToProjectPage() {
   const params = useParams();
@@ -18,6 +18,7 @@ export default function RespondToProjectPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingResponse, setExistingResponse] = useState<ProjectResponses | null>(null);
+  const [activeTab, setActiveTab] = useState<'proposal' | 'communication'>('proposal');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -52,7 +53,7 @@ export default function RespondToProjectPage() {
         .from('project_responses')
         .select('*')
         .eq('project_request_id', projectId)
-        .eq('consultant_id', consultantId) // Assuming consultant_id maps to user_id in consultants table
+        .eq('consultant_id', consultantId)
         .maybeSingle();
 
       if (!responseError && responseData) {
@@ -94,13 +95,19 @@ export default function RespondToProjectPage() {
           .eq('id', existingResponse.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('project_responses')
-          .insert(payload);
+          .insert(payload)
+          .select()
+          .single();
         if (error) throw error;
+        if (data) setExistingResponse(data);
       }
 
-      router.push(`/consultant/${consultantId}/find-projects`);
+      // Success feedback
+      alert("Response saved successfully.");
+      // Option to stay on page or navigate?
+      // router.push(`/consultant/${consultantId}/find-projects`);
     } catch (error) {
       console.error("Error submitting response:", error);
       alert("Failed to submit response. Please try again.");
@@ -126,7 +133,7 @@ export default function RespondToProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => router.back()}
@@ -136,114 +143,152 @@ export default function RespondToProjectPage() {
           Back to Projects
         </button>
 
-        <div className="bg-white dark:bg-gray-800 shadow rounded-2xl overflow-hidden">
-          <div className="p-8 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              {existingResponse ? "Edit Your Response" : "Submit Proposal"}
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              For: <span className="font-medium text-gray-900 dark:text-white">{project.title}</span>
-            </p>
-            {project.deadline && new Date(project.deadline) < new Date() && (
-              <div className="mt-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <HiClock className="h-5 w-5 text-red-500" aria-hidden="true" />
+        {/* Tabs */}
+        <div className="border-b border-gray-200 dark:border-gray-700 mb-6 font-primary">
+          <nav className="-mb-px flex space-x-8">
+            {['proposal', 'communication'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as 'proposal' | 'communication')}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors
+                  ${activeTab === tab
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  }
+                  ${tab === 'communication' && !existingResponse ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+                disabled={tab === 'communication' && !existingResponse}
+                title={tab === 'communication' && !existingResponse ? "Submit a proposal first to enable communication" : ""}
+              >
+                {tab}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 shadow rounded-2xl overflow-hidden min-h-[600px] flex flex-col">
+          {activeTab === 'proposal' ? (
+            <>
+              <div className="p-8 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {existingResponse ? "Edit Your Response" : "Submit Proposal"}
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400">
+                  For: <span className="font-medium text-gray-900 dark:text-white">{project.title}</span>
+                </p>
+                {project.deadline && new Date(project.deadline) < new Date() && (
+                  <div className="mt-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <HiClock className="h-5 w-5 text-red-500" aria-hidden="true" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-red-700 dark:text-red-200">
+                          The submission deadline for this project has passed. You can no longer submit a proposal.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700 dark:text-red-200">
-                      The submission deadline for this project has passed. You can no longer submit a proposal.
-                    </p>
-                  </div>
+                )}
+                <div className="mt-4 flex gap-4 text-sm text-gray-600 dark:text-gray-300">
+                  <span className="flex items-center"><HiCurrencyDollar className="mr-1 h-4 w-4" /> Budget: {project.budget_range}</span>
+                  <span className="flex items-center"><HiClock className="mr-1 h-4 w-4" /> Timeline: {project.timeline}</span>
                 </div>
               </div>
-            )}
-            <div className="mt-4 flex gap-4 text-sm text-gray-600 dark:text-gray-300">
-              <span className="flex items-center"><HiCurrencyDollar className="mr-1 h-4 w-4" /> Budget: {project.budget_range}</span>
-              <span className="flex items-center"><HiClock className="mr-1 h-4 w-4" /> Timeline: {project.timeline}</span>
-            </div>
-          </div>
 
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Cover Letter <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                required
-                rows={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="Introduce yourself and explain why you're a good fit..."
-                value={formData.cover_letter}
-                onChange={(e) => setFormData({ ...formData, cover_letter: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Proposed Solution
-              </label>
-              <textarea
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="Briefly outline your approach..."
-                value={formData.proposed_solution}
-                onChange={(e) => setFormData({ ...formData, proposed_solution: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Proposed Budget ($) <span className="text-red-500">*</span>
-                </label>
-                <div className="relative rounded-lg shadow-sm">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <span className="text-gray-500 sm:text-sm">$</span>
-                  </div>
-                  <input
-                    type="number"
+              <form onSubmit={handleSubmit} className="p-8 space-y-6 flex-1">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Cover Letter <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
                     required
-                    className="w-full pl-7 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    placeholder="0.00"
-                    value={formData.proposed_budget}
-                    onChange={(e) => setFormData({ ...formData, proposed_budget: e.target.value })}
+                    rows={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-shadow"
+                    placeholder="Introduce yourself and explain why you're a good fit..."
+                    value={formData.cover_letter}
+                    onChange={(e) => setFormData({ ...formData, cover_letter: e.target.value })}
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Proposed Timeline <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="e.g. 4 weeks"
-                  value={formData.proposed_timeline}
-                  onChange={(e) => setFormData({ ...formData, proposed_timeline: e.target.value })}
-                />
-              </div>
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Proposed Solution
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-shadow"
+                    placeholder="Briefly outline your approach..."
+                    value={formData.proposed_solution}
+                    onChange={(e) => setFormData({ ...formData, proposed_solution: e.target.value })}
+                  />
+                </div>
 
-            <div className="pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || (!!project.deadline && new Date(project.deadline) < new Date())}
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? "Submitting..." : (existingResponse ? "Update Proposal" : "Submit Proposal")}
-              </button>
-            </div>
-          </form>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Proposed Budget ($) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative rounded-lg shadow-sm">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <span className="text-gray-500 sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        required
+                        className="w-full pl-7 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="0.00"
+                        value={formData.proposed_budget}
+                        onChange={(e) => setFormData({ ...formData, proposed_budget: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Proposed Timeline <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      placeholder="e.g. 4 weeks"
+                      value={formData.proposed_timeline}
+                      onChange={(e) => setFormData({ ...formData, proposed_timeline: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || (!!project.deadline && new Date(project.deadline) < new Date())}
+                    className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-200 dark:shadow-none mr-0"
+                  >
+                    {isSubmitting ? "Submitting..." : (existingResponse ? "Update Proposal" : "Submit Proposal")}
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            existingResponse && (
+              <div className="flex-1 flex flex-col">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Proposal Discussion</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Direct channel with the client regarding this RFP</p>
+                </div>
+                <ProposalCommunications responseId={existingResponse.id} />
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
