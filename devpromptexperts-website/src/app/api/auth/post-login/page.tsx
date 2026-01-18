@@ -49,7 +49,7 @@ function PostLoginContent() {
             router.push(`/consultant/${user_id}/dashboard`);
             break;
           default:
-            router.push("/default-dashboard");
+            router.push("/consultant/onboarding");
         }
       } else if (userRole === UserRoles.CLIENT) {
         switch (userStage) {
@@ -64,7 +64,7 @@ function PostLoginContent() {
             router.push(`/client/${user_id}/dashboard`);
             break;
           default:
-            router.push("/default-dashboard");
+            router.push("/client/onboarding");
         }
       } else if (userRole === UserRoles.SELLER) {
         switch (userStage) {
@@ -79,7 +79,7 @@ function PostLoginContent() {
             router.push(`/seller/${user_id}/dashboard`);
             break;
           default:
-            router.push("/default-dashboard");
+            router.push("/seller/onboarding");
         }
       } else {
         // Handle ROLE_PENDING or unknown roles
