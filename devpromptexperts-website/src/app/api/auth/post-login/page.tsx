@@ -21,7 +21,6 @@ function PostLoginContent() {
       if (userRole === UserRoles.ROLE_PENDING) {
         userRole = (searchParams.get("pendingRole") as UserRole) || userRole;
       }
-
       const user_id = session.user.id;
       console.log(
         "Post-login redirect for role:",
@@ -64,6 +63,8 @@ function PostLoginContent() {
             router.push(`/client/${user_id}/dashboard`);
             break;
           default:
+            console.log("User role:", userRole);
+            console.log("User stage:", userStage);
             router.push("/client/onboarding");
         }
       } else if (userRole === UserRoles.SELLER) {

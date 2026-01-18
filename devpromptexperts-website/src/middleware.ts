@@ -31,6 +31,7 @@ export async function middleware(req: NextRequest) {
 
     if (baseRoute && userRole && baseRoute !== userRole) {
       // Redirect to their dashboard based on their role
+      console.log("Redirecting to", userRole);
       return NextResponse.redirect(new URL(`/${userRole}`, req.url));
     }
   }

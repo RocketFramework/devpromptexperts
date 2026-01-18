@@ -30,10 +30,12 @@ export class AuthSyncService {
     user,
     account,
     profile,
+    pendingRole,
   }: {
     user: ExtendedUser;
     account?: Account | null;
     profile?: SocialProfile | null;
+    pendingRole?: UserRole;
   }): Promise<{
     userId: string;
     role: UserRole;
@@ -56,7 +58,13 @@ export class AuthSyncService {
       const existingUser = (await UsersService.findByEmailWithAllRoleData(
         email
       )) as UserWithAllRoleData | null;
-      const role = (existingUser?.role || UserRoles.ROLE_PENDING) as UserRole; // Default to pending role
+      
+      let role = existingUser?.role as UserRole;
+
+      // If no role or role is pending, try to determine the correct role
+      if (!role || role === UserRoles.ROLE_PENDING) {
+        role = pendingRole || determineUserRole(account.provider) || UserRoles.ROLE_PENDING;
+      }
 
       let userData;
 
@@ -66,6 +74,7 @@ export class AuthSyncService {
           profile_image_url: profileImageUrl,
           country: country,
           last_sign_in: new Date().toISOString(),
+          role: role, // Ensure role is updated if it was pending
         });
       } else {
         userData = await UsersService.create({
@@ -95,7 +104,7 @@ export class AuthSyncService {
         userId,
         role,
         onboarded,
-        userStage: UserStages.NONE ? userStage : undefined ,
+        userStage: userStage !== UserStages.NONE ? userStage : undefined ,
         country,
         profileImageUrl,
       };
@@ -117,14 +126,16 @@ export class AuthSyncService {
     if (role === UserRoles.CONSULTANT) {
       //const onboardingStatus = await this.getQuickOnboardingStatus(userId);
       onboarded =
-        existingUser?.consultants?.stage !== UserStages.BIO ||
-        existingUser?.consultants?.stage !== null;
+        existingUser?.consultants?.stage !== UserStages.BIO &&
+        existingUser?.consultants?.stage !== null &&
+        existingUser?.consultants?.stage !== undefined;
       userStage = (existingUser?.consultants?.stage ||
         UserStages.BIO) as UserStage;
     } else if (role === UserRoles.CLIENT) {
       onboarded =
-        existingUser?.clients?.stage !== UserStages.BIO ||
-        existingUser?.clients?.stage !== null;
+        existingUser?.clients?.stage !== UserStages.BIO &&
+        existingUser?.clients?.stage !== null &&
+        existingUser?.clients?.stage !== undefined;
       userStage = (existingUser?.clients?.stage ||
         UserStages.BIO) as UserStage;
     } else if (role === UserRoles.SELLER) {

@@ -38,7 +38,7 @@ export default function LoginPage() {
       textColor: "text-gray-700",
       hoverColor: "hover:bg-gray-50",
       borderColor: "border border-gray-300",
-      callbackUrl: "/customer",
+      callbackUrl: "/client",
     },
     {
       id: "facebook",
@@ -48,7 +48,7 @@ export default function LoginPage() {
       textColor: "text-white",
       hoverColor: "hover:bg-[#166FE5]",
       borderColor: "",
-      callbackUrl: "/customer",
+      callbackUrl: "/client",
     },
     {
       id: "linkedin",
@@ -58,7 +58,7 @@ export default function LoginPage() {
       textColor: "text-white",
       hoverColor: "hover:bg-[#004182]",
       borderColor: "",
-      callbackUrl: "/customer",
+      callbackUrl: "/client",
     },
   ];
 

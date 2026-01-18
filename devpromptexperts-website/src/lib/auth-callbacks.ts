@@ -64,12 +64,25 @@ export const authCallbacks = {
     // Handle initial sign in
     if (account && user) {
       try {
+        // Extract pendingRole from callbackUrl if present
+        let pendingRole: UserRole | undefined;
+        if (account?.callbackUrl) {
+          try {
+            const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+            const url = new URL(String(account.callbackUrl), baseUrl);
+            const pr = url.searchParams.get("pendingRole");
+            if (pr) pendingRole = pr as UserRole;
+          } catch (error) {
+            console.warn("Failed to parse callbackUrl for pendingRole:", error);
+          }
+        }
 
         // Single call to handleUserSync that returns critical data
         const syncResult = await AuthSyncService.handleUserSync({
           user: user as ExtendedUser,
           account,
           profile: profile as SocialProfile,
+          pendingRole,
         });
 
         // Add critical data to token immediately
@@ -80,13 +93,8 @@ export const authCallbacks = {
         token.country = syncResult.country;
         token.image = syncResult.profileImageUrl;
 
-        // token.redirectData = {
-        //   role: syncResult.role,
-        //   consultantStage: syncResult.userStage,
-        //   timestamp: Date.now(),
-        // };
         console.log(
-          "🔑 JWT - % stage set:",syncResult.role,
+          "🔑 JWT - sync stage set:", syncResult.role,
           syncResult.userStage
         );
         // Your existing provider data logic
@@ -99,7 +107,7 @@ export const authCallbacks = {
 
         if (profile) {
           token.providerData = {
-            ...(token.providerData || {}),
+            ...(token.providerData as any || {}),
             [account.provider]: profile,
           };
         }
