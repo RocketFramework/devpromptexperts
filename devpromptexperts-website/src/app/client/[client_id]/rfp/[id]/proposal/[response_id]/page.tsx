@@ -107,15 +107,18 @@ export default function ProposalDetailPage() {
 		if (!response) return;
 		try {
 			setIsUpdating(true);
-			setNewStatus(ProjectResStatus.IN_REVIEW);
-			console.log("New Status:", newStatus);
-			const updatedResponse = await ExtendedProjectResponsesService.updateFeedback(responseId, rating, feedback, newStatus);
+			const statusToApply = (response.status === ProjectResStatus.ACCEPTED || response.status === ProjectResStatus.REJECTED)
+				? response.status
+				: ProjectResStatus.IN_REVIEW;
+
+			const updatedResponse = await ExtendedProjectResponsesService.updateFeedback(responseId, rating, feedback, statusToApply);
 			setResponse({
 				...response,
 				client_rating: updatedResponse.client_rating,
 				client_feedback: updatedResponse.client_feedback,
 				status: updatedResponse.status
 			});
+			setNewStatus(statusToApply);
 			setShowFeedbackForm(false);
 		} catch (error) {
 			console.error("Error submitting feedback:", error);
@@ -142,8 +145,11 @@ export default function ProposalDetailPage() {
 				meeting_password: data.meeting_password ?? undefined,
 			});
 
-			// Update status if needed
-			if (response && response.status !== ProjectResStatus.INTERVIEWING) {
+			// Update status if needed - but only if not already accepted or rejected
+			if (response &&
+				response.status !== ProjectResStatus.INTERVIEWING &&
+				response.status !== ProjectResStatus.ACCEPTED &&
+				response.status !== ProjectResStatus.REJECTED) {
 				const updatedResponse = await ExtendedProjectResponsesService.updateStatus(responseId, ProjectResStatus.INTERVIEWING);
 				setResponse({ ...response, status: updatedResponse.status });
 			}
@@ -302,13 +308,15 @@ export default function ProposalDetailPage() {
 						<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
 							<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Decision & Actions</h2>
 							<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-								<button
-									onClick={() => setIsInterviewModalOpen(true)}
-									className="inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap"
-								>
-									<HiCalendar className="h-4 w-4 mr-2" />
-									Schedule
-								</button>
+								{response.status !== ProjectResStatus.ACCEPTED && response.status !== ProjectResStatus.REJECTED && (
+									<button
+										onClick={() => setIsInterviewModalOpen(true)}
+										className="inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap"
+									>
+										<HiCalendar className="h-4 w-4 mr-2" />
+										Schedule
+									</button>
+								)}
 
 								{response.status !== ProjectResStatus.ACCEPTED && (
 									<button

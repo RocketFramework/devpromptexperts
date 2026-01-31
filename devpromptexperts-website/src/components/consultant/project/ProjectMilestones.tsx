@@ -114,11 +114,20 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
             dod = parts[1].trim();
         }
 
+        // Format due_date to YYYY-MM-DD for date input
+        let formattedDate = "";
+        if (milestone.due_date) {
+            const dateObj = new Date(milestone.due_date);
+            if (!isNaN(dateObj.getTime())) {
+                formattedDate = dateObj.toISOString().split('T')[0];
+            }
+        }
+
         setNewMilestone({
             milestone: milestone.milestone,
             description: desc,
             definitionOfDone: dod,
-            due_date: milestone.due_date,
+            due_date: formattedDate,
             payment_percentage: milestone.payment_percentage,
             status: milestone.status,
         });
