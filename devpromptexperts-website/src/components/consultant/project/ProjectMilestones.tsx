@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ExtendedProjectMilestonesService, ProjectMilestone } from "@/services/extended";
-import { HiPlus, HiPencil, HiTrash, HiCheck, HiX, HiUpload, HiExclamation, HiPlay } from "react-icons/hi";
+import { HiPlus, HiPencil, HiTrash, HiCheck, HiX, HiUpload, HiExclamation, HiPlay, HiLockClosed } from "react-icons/hi";
 import { useSession } from "next-auth/react";
 import { UserRoles } from "@/types";
 import { ProjectMilestoneStatus } from "@/types";
@@ -217,9 +217,9 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
         }
     };
 
-    const handleStart = async (id: string) => {
+    const handleStart = async (id: string, bypass: boolean = false) => {
         try {
-            await ExtendedProjectMilestonesService.startMilestone(id);
+            await ExtendedProjectMilestonesService.startMilestone(id, bypass);
             loadMilestones();
         } catch (error: Error | unknown) {
             console.error("Error starting milestone:", error);
@@ -677,11 +677,35 @@ export default function ProjectMilestones({ projectId }: ProjectMilestonesProps)
 
                                                                 <div className="flex items-center space-x-2">
                                                                     {/* Consultant Actions */}
-                                                                    {isConsultant && milestone.status === 'pending' && (
-                                                                        <button onClick={() => handleStart(milestone.id)} className="flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors">
-                                                                            <HiPlay className="w-4 h-4 mr-2" /> Start
-                                                                        </button>
-                                                                    )}
+                                                                    {isConsultant && milestone.status === 'pending' && (() => {
+                                                                        // Check if blocked by earlier milestones
+                                                                        const isBlocked = milestones.some(m =>
+                                                                            new Date(m.due_date) < new Date(milestone.due_date) &&
+                                                                            m.status !== ProjectMilestoneStatus.COMPLETED &&
+                                                                            m.status !== ProjectMilestoneStatus.PAYMENT_CONFIRMED
+                                                                        );
+
+                                                                        if (isBlocked) {
+                                                                            return (
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        if (confirm("FORCE START WARNING:\n\nThis milestone is scheduled after incomplete previous phases.\n\nAre you sure you want to bypass the dependency check and start this parallel workstream?")) {
+                                                                                            handleStart(milestone.id, true);
+                                                                                        }
+                                                                                    }}
+                                                                                    className="flex items-center px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700/70 rounded-lg text-sm font-bold group/lock relative transition-colors"
+                                                                                >
+                                                                                    <HiLockClosed className="w-4 h-4 mr-2" /> Locked (Override)
+                                                                                </button>
+                                                                            )
+                                                                        }
+
+                                                                        return (
+                                                                            <button onClick={() => handleStart(milestone.id)} className="flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors">
+                                                                                <HiPlay className="w-4 h-4 mr-2" /> Start
+                                                                            </button>
+                                                                        )
+                                                                    })()}
                                                                     {isConsultant && (milestone.status === ProjectMilestoneStatus.IN_PROGRESS || milestone.status === ProjectMilestoneStatus.DISPUTED) && (
                                                                         <button onClick={() => setSubmittingId(milestone.id)} className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors">
                                                                             <HiUpload className="w-4 h-4 mr-2" /> Submit

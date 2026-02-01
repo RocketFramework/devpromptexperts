@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { uploadMilestoneProofAction } from '@/app/actions/milestone-actions'
 import { Database } from '@/types/database'
-import { ProjectMilestoneStatus } from '@/types/enums'
+import { ProjectMilestoneStatus, ProjectStatus } from '@/types/enums'
 
 export type ProjectMilestone = Database['public']['Tables']['project_milestones']['Row'] & {
   project_payments?: {
@@ -25,7 +25,42 @@ export class ExtendedProjectMilestonesService {
     return data || []
   }
 
-  static async startMilestone(id: string): Promise<ProjectMilestone> {
+  static async syncProjectStatus(project_id: string) {
+    // 1. Get all milestones for the project
+    const { data: milestones, error } = await supabase
+        .from('project_milestones')
+        .select('status')
+        .eq('project_id', project_id);
+
+    if (error) {
+        console.error("Error syncing project status:", error);
+        return;
+    }
+
+    // 2. Determine correct project status
+    // If there ARE milestones, and ALL are COMPLETED or PAYMENT_CONFIRMED -> Completed
+    // Otherwise -> Active
+    let newStatus = ProjectStatus.ACTIVE;
+    
+    if (milestones && milestones.length > 0) {
+        const allComplete = milestones.every(m => 
+            m.status === ProjectMilestoneStatus.COMPLETED || 
+            m.status === ProjectMilestoneStatus.PAYMENT_CONFIRMED
+        );
+        
+        if (allComplete) {
+            newStatus = ProjectStatus.COMPLETED;
+        }
+    }
+
+    // 3. Update Project
+    await supabase
+        .from('projects')
+        .update({ status: newStatus })
+        .eq('id', project_id);
+  }
+
+  static async startMilestone(id: string, bypassDependencies: boolean = false): Promise<ProjectMilestone> {
     // 1. Get milestone details to check project_id
     const { data: milestone, error: mError } = await supabase
       .from('project_milestones')
@@ -35,25 +70,38 @@ export class ExtendedProjectMilestonesService {
 
     if (mError) throw mError
 
-    // 2. Check for any incomplete previous milestones - REMOVED to allow parallel execution.
-    // In agile and modern project management, multiple workstreams can happen concurrently.
-    // For example, Frontend and Backend development phases might be separate milestones running in parallel.
-    // Enforcing strict sequential execution is too rigid.
-    /*
-    const allPrevious = await this.findByProjectId(milestone.project_id);
-    const myIndex = allPrevious.findIndex(m => m.id === id);
-    
-    if (myIndex > 0) {
-        const previous = allPrevious[myIndex - 1];
-        if (previous.status !== ProjectMilestoneStatus.COMPLETED && previous.status !== ProjectMilestoneStatus.PAYMENT_CONFIRMED) {
-            throw new Error("Cannot start this milestone until the previous milestone is completed and approved.");
+    // 2. Enterprise Logic: Date-Based Dependency Gate
+    // This allows "Parallel Execution" for milestones on the same timeline (same date),
+    // but enforces "Sequential Execution" for phases (different dates).
+    if (!bypassDependencies) {
+        const { data: allMilestones, error: listError } = await supabase
+            .from('project_milestones')
+            .select('*')
+            .eq('project_id', milestone.project_id)
+            .lt('due_date', milestone.due_date) // Only look at *earlier* milestones
+
+        if (listError) throw listError
+
+        // Check if ANY earlier milestone is incomplete
+        const incompletePrevious = allMilestones.filter(m => 
+            m.status !== ProjectMilestoneStatus.COMPLETED && 
+            m.status !== ProjectMilestoneStatus.PAYMENT_CONFIRMED
+        )
+
+        if (incompletePrevious.length > 0) {
+            // Find the earliest incomplete one for a helpful error message
+            const earliest = incompletePrevious.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0]
+            throw new Error(`Cannot start this phase yet. Previous milestone "${earliest.milestone}" (Due: ${new Date(earliest.due_date).toLocaleDateString()}) is still incomplete.`)
         }
     }
-    */
 
-    return this.update(id, {
+    const updated = await this.update(id, {
         status: ProjectMilestoneStatus.IN_PROGRESS
-    })
+    });
+    
+    // Sync project status after start (likely keeps it Active)
+    await this.syncProjectStatus(milestone.project_id);
+    return updated;
   }
 
   static async confirmPayment(id: string): Promise<ProjectMilestone> {
@@ -66,9 +114,13 @@ export class ExtendedProjectMilestonesService {
     await PaymentBusinessService.processPaymentConfirmation(id)
 
     // 2. Update Milestone Status to reflect completion of this phase
-    return this.update(id, {
+    const updated = await this.update(id, {
         status: ProjectMilestoneStatus.PAYMENT_CONFIRMED
-    })
+    });
+
+    // Sync project status (checking if this was the last one)
+    await this.syncProjectStatus(updated.project_id);
+    return updated;
   }
 
   static async create(milestone: ProjectMilestoneInsert): Promise<ProjectMilestone> {
@@ -79,6 +131,10 @@ export class ExtendedProjectMilestonesService {
       .single()
 
     if (error) throw error
+    
+    // Sync project status (adding a new milestone usually makes it Active)
+    await this.syncProjectStatus(milestone.project_id);
+    
     return data
   }
 
@@ -91,16 +147,32 @@ export class ExtendedProjectMilestonesService {
       .single()
 
     if (error) throw error
+    
+    // Sync project status
+    // Note: We do this after update to reflect the new state
+    await this.syncProjectStatus(data.project_id);
+    
     return data
   }
 
   static async delete(id: string): Promise<void> {
+    // Get project_id before deleting
+    const { data: milestone } = await supabase
+        .from('project_milestones')
+        .select('project_id')
+        .eq('id', id)
+        .single();
+
     const { error } = await supabase
       .from('project_milestones')
       .delete()
       .eq('id', id)
 
     if (error) throw error
+    
+    if (milestone) {
+        await this.syncProjectStatus(milestone.project_id);
+    }
   }
 
   static async uploadProof(milestoneId: string, file: File): Promise<string> {
