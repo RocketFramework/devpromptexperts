@@ -2,6 +2,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { ExtendedProjectCommunicationsService, ProjectCommunication, ExtendedProjectMilestonesService, ProjectMilestone } from "@/services/extended";
 import { useSession } from "next-auth/react";
 import { UserRoles, ProjectCommunicationType } from "@/types";
+import { MdFormatBold, MdFormatItalic, MdFormatListBulleted, MdInsertLink } from "react-icons/md";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 interface ProjectCommunicationsProps {
     projectId: string;
@@ -14,6 +18,7 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
     const [newMessage, setNewMessage] = useState("");
     const [selectedMilestoneId, setSelectedMilestoneId] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const loadData = useCallback(async () => {
@@ -137,7 +142,11 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
                                                 Ref: {milestoneName}
                                             </span>
                                         )}
-                                        <p className="text-[15px] leading-relaxed font-medium">{msg.message}</p>
+                                        <div className="text-[15px] leading-relaxed font-medium prose prose-sm dark:prose-invert max-w-none">
+                                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                                                {msg.message}
+                                            </ReactMarkdown>
+                                        </div>
                                         <div className={`text-[10px] mt-2 font-bold uppercase tracking-wider opacity-60 ${isMe ? 'text-white' : 'text-gray-400'}`}>
                                             {new Date(msg.created_at || "").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </div>
@@ -181,24 +190,140 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
                     </div>
                 )}
 
-                <form onSubmit={handleSend} className="relative group">
-                    <input
-                        type="text"
-                        className="w-full pl-6 pr-24 py-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:text-white transition-all shadow-lg placeholder-gray-400 dark:placeholder-gray-600 font-medium"
-                        placeholder={selectedMilestoneId ? `Message about ${getMilestoneName(selectedMilestoneId)}...` : "Type your message here..."}
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                    />
-                    <button
-                        type="submit"
-                        className="absolute right-2 top-2 bottom-2 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200 dark:shadow-none transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center group"
-                        disabled={!newMessage.trim()}
-                    >
-                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                    </button>
-                </form>
+                <div className="relative group bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-800 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all shadow-lg overflow-hidden">
+                    {/* Tabs */}
+                    <div className="flex items-center px-4 py-2 border-b border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 space-x-4">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('write')}
+                            className={`text-xs font-bold uppercase tracking-wider py-1 border-b-2 transition-colors ${activeTab === 'write' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Write
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('preview')}
+                            className={`text-xs font-bold uppercase tracking-wider py-1 border-b-2 transition-colors ${activeTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Preview
+                        </button>
+                    </div>
+
+                    {activeTab === 'write' ? (
+                        <>
+                            {/* Toolbar */}
+                            <div className="flex items-center space-x-1 p-2 border-b border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const textarea = document.getElementById('messageInput') as HTMLTextAreaElement;
+                                        if (!textarea) return;
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const text = newMessage;
+                                        const before = text.substring(0, start);
+                                        const selection = text.substring(start, end) || "text";
+                                        const after = text.substring(end);
+                                        setNewMessage(`${before}**${selection}**${after}`);
+                                        setTimeout(() => textarea.focus(), 0);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Bold"
+                                >
+                                    <MdFormatBold className="w-5 h-5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const textarea = document.getElementById('messageInput') as HTMLTextAreaElement;
+                                        if (!textarea) return;
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const text = newMessage;
+                                        const before = text.substring(0, start);
+                                        const selection = text.substring(start, end) || "text";
+                                        const after = text.substring(end);
+                                        setNewMessage(`${before}*${selection}*${after}`);
+                                        setTimeout(() => textarea.focus(), 0);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Italic"
+                                >
+                                    <MdFormatItalic className="w-5 h-5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const textarea = document.getElementById('messageInput') as HTMLTextAreaElement;
+                                        if (!textarea) return;
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const text = newMessage;
+                                        const before = text.substring(0, start);
+                                        const selection = text.substring(start, end) || "item";
+                                        const after = text.substring(end);
+                                        setNewMessage(`${before}\n- ${selection}${after}`);
+                                        setTimeout(() => textarea.focus(), 0);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Bullet List"
+                                >
+                                    <MdFormatListBulleted className="w-5 h-5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const textarea = document.getElementById('messageInput') as HTMLTextAreaElement;
+                                        if (!textarea) return;
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const text = newMessage;
+                                        const before = text.substring(0, start);
+                                        const selection = text.substring(start, end) || "text";
+                                        const after = text.substring(end);
+                                        setNewMessage(`${before}[${selection}](url)${after}`);
+                                        setTimeout(() => textarea.focus(), 0);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Link"
+                                >
+                                    <MdInsertLink className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSend} className="relative">
+                                <textarea
+                                    id="messageInput"
+                                    className="w-full pl-4 pr-16 py-3 bg-transparent border-none focus:ring-0 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 font-medium resize-none min-h-[80px]"
+                                    placeholder={selectedMilestoneId ? `Message about ${getMilestoneName(selectedMilestoneId)}... (Markdown supported)` : "Type your message here... (Markdown supported)"}
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                            e.preventDefault();
+                                            handleSend(e);
+                                        }
+                                    }}
+                                />
+                                <button
+                                    type="submit"
+                                    className="absolute right-2 bottom-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200 dark:shadow-none transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center group"
+                                    disabled={!newMessage.trim()}
+                                >
+                                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </>
+                    ) : (
+                        <div className="p-4 min-h-[125px] prose prose-sm dark:prose-invert max-w-none bg-white dark:bg-gray-800">
+                            {newMessage.trim() ? (
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                                    {newMessage}
+                                </ReactMarkdown>
+                            ) : (
+                                <span className="text-gray-400 italic">Nothing to preview</span>
+                            )}
+                        </div>
+                    )}
+                </div>
                 <p className="text-center text-[10px] text-gray-400 dark:text-gray-600 mt-4 font-bold uppercase tracking-[0.2em]">
                     End-to-End Encrypted Consultation Channel
                 </p>
