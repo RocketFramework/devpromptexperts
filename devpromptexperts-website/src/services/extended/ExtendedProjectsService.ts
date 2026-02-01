@@ -28,8 +28,17 @@ export type Project = Database['public']['Tables']['projects']['Row'] & {
   } | null;
   clients?: {
     company_name: string;
+    company_size: string | null;
+    industry: string | null;
     city: string | null;
     country: string | null;
+    users: {
+      full_name: string;
+      email: string;
+      phone: string | null;
+      profile_image_url: string | null;
+      country: string | null;
+    } | null;
   } | null;
 }
 

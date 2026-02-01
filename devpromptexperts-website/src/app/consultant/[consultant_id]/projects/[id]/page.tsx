@@ -34,13 +34,54 @@ export default function ConsultantProjectPage() {
             project_summary,
             budget_range,
             description
+          ),
+          clients (
+            company_name,
+            company_size,
+            industry,
+            users (
+                full_name,
+                email,
+                phone,
+                profile_image_url,
+                country,
+                last_sign_in
+            )
           )
         `)
                 .eq('id', projectId)
                 .single();
 
             if (error) throw error;
-            setProject(data);
+
+            // Fetch additional stats
+            let activeProjectsCount = 0;
+            let activeRFPsCount = 0;
+
+            if (data.client_id) {
+                const { count: projectsCount } = await supabase
+                    .from('projects')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('client_id', data.client_id)
+                    .eq('status', 'active');
+
+                const { count: rfpsCount } = await supabase
+                    .from('project_requests')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('client_id', data.client_id)
+                    .neq('status', 'closed'); // Assumption: anything not closed is active/open
+
+                activeProjectsCount = projectsCount || 0;
+                activeRFPsCount = rfpsCount || 0;
+            }
+
+            setProject({
+                ...data,
+                _stats: {
+                    activeProjects: activeProjectsCount,
+                    activeRFPs: activeRFPsCount
+                }
+            } as any);
 
         } catch (error) {
             console.error("Error loading project:", error);
@@ -48,6 +89,13 @@ export default function ConsultantProjectPage() {
             setIsLoading(false);
         }
     }, [projectId]);
+
+    // Helper to check online status (within last 15 mins)
+    const isOnline = (lastSignIn: string | null | undefined) => {
+        if (!lastSignIn) return false;
+        const diffInMinutes = (new Date().getTime() - new Date(lastSignIn).getTime()) / (1000 * 60);
+        return diffInMinutes < 15;
+    };
 
     useEffect(() => {
         if (projectId) {
@@ -101,14 +149,77 @@ export default function ConsultantProjectPage() {
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{projectTitle}</h1>
                             <p className="mt-2 text-gray-600 dark:text-gray-400 max-w-2xl">{projectSummary}</p>
                         </div>
-                        <div className="text-right">
-                            <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${project.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                {project.status?.toUpperCase()}
-                            </span>
-                            <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-                                {formatCurrency(project.contract_value)}
-                            </p>
+                        <div className="flex flex-col items-end gap-6">
+                            <div className="text-right">
+                                <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${project.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                    }`}>
+                                    {project.status?.toUpperCase()}
+                                </span>
+                                <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                                    {formatCurrency(project.contract_value)}
+                                </p>
+                            </div>
+
+                            {project.clients && (
+                                <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm w-[320px]">
+                                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+                                        {project.clients.users?.profile_image_url ? (
+                                            <img
+                                                src={project.clients.users.profile_image_url}
+                                                alt={project.clients.users.full_name}
+                                                className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100 dark:ring-gray-700"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-lg ring-2 ring-gray-100 dark:ring-gray-700">
+                                                {project.clients.users?.full_name?.charAt(0) || project.clients.company_name?.charAt(0) || 'C'}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h3 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
+                                                {project.clients.users?.full_name || "Client"}
+                                            </h3>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[180px]">
+                                                {project.clients.company_name}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-0.5 text-gray-400">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            </div>
+                                            <div className="text-sm text-gray-600 dark:text-gray-300 break-all">
+                                                {project.clients.users?.email}
+                                            </div>
+                                        </div>
+
+                                        {(project.clients.users?.country || project.clients.country) && (
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-0.5 text-gray-400">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                </div>
+                                                <div className="text-sm text-gray-600 dark:text-gray-300">
+                                                    {project.clients.users?.country || project.clients.country}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-2 pt-2">
+                                            {project.clients.industry && (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                                    {project.clients.industry}
+                                                </span>
+                                            )}
+                                            {project.clients.company_size && (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                                    {project.clients.company_size}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
