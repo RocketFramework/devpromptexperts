@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ExtendedProposalCommunicationsService } from "@/services/extended";
 import { useSession } from "next-auth/react";
 import { UserRoles } from "@/types";
@@ -7,24 +7,28 @@ interface ProposalCommunicationsProps {
     responseId: string;
 }
 
+interface ProposalMessage {
+    id: string;
+    project_response_id: string;
+    sender_id: string;
+    sender_type: string;
+    message: string;
+    is_read: boolean;
+    created_at: string;
+    users?: {
+        full_name: string | null;
+        profile_image_url: string | null;
+    } | null;
+}
+
 export default function ProposalCommunications({ responseId }: ProposalCommunicationsProps) {
     const { data: session } = useSession();
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<ProposalMessage[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (responseId) {
-            loadMessages();
-        }
-    }, [responseId]);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    const loadMessages = async () => {
+    const loadMessages = useCallback(async () => {
         try {
             setIsLoading(true);
             const msgs = await ExtendedProposalCommunicationsService.getMessages(responseId);
@@ -34,7 +38,40 @@ export default function ProposalCommunications({ responseId }: ProposalCommunica
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [responseId]);
+
+    useEffect(() => {
+        if (responseId) {
+            loadMessages();
+        }
+    }, [responseId, loadMessages]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    useEffect(() => {
+        if (responseId) {
+            // Load draft message
+            const draftKey = `draft_message_proposal_${responseId}`;
+            const savedDraft = localStorage.getItem(draftKey);
+            if (savedDraft) {
+                setNewMessage(savedDraft);
+            }
+        }
+    }, [responseId]);
+
+    useEffect(() => {
+        if (responseId) {
+            // Save draft message
+            const draftKey = `draft_message_proposal_${responseId}`;
+            if (newMessage) {
+                localStorage.setItem(draftKey, newMessage);
+            } else {
+                localStorage.removeItem(draftKey);
+            }
+        }
+    }, [newMessage, responseId]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -64,6 +101,7 @@ export default function ProposalCommunications({ responseId }: ProposalCommunica
 
             setMessages([...messages, enrichedMsg]);
             setNewMessage("");
+            localStorage.removeItem(`draft_message_proposal_${responseId}`); // Clear draft
         } catch (error) {
             console.error("Error sending message:", error);
             alert("Failed to send message");
@@ -118,7 +156,7 @@ export default function ProposalCommunications({ responseId }: ProposalCommunica
                 <form onSubmit={handleSend} className="relative group">
                     <input
                         type="text"
-                        className="w-full pl-6 pr-16 py-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:text-white transition-all shadow-lg placeholder-gray-400 dark:placeholder-gray-600 font-medium"
+                        className="w-full pl-6 pr-24 py-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:text-white transition-all shadow-lg placeholder-gray-400 dark:placeholder-gray-600 font-medium"
                         placeholder="Type your message here..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}

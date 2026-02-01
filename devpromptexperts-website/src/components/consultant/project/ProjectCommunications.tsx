@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ExtendedProjectCommunicationsService, ProjectCommunication, ExtendedProjectMilestonesService, ProjectMilestone } from "@/services/extended";
 import { useSession } from "next-auth/react";
 import { UserRoles, ProjectCommunicationType } from "@/types";
@@ -16,16 +16,7 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        loadData();
-        // In a real app, subscribe to realtime updates here
-    }, [projectId]);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             console.log("loading data for project", projectId);
             setIsLoading(true);
@@ -40,7 +31,34 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [projectId]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    useEffect(() => {
+        // Load draft message
+        const draftKey = `draft_message_project_${projectId}`;
+        const savedDraft = localStorage.getItem(draftKey);
+        if (savedDraft) {
+            setNewMessage(savedDraft);
+        }
+    }, [projectId]);
+
+    useEffect(() => {
+        // Save draft message
+        const draftKey = `draft_message_project_${projectId}`;
+        if (newMessage) {
+            localStorage.setItem(draftKey, newMessage);
+        } else {
+            localStorage.removeItem(draftKey);
+        }
+    }, [newMessage, projectId]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -70,6 +88,7 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
             });
             setMessages([...messages, sentMessage]);
             setNewMessage("");
+            localStorage.removeItem(`draft_message_project_${projectId}`); // Clear draft
             setSelectedMilestoneId(""); // Reset selection after send? Or keep it? keeping it might be better for threaded convo
         } catch (error) {
             console.error("Error sending message:", error);
@@ -102,7 +121,7 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
                         <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">Send a message to sync on project goals, ask questions, or provide updates.</p>
                     </div>
                 ) : (
-                    messages.map((msg, idx) => {
+                    messages.map((msg) => {
                         const isMe = msg.sender_id === session?.user?.id;
                         const milestoneName = getMilestoneName(msg.milestone_id as string | null);
 
@@ -165,7 +184,7 @@ export default function ProjectCommunications({ projectId }: ProjectCommunicatio
                 <form onSubmit={handleSend} className="relative group">
                     <input
                         type="text"
-                        className="w-full pl-6 pr-16 py-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:text-white transition-all shadow-lg placeholder-gray-400 dark:placeholder-gray-600 font-medium"
+                        className="w-full pl-6 pr-24 py-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:text-white transition-all shadow-lg placeholder-gray-400 dark:placeholder-gray-600 font-medium"
                         placeholder={selectedMilestoneId ? `Message about ${getMilestoneName(selectedMilestoneId)}...` : "Type your message here..."}
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}

@@ -35,8 +35,11 @@ export class ExtendedProjectMilestonesService {
 
     if (mError) throw mError
 
-    // 2. Check for any incomplete previous milestones
-    // Let's fetch all previous ordered by date.
+    // 2. Check for any incomplete previous milestones - REMOVED to allow parallel execution.
+    // In agile and modern project management, multiple workstreams can happen concurrently.
+    // For example, Frontend and Backend development phases might be separate milestones running in parallel.
+    // Enforcing strict sequential execution is too rigid.
+    /*
     const allPrevious = await this.findByProjectId(milestone.project_id);
     const myIndex = allPrevious.findIndex(m => m.id === id);
     
@@ -46,6 +49,7 @@ export class ExtendedProjectMilestonesService {
             throw new Error("Cannot start this milestone until the previous milestone is completed and approved.");
         }
     }
+    */
 
     return this.update(id, {
         status: ProjectMilestoneStatus.IN_PROGRESS
