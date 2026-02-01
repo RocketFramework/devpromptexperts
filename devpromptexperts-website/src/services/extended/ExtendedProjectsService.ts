@@ -38,8 +38,13 @@ export type Project = Database['public']['Tables']['projects']['Row'] & {
       phone: string | null;
       profile_image_url: string | null;
       country: string | null;
+      last_sign_in?: string | null;
     } | null;
   } | null;
+  _stats?: {
+    activeProjects: number;
+    activeRFPs: number;
+  };
 }
 
 export class ExtendedProjectsService {

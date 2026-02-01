@@ -81,7 +81,7 @@ export default function ConsultantProjectPage() {
                     activeProjects: activeProjectsCount,
                     activeRFPs: activeRFPsCount
                 }
-            } as any);
+            } as Project);
 
         } catch (error) {
             console.error("Error loading project:", error);
