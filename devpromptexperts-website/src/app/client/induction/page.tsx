@@ -158,7 +158,7 @@ export default function ClientInductionPage() {
           <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
             <button 
               className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm"
-              onClick={() => handleStepComplete('watch_video')}
+              onClick={() => setIsPlaying(true)}
             >
               <PlayIcon className="w-5 h-5" />
               <span>Play Video</span>
