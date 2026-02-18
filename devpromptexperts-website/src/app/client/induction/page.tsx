@@ -161,7 +161,7 @@ export default function ClientInductionPage() {
               onClick={() => handleStepComplete('watch_video')}
             >
               <PlayIcon className="w-5 h-5" />
-              <span>Mark as Watched</span>
+              <span>Play Video</span>
             </button>
             <button className="flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm">
               <DownloadIcon className="w-5 h-5" />
