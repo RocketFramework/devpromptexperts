@@ -144,13 +144,14 @@ export default function ClientInductionPage() {
                   <p className="mt-2 text-blue-100">Duration: {content.videoDuration}</p>
                 </div>
               ) : (
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full"
-                  src="https://www.youtube.com/embed/zKaMtbiQ9Io?autoplay=1"
-                  title="Induction Video"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                />
+                <video
+                      className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
+                     src="/videos/intro.mp4"    // Replace with your actual video path
+                     controls
+                     autoPlay
+                     muted
+                      loop
+                                />
               )}
             </div>
           </div>
