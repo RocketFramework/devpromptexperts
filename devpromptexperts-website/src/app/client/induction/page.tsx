@@ -134,7 +134,7 @@ export default function ClientInductionPage() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
           <div className="lg:w-full">
             <div
-              className="relative w-full pb-[35.75%] h-0 rounded-xl overflow-hidden cursor-pointer bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center"
+              className="relative w-full pb-[56.25%] h-0 rounded-xl overflow-hidden cursor-pointer bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center"
               onClick={() => setIsPlaying(true)}
             >
               {!isPlaying ? (
@@ -150,7 +150,8 @@ export default function ClientInductionPage() {
                      controls
                      autoPlay
                      muted
-                      loop
+                     loop
+                     
                                 />
               )}
             </div>
