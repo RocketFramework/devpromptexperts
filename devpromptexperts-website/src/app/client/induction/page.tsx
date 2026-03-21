@@ -1,4 +1,3 @@
-// components/client/ClientInductionPage.tsx
 "use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -40,6 +39,9 @@ export default function ClientInductionPage() {
   const [inductionData, setInductionData] = useState<UserInductionProgress | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // New state to handle play video toggle
+  const [isPlaying, setIsPlaying] = useState(false);
+
   useEffect(() => {
     const loadInductionData = async () => {
       if (session?.user?.id) {
@@ -55,7 +57,6 @@ export default function ClientInductionPage() {
   const handleStepComplete = async (stepId: string) => {
     if (session?.user?.id) {
       await InductionService.completeStep(session.user.id, stepId);
-      // Reload data to update progress
       const updatedData = await InductionService.getInductionProgress(session.user.id, UserRoles.CLIENT);
       setInductionData(updatedData);
     }
@@ -67,10 +68,6 @@ export default function ClientInductionPage() {
       return;
     }
     
-    // Handle action based on actionId
-    console.log(`Action clicked: ${actionId}`);
-    
-    // If this action completes a step, mark it
     if (actionId === 'complete_brief' || actionId === 'review_matches' || actionId === 'launch_project') {
       await handleStepComplete(actionId);
     }
@@ -135,46 +132,35 @@ export default function ClientInductionPage() {
 
         {/* Video Section */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-2/3">
-              <div className="bg-slate-100 rounded-lg overflow-hidden mb-4">
-                <div className="w-full h-64 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center relative">
-                  <div className="text-center text-white">
-                    <PlayIcon className="w-16 h-16 mx-auto mb-4 opacity-90" />
-                    <p className="text-xl font-semibold">{content.videoTitle}</p>
-                    <p className="text-blue-100 mt-2">Duration: {content.videoDuration}</p>
-                  </div>
-                  {content.videoRequired && (
-                    <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Required
-                    </div>
-                  )}
-                  {!content.videoRequired && (
-                    <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Recommended
-                    </div>
-                  )}
+          <div className="lg:w-full">
+            <div
+              className="relative w-full pb-[56.25%] h-0 rounded-xl overflow-hidden cursor-pointer bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center"
+              onClick={() => setIsPlaying(true)}
+            >
+              {!isPlaying ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                  <PlayIcon className="w-20 h-20 mb-4 opacity-90" />
+                  <h2 className="text-2xl font-bold">{content.videoTitle}</h2>
+                  <p className="mt-2 text-blue-100">Duration: {content.videoDuration}</p>
                 </div>
-              </div>
-            </div>
-            
-            <div className="lg:w-1/3">
-              <h3 className="font-semibold text-slate-800 mb-3">What You&#39;ll Learn:</h3>
-              <ul className="space-y-3 text-sm text-slate-700">
-                {content.learningPoints.map((point, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckIcon className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
+              ) : (
+                <video
+                      className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
+                     src="/videos/intro.mp4"    // Replace with your actual video path
+                     controls
+                     autoPlay
+                     muted
+                     loop
+                     
+                                />
+              )}
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
             <button 
               className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm"
-              onClick={() => handleStepComplete('watch_video')}
+              onClick={() => setIsPlaying(true)}
             >
               <PlayIcon className="w-5 h-5" />
               <span>Play Video</span>
@@ -270,6 +256,7 @@ export default function ClientInductionPage() {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

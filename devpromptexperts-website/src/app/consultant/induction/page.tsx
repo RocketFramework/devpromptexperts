@@ -34,6 +34,9 @@ export default function ConsultantInductionPage() {
   const [inductionData, setInductionData] = useState<UserInductionProgress | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // New state to handle play video toggle
+  const [isPlaying, setIsPlaying] = useState(false);
+
   useEffect(() => {
     const loadInductionData = async () => {
       if (session?.user?.id) {
@@ -122,48 +125,40 @@ export default function ConsultantInductionPage() {
 
         {/* Video Section */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-2/3">
-              <div className="bg-slate-100 rounded-lg overflow-hidden mb-4">
-                <div className="w-full h-64 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center relative">
-                  <div className="text-center text-white">
-                    <PlayIcon className="w-16 h-16 mx-auto mb-4 opacity-90" />
-                    <p className="text-xl font-semibold">{content.videoTitle}</p>
-                    <p className="text-blue-100 mt-2">Duration: {content.videoDuration}</p>
-                  </div>
-                  {content.videoRequired && (
-                    <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm">
-                      Required
-                    </div>
-                  )}
+          <div className="lg:w-full">
+            <div
+              className="relative w-full pb-[50.75%] h-0 rounded-xl overflow-hidden cursor-pointer bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center"
+              onClick={() => setIsPlaying(true)}
+            >
+              {!isPlaying ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                  <PlayIcon className="w-20 h-20 mb-4 opacity-90" />
+                  <h2 className="text-2xl font-bold">{content.videoTitle}</h2>
+                  <p className="mt-2 text-blue-100">Duration: {content.videoDuration}</p>
                 </div>
-              </div>
-            </div>
-            
-            <div className="lg:w-1/3">
-              <h3 className="font-semibold text-slate-900 mb-3">What You&#39;ll Learn:</h3>
-              <ul className="space-y-2 text-sm text-slate-600">
-                {content.learningPoints.map((point, index) => (
-                  <li key={index} className="flex items-center">
-                    <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
+              ) : (
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src="https://www.youtube.com/embed/zKaMtbiQ9Io?autoplay=1"
+                  title="Induction Video"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              )}
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
             <button 
-              className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm"
               onClick={() => handleStepComplete('watch_video')}
             >
               <PlayIcon className="w-5 h-5" />
-              <span>Play Video</span>
+              <span>Mark as Watched</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 border border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-3 rounded-lg font-semibold transition-colors">
+            <button className="flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm">
               <DownloadIcon className="w-5 h-5" />
-              <span>Download Materials</span>
+              <span>Download Client Guide</span>
             </button>
           </div>
         </div>
