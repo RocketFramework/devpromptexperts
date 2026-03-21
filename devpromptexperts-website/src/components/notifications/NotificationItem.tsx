@@ -2,6 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { FaInfoCircle, FaCheckCircle, FaExclamationCircle, FaGraduationCap, FaMoneyBillWave } from 'react-icons/fa';
 import { Notification } from '@/services/business/NotificationService';
+import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -10,6 +12,63 @@ interface NotificationItemProps {
 }
 
 export default function NotificationItem({ notification, onRead, onClick }: NotificationItemProps) {
+  const { data: session } = useSession();
+  const pathname = usePathname() || '';
+
+  const getResolvedLink = () => {
+    const rawLink = notification.link;
+    if (!rawLink) return undefined;
+
+    // Resolve user role
+    const role = (session?.user as any)?.role || (session?.user as any)?.loginContext || (pathname.startsWith('/client') ? 'client' : pathname.startsWith('/consultant') ? 'consultant' : pathname.startsWith('/seller') ? 'seller' : 'client');
+
+    // 1. Proposals
+    if (rawLink.startsWith('/proposals/')) {
+      if (role === 'client') {
+        const meta = notification.metadata as Record<string, any> || {};
+        const rfpId = meta.project_request_id || meta.rfp_id;
+        const proposalId = meta.project_response_id || meta.proposal_id || rawLink.split('/').pop();
+        if (rfpId && proposalId) {
+          return `/client/${notification.user_id}/rfp/${rfpId}/proposal/${proposalId}`;
+        }
+        return `/client/${notification.user_id}/dashboard`;
+      }
+      return `/consultant/${notification.user_id}/dashboard`;
+    }
+
+    // 2. RFP Published
+    if (rawLink.startsWith('/projects/rfp/')) {
+      const id = rawLink.replace('/projects/rfp/', '');
+      if (role === 'client') return `/client/${notification.user_id}/rfp/${id}`;
+      return `/consultant/${notification.user_id}/find-projects?rfp=${id}`;
+    }
+
+    // 3. Projects Generic
+    if (rawLink.startsWith('/projects/') && !rawLink.includes('rfp')) {
+      const id = rawLink.replace('/projects/', '');
+      if (role === 'client') return `/client/${notification.user_id}/projects`;
+      if (role === 'consultant') return `/consultant/${notification.user_id}/projects/${id}`;
+      if (role === 'seller') return `/seller/${notification.user_id}/dashboard`;
+    }
+
+    // 4. Payments
+    if (rawLink.startsWith('/payments/')) {
+      if (role === 'client') return `/client/${notification.user_id}/dashboard`;
+      if (role === 'consultant') return `/consultant/${notification.user_id}/earnings`;
+      if (role === 'seller') return `/seller/${notification.user_id}/dashboard`;
+    }
+
+    // 5. Reviews
+    if (rawLink.startsWith('/reviews/')) {
+      if (role === 'client') return `/client/${notification.user_id}/dashboard`;
+      if (role === 'consultant') return `/consultant/${notification.user_id}/dashboard`;
+    }
+
+    return rawLink;
+  };
+
+  const resolvedLink = getResolvedLink();
+
   const getIcon = () => {
     switch (notification.type) {
       case 'induction':
@@ -54,9 +113,9 @@ export default function NotificationItem({ notification, onRead, onClick }: Noti
     </div>
   );
 
-  if (notification.link) {
+  if (resolvedLink) {
     return (
-      <Link href={notification.link} onClick={handleClick} className="block border-b border-slate-100 last:border-0">
+      <Link href={resolvedLink} onClick={handleClick} className="block border-b border-slate-100 last:border-0">
         <Content />
       </Link>
     );
