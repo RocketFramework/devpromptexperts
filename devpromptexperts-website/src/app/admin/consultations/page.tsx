@@ -1,4 +1,4 @@
-export default function AdminReviewPage() {
+export default function AdminConsultationsPage() {
     return (
         <div>
 

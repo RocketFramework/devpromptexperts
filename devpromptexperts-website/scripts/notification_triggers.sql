@@ -303,17 +303,19 @@ BEGIN
     
     -- Send notifications to matching consultants
     IF v_matching_consultant_ids IS NOT NULL AND array_length(v_matching_consultant_ids, 1) > 0 THEN
-        PERFORM create_bulk_notifications(
-            v_matching_consultant_ids,
-            'project',
-            'New Project Opportunity',
-            'A new project "' || NEW.title || '" matches your skills',
-            '/projects/rfp/' || NEW.id,
-            jsonb_build_object(
-                'project_request_id', NEW.id,
-                'trigger', 'rfp_published'
-            )
-        );
+        FOR i IN 1 .. array_length(v_matching_consultant_ids, 1) LOOP
+            PERFORM create_notification(
+                v_matching_consultant_ids[i],
+                'project',
+                'New Project Opportunity',
+                'A new project "' || NEW.title || '" matches your skills',
+                '/consultant/' || v_matching_consultant_ids[i] || '/find-projects?rfp=' || NEW.id,
+                jsonb_build_object(
+                    'project_request_id', NEW.id,
+                    'trigger', 'rfp_published'
+                )
+            );
+        END LOOP;
     END IF;
     
     -- Notify the client
@@ -322,13 +324,14 @@ BEGIN
         'project',
         'RFP Published',
         'Your project request has been published to matching consultants',
-        '/projects/rfp/' || NEW.id
+        '/client/' || NEW.client_id || '/rfp/' || NEW.id
     );
     
     RETURN NEW;
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_rfp_published ON public.project_requests;
 CREATE TRIGGER trigger_rfp_published
 AFTER INSERT ON public.project_requests
 FOR EACH ROW
@@ -356,7 +359,7 @@ BEGIN
         'project',
         'New Proposal Received',
         'You have received a new proposal for "' || v_project_title || '"',
-        '/proposals/' || NEW.id,
+        '/client/' || v_client_id || '/rfp/' || NEW.project_request_id || '/proposal/' || NEW.id,
         jsonb_build_object(
             'project_response_id', NEW.id,
             'project_request_id', NEW.project_request_id
@@ -369,13 +372,14 @@ BEGIN
         'project',
         'Proposal Submitted',
         'Your proposal has been submitted successfully',
-        '/proposals/' || NEW.id
+        '/consultant/' || NEW.consultant_id || '/dashboard'
     );
     
     RETURN NEW;
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_proposal_submitted ON public.project_responses;
 CREATE TRIGGER trigger_proposal_submitted
 AFTER INSERT ON public.project_responses
 FOR EACH ROW
@@ -402,7 +406,7 @@ BEGIN
             'project',
             'Proposal Shortlisted!',
             'Your proposal for "' || v_project_title || '" has been shortlisted',
-            '/proposals/' || NEW.id
+            '/consultant/' || NEW.consultant_id || '/dashboard'
         );
     END IF;
     
@@ -410,6 +414,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_proposal_shortlisted ON public.project_responses;
 CREATE TRIGGER trigger_proposal_shortlisted
 AFTER UPDATE OF shortlisted_at ON public.project_responses
 FOR EACH ROW
@@ -430,7 +435,7 @@ BEGIN
             'project',
             'Project Completed',
             'Project has been marked as completed',
-            '/projects/' || NEW.id
+            '/consultant/' || NEW.consultant_id || '/projects/' || NEW.id
         );
         
         -- Notify client
@@ -439,7 +444,7 @@ BEGIN
             'project',
             'Project Completed',
             'Your project has been marked as completed',
-            '/projects/' || NEW.id
+            '/client/' || NEW.client_id || '/projects'
         );
         
         -- Notify seller if exists
@@ -448,7 +453,7 @@ BEGIN
             'project',
             'Project Completed',
             'A project you referred has been completed',
-            '/projects/' || NEW.id
+            '/seller/' || s.user_id || '/dashboard'
         )
         FROM public.sellers s
         JOIN public.seller_clients sc ON s.user_id = sc.seller_id
@@ -459,6 +464,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_project_status_change ON public.projects;
 CREATE TRIGGER trigger_project_status_change
 AFTER UPDATE OF status ON public.projects
 FOR EACH ROW
@@ -489,7 +495,7 @@ BEGIN
             'payment',
             'Payment Released',
             'Payment of $' || NEW.amount || ' has been released',
-            '/payments/' || NEW.id,
+            '/consultant/' || v_consultant_id || '/earnings',
             jsonb_build_object(
                 'amount', NEW.amount,
                 'payment_type', NEW.payment_type
@@ -502,7 +508,7 @@ BEGIN
             'payment',
             'Payment Released',
             'Payment for a project you referred has been released',
-            '/payments/' || NEW.id
+            '/seller/' || s.user_id || '/dashboard'
         )
         FROM public.sellers s
         JOIN public.seller_clients sc ON s.user_id = sc.seller_id
@@ -517,7 +523,7 @@ BEGIN
             'payment',
             'Invoice Generated',
             'A new invoice has been generated for your project',
-            '/payments/' || NEW.id
+            '/client/' || v_client_id || '/dashboard'
         );
     END IF;
     
@@ -525,6 +531,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_payment_status ON public.project_payments;
 CREATE TRIGGER trigger_payment_status
 AFTER INSERT OR UPDATE OF status ON public.project_payments
 FOR EACH ROW
@@ -544,7 +551,7 @@ BEGIN
             'payment',
             'Commission Calculated',
             'Commission of $' || NEW.commission_amount || ' has been calculated',
-            '/commissions/' || NEW.id,
+            '/dashboard',
             jsonb_build_object(
                 'commission_amount', NEW.commission_amount,
                 'commission_rate', NEW.commission_rate,
@@ -557,6 +564,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_commission_calculated ON public.commission_calculations;
 CREATE TRIGGER trigger_commission_calculated
 AFTER INSERT ON public.commission_calculations
 FOR EACH ROW
@@ -594,13 +602,15 @@ BEGIN
         
         -- Notify interested clients
         IF v_client_ids IS NOT NULL AND array_length(v_client_ids, 1) > 0 THEN
-            PERFORM create_bulk_notifications(
-                v_client_ids,
-                'system',
-                'New Consultant Available',
-                'A new consultant matching your criteria is now available',
-                '/consultants/' || NEW.user_id
-            );
+            FOR i IN 1 .. array_length(v_client_ids, 1) LOOP
+                PERFORM create_notification(
+                    v_client_ids[i],
+                    'system',
+                    'New Consultant Available',
+                    'A new consultant matching your criteria is now available',
+                    '/client/' || v_client_ids[i] || '/findconsultants'
+                );
+            END LOOP;
         END IF;
     END IF;
     
@@ -608,6 +618,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_consultant_approved ON public.consultants;
 CREATE TRIGGER trigger_consultant_approved
 AFTER UPDATE OF approval_status ON public.consultants
 FOR EACH ROW
@@ -639,6 +650,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_onboarding_completed ON public.consultants;
 CREATE TRIGGER trigger_onboarding_completed
 AFTER UPDATE OF onboarding_completed_at ON public.consultants
 FOR EACH ROW
@@ -673,7 +685,7 @@ BEGIN
             'induction',
             'Interview Scheduled',
             'An interview has been scheduled with your OB Partner ' || v_partner_name,
-            '/interviews/' || NEW.id,
+            '/consultant/' || NEW.user_id || '/induction',
             jsonb_build_object(
                 'ob_partner_id', NEW.ob_partner_id,
                 'partner_name', v_partner_name
@@ -687,7 +699,7 @@ BEGIN
             'induction',
             'New Interview Scheduled',
             'You have a new interview scheduled with ' || v_user_name,
-            '/interviews/' || NEW.id,
+            '/admin/dashboard',
             jsonb_build_object(
                 'consultant_id', NEW.user_id,
                 'consultant_name', v_user_name
@@ -699,6 +711,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_ob_interview_scheduled ON public.connect_with_ob_partners;
 CREATE TRIGGER trigger_ob_interview_scheduled
 AFTER INSERT ON public.connect_with_ob_partners
 FOR EACH ROW
@@ -718,7 +731,7 @@ BEGIN
             'project',
             'New Review Received',
             'You have received a new review from a client',
-            '/reviews/' || NEW.id,
+            '/consultant/' || NEW.consultant_id || '/dashboard',
             jsonb_build_object(
                 'overall_rating', NEW.overall_rating,
                 'project_id', NEW.project_id
@@ -733,7 +746,7 @@ BEGIN
             'project',
             'New Review Received',
             'You have received a new review from a consultant',
-            '/reviews/' || NEW.id,
+            '/client/' || NEW.client_id || '/dashboard',
             jsonb_build_object(
                 'overall_rating', NEW.overall_rating,
                 'project_id', NEW.project_id
@@ -746,11 +759,13 @@ END;
 $$;
 
 -- Create triggers for both review tables
+DROP TRIGGER IF EXISTS trigger_client_review_received ON public.client_reviews;
 CREATE TRIGGER trigger_client_review_received
 AFTER INSERT ON public.client_reviews
 FOR EACH ROW
 EXECUTE FUNCTION notify_review_received();
 
+DROP TRIGGER IF EXISTS trigger_consultant_review_received ON public.consultant_reviews;
 CREATE TRIGGER trigger_consultant_review_received
 AFTER INSERT ON public.consultant_reviews
 FOR EACH ROW
@@ -789,7 +804,7 @@ BEGIN
                 'message',
                 'New Message in Project',
                 v_sender_name || ' sent you a message',
-                '/messages/project/' || NEW.project_id,
+                '/dashboard',
                 jsonb_build_object(
                     'project_id', NEW.project_id,
                     'sender_id', NEW.sender_id
@@ -802,6 +817,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_new_project_message ON public.project_communications;
 CREATE TRIGGER trigger_new_project_message
 AFTER INSERT ON public.project_communications
 FOR EACH ROW
